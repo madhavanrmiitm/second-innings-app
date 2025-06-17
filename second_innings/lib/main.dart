@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
             fontFamily: GoogleFonts.poppins().fontFamily,
           ),
           themeMode: ThemeMode.system,
-          home: WelcomeScreen(),
+          home: const WelcomeScreen(),
         );
       },
     );
