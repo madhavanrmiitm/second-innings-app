@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/auth/register.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -207,7 +208,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
                 child: FilledButton.tonalIcon(
                   onPressed: () {
-                    // TODO: Navigate to the next screen.
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterScreen(
+                          googleAccountId: 'user@gmail.com',
+                        ),
+                      ),
+                    );
                   },
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(Colors.white),
