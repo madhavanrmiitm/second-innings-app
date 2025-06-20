@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/dashboard/caregiver/caregiver_home.dart';
+import 'package:second_innings/dashboard/family/family_home.dart';
+import 'package:second_innings/dashboard/senior_citizen/senior_citizen_home.dart';
 import 'package:second_innings/util/validate.dart';
 
 enum UserType { seniorCitizen, family, caregiver }
@@ -44,8 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
-          SliverAppBar(
-            expandedHeight: 120.0,
+          SliverAppBar.large(
             pinned: true,
             floating: false,
             elevation: 0,
@@ -181,13 +183,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ElevatedButton.icon(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          // Process data
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Data is valid! Next step TODO.'),
-                            ),
-                          );
-                          // TODO: Handle registration logic based on user type.
+                          switch (_selectedUserType) {
+                            case UserType.seniorCitizen:
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SeniorCitizenHomePage(),
+                                ),
+                              );
+                              break;
+                            case UserType.family:
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const FamilyHomePage(),
+                                ),
+                              );
+                              break;
+                            case UserType.caregiver:
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const CaregiverHomePage(),
+                                ),
+                              );
+                              break;
+                          }
                         }
                       },
                       icon: const Icon(Icons.navigate_next_rounded),
