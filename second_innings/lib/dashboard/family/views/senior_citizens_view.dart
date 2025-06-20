@@ -54,7 +54,7 @@ class SeniorCitizensView extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Welcome, Anusha!',
+                  'Welcome, Anushka Sharma',
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onPrimaryContainer,
                   ),

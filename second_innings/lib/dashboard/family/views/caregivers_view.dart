@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/auth/welcome.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -36,11 +37,23 @@ class _CaregiversViewState extends State<CaregiversView> {
             padding: const EdgeInsets.only(left: 8.0),
             child: IconButton(
               icon: Image.asset("assets/logo.png"),
-              onPressed: () {},
+              onPressed: () {
+                debugPrint('logo.OnPressed()');
+              },
             ),
           ),
           actions: [
-            IconButton(icon: const Icon(Icons.refresh), onPressed: () {}),
+            IconButton(
+              icon: const Icon(Icons.logout_rounded),
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const WelcomeScreen(),
+                  ),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
           ],
           flexibleSpace: FlexibleSpaceBar(
             centerTitle: true,
