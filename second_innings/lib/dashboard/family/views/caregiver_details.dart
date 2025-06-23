@@ -6,7 +6,7 @@ class CaregiverDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Caregiver Details')),
+      appBar: AppBar(title: const Text('hghbki Caregiver Details')),
       body: const Center(child: Text('Caregiver Details Page')),
     );
   }
