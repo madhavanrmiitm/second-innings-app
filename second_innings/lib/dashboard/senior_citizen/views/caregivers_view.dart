@@ -1,5 +1,7 @@
+// caregivers_view.dart
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/welcome.dart';
+import 'caregiver_details_view.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -30,7 +32,7 @@ class _CaregiversViewState extends State<CaregiversView> {
           floating: true,
           snap: false,
           elevation: 0,
-          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.8),
+          backgroundColor: colorScheme.primaryContainer.withAlpha(204),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
           ),
@@ -103,7 +105,7 @@ class _CaregiversViewState extends State<CaregiversView> {
         hintText: 'Search based on needs',
         prefixIcon: const Icon(Icons.search),
         filled: true,
-        fillColor: colorScheme.primaryContainer.withValues(alpha: 0.2),
+        fillColor: colorScheme.primaryContainer.withAlpha(51),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
@@ -132,9 +134,7 @@ class _CaregiversViewState extends State<CaregiversView> {
                   }
                 });
               },
-              selectedColor: colorScheme.primaryContainer.withValues(
-                alpha: 0.4,
-              ),
+              selectedColor: colorScheme.primaryContainer.withAlpha(102),
               checkmarkColor: colorScheme.onPrimaryContainer,
             ),
           );
@@ -167,46 +167,64 @@ class _CaregiversViewState extends State<CaregiversView> {
       itemCount: caregivers.length,
       itemBuilder: (context, index) {
         final caregiver = caregivers[index];
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Material(
+            color: colorScheme.primaryContainer.withAlpha(51),
             borderRadius: BorderRadius.circular(20),
-          ),
-          color: colorScheme.primaryContainer.withValues(alpha: 0.2),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  caregiver['name'].toString(),
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CaregiverDetailsView(
+                      name: caregiver['name'] as String,
+                      age: caregiver['age'] as String,
+                      gender: caregiver['gender'] as String,
+                      desc: caregiver['desc'] as String,
+                      tags: caregiver['tags'] as List<String>,
+                    ),
                   ),
+                );
+              },
+              hoverColor: colorScheme.primaryContainer.withAlpha(100),
+              splashColor: colorScheme.primary.withAlpha(80),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      caregiver['name'].toString(),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${caregiver['age']} . ${caregiver['gender']}',
+                      style: textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(caregiver['desc'] as String,
+                        style: textTheme.bodyMedium),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8.0,
+                      children: (caregiver['tags'] as List<String>)
+                          .map(
+                            (tag) => Chip(
+                              label: Text(tag),
+                              backgroundColor:
+                                  colorScheme.surface.withAlpha(128),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${caregiver['age']} . ${caregiver['gender']}',
-                  style: textTheme.titleSmall,
-                ),
-                const SizedBox(height: 16),
-                Text(caregiver['desc'] as String, style: textTheme.bodyMedium),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8.0,
-                  children: (caregiver['tags'] as List<String>)
-                      .map(
-                        (tag) => Chip(
-                          label: Text(tag),
-                          backgroundColor: colorScheme.surface.withValues(
-                            alpha: 0.5,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
+              ),
             ),
           ),
         );
