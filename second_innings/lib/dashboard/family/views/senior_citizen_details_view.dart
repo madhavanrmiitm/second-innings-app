@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/welcome.dart';
-import 'package:second_innings/dashboard/family/views/link_new_senior_citizen_view.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
+import 'package:second_innings/dashboard/family/views/senior_citizen_health_logs_view.dart';
+import 'package:second_innings/dashboard/family/views/senior_citizen_reminders_view.dart';
 
 class SeniorCitizenDetailPage extends StatelessWidget {
   final String name;
@@ -25,8 +26,6 @@ class SeniorCitizenDetailPage extends StatelessWidget {
         slivers: [
           SliverAppBar.large(
             pinned: true,
-            floating: true,
-            snap: false,
             elevation: 0,
             backgroundColor: colorScheme.primaryContainer.withAlpha(204),
             shape: const RoundedRectangleBorder(
@@ -41,33 +40,20 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                 icon: const Icon(Icons.logout_rounded),
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const WelcomeScreen(),
-                    ),
-                    (Route<dynamic> route) => false,
+                    MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                    (route) => false,
                   );
                 },
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '2nd Innings',
-                    style: textTheme.titleLarge?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Welcome, Anushka Sharma',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
+              title: Text(
+                name,
+                style: textTheme.titleLarge?.copyWith(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               titlePadding: const EdgeInsets.only(bottom: 16),
             ),
@@ -78,85 +64,100 @@ class SeniorCitizenDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
                   Text("Relation: $relation", style: textTheme.bodyLarge),
                   const SizedBox(height: 32),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SeniorCitizenHealthLogsPage(
+                            name: name,
+                            relation: relation,
+                          ),
+                        ),
+                      );
+                    },
                     child: Card(
                       elevation: 0,
                       margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       color: colorScheme.primaryContainer.withAlpha(51),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-                              child: Text("D", style: TextStyle(color: colorScheme.onPrimaryContainer)),
-                            ),
-                            const SizedBox(width: 16),
-                            Text("Display Health Logs", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                            const Spacer(),
-                            const Icon(Icons.arrow_forward_ios_rounded, size: 20),
-                          ],
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: colorScheme.primaryContainer.withAlpha(204),
+                          child: Text("H", style: TextStyle(color: colorScheme.onPrimaryContainer)),
                         ),
+                        title: Text("Display Health Logs", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
                       ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SeniorCitizenRemindersPage(
+                            name: name,
+                            relation: relation,
+                          ),
+                        ),
+                      );
+                    },
                     child: Card(
                       elevation: 0,
                       margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       color: colorScheme.primaryContainer.withAlpha(51),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-                              child: Text("R", style: TextStyle(color: colorScheme.onPrimaryContainer)),
-                            ),
-                            const SizedBox(width: 16),
-                            Text("Reminders", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                            const Spacer(),
-                            const Icon(Icons.arrow_forward_ios_rounded, size: 20),
-                          ],
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: colorScheme.primaryContainer.withAlpha(204),
+                          child: Text("R", style: TextStyle(color: colorScheme.onPrimaryContainer)),
                         ),
+                        title: Text("Reminders", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
                       ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Confirm Delink"),
+                          content: Text("Are you sure you want to delink $name?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.pop(context);
+                              },
+                              child: const Text(
+                                "Delink",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     child: Card(
                       elevation: 0,
                       margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       color: Colors.red.withOpacity(0.2),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.red,
-                              child: Text("D", style: TextStyle(color: Colors.white)),
-                            ),
-                            const SizedBox(width: 16),
-                            Text("Delink Senior Citizen", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                            const Spacer(),
-                            const Icon(Icons.arrow_forward_ios_rounded, size: 20),
-                          ],
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: Colors.red,
+                          child: Text("D", style: TextStyle(color: Colors.white)),
                         ),
+                        title: Text("Delink Senior Citizen", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
                       ),
                     ),
                   ),
@@ -194,5 +195,3 @@ class SeniorCitizenDetailPage extends StatelessWidget {
     );
   }
 }
-
-
