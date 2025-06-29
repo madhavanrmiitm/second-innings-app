@@ -1,0 +1,107 @@
+// Custom variables
+$primary: #16a34a;
+$secondary: #6c757d;
+$success: #16a34a;
+$info: #0dcaf0;
+$warning: #ffc107;
+$danger: #dc3545;
+$light: #f8f9fa;
+$dark: #212529;
+
+// Import Bootstrap
+@import 'bootstrap/scss/bootstrap';
+
+// Custom styles
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f5f5f5;
+}
+
+.sidebar {
+  min-height: calc(100vh - 56px);
+  width: 250px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  
+  .nav-link {
+    color: #333;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.25rem;
+    border-radius: 0.375rem;
+    
+    &:hover {
+      background-color: #f8f9fa;
+      color: #16a34a;
+    }
+    
+    &.active {
+      background-color: #e6f7ed;
+      color: #16a34a;
+      font-weight: 500;
+    }
+    
+    i {
+      width: 20px;
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 56px);
+}
+
+.stat-card {
+  transition: transform 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.avatar-lg {
+  width: 48px;
+  height: 48px;
+}
+
+// Loading spinner
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
