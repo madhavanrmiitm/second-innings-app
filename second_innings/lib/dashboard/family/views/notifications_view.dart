@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/welcome.dart';
-import 'package:second_innings/dashboard/family/family_home.dart';
 
 class NotificationsView extends StatelessWidget {
   final int selectedIndex;
@@ -45,7 +44,9 @@ class NotificationsView extends StatelessWidget {
                 icon: const Icon(Icons.logout_rounded),
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
                     (route) => false,
                   );
                 },
@@ -76,13 +77,18 @@ class NotificationsView extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 24.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     "Today, 29th May",
-                    style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ...todayNotifications.map(
@@ -93,15 +99,15 @@ class NotificationsView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       color: colorScheme.primaryContainer.withAlpha(51),
-                      child: ListTile(
-                        title: Text(notification),
-                      ),
+                      child: ListTile(title: Text(notification)),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Text(
                     "Last Week, 23rd May",
-                    style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ...lastWeekNotifications.map(
@@ -112,9 +118,7 @@ class NotificationsView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       color: colorScheme.primaryContainer.withAlpha(51),
-                      child: ListTile(
-                        title: Text(notification),
-                      ),
+                      child: ListTile(title: Text(notification)),
                     ),
                   ),
                   const SizedBox(height: 24),

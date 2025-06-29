@@ -66,9 +66,6 @@
 //   }
 // }
 
-
-
-
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/family/views/caregivers_view.dart';
 import 'package:second_innings/dashboard/family/views/notifications_view.dart';
@@ -135,10 +132,7 @@ class _FamilyHomePageState extends State<FamilyHomePage> {
             icon: Icon(Icons.notifications_outlined),
             label: 'Notifications',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Caregivers',
-          ),
+          NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
         ],
       ),
     );

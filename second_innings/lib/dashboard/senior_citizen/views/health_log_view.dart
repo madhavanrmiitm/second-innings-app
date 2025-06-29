@@ -14,9 +14,7 @@ class HealthLogView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Health Log'),
-      ),
+      appBar: AppBar(title: const Text('Health Log')),
       body: ListView.builder(
         itemCount: _healthLogs.length,
         itemBuilder: (context, index) {

@@ -172,8 +172,6 @@
 //   }
 // }
 
-
-
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
 
@@ -182,7 +180,8 @@ class LinkNewSeniorCitizenPage extends StatefulWidget {
   const LinkNewSeniorCitizenPage({super.key, this.selectedIndex = 0});
 
   @override
-  State<LinkNewSeniorCitizenPage> createState() => _LinkNewSeniorCitizenPageState();
+  State<LinkNewSeniorCitizenPage> createState() =>
+      _LinkNewSeniorCitizenPageState();
 }
 
 class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
@@ -247,7 +246,8 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
                         children: [
                           CircleAvatar(
                             radius: 80,
-                            backgroundColor: colorScheme.primaryContainer.withAlpha(100),
+                            backgroundColor: colorScheme.primaryContainer
+                                .withAlpha(100),
                             child: const Icon(Icons.person, size: 80),
                           ),
                           Positioned(
@@ -259,13 +259,19 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
                               icon: const Icon(Icons.upload_file, size: 16),
                               label: const Text("Upload member's headshot"),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.primaryContainer.withAlpha(40),
+                                backgroundColor: colorScheme.primaryContainer
+                                    .withAlpha(40),
                                 foregroundColor: colorScheme.onSurface,
                                 textStyle: textTheme.bodySmall,
                                 elevation: 1,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
                                 minimumSize: const Size(0, 24),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               ),
                             ),
                           ),
@@ -305,7 +311,11 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).floatingActionButtonTheme.backgroundColor ?? colorScheme.primary,
+                          backgroundColor:
+                              Theme.of(
+                                context,
+                              ).floatingActionButtonTheme.backgroundColor ??
+                              colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
@@ -314,7 +324,9 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
                         onPressed: () {
                           if (_formKey.currentState?.validate() ?? false) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Senior citizen linked!')),
+                              const SnackBar(
+                                content: Text('Senior citizen linked!'),
+                              ),
                             );
                             Navigator.pushReplacement(
                               context,
@@ -338,9 +350,7 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
         onDestinationSelected: (int index) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => const FamilyHomePage(),
-            ),
+            MaterialPageRoute(builder: (context) => const FamilyHomePage()),
           );
         },
         destinations: const [
@@ -352,10 +362,7 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
             icon: Icon(Icons.notifications_outlined),
             label: 'Notifications',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Caregivers',
-          ),
+          NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
         ],
       ),
     );

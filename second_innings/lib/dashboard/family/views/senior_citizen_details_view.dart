@@ -40,7 +40,9 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                 icon: const Icon(Icons.logout_rounded),
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
                     (route) => false,
                   );
                 },
@@ -60,7 +62,10 @@ class SeniorCitizenDetailPage extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 24.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -81,15 +86,31 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                     child: Card(
                       elevation: 0,
                       margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       color: colorScheme.primaryContainer.withAlpha(51),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-                          child: Text("H", style: TextStyle(color: colorScheme.onPrimaryContainer)),
+                          backgroundColor: colorScheme.primaryContainer
+                              .withAlpha(204),
+                          child: Text(
+                            "H",
+                            style: TextStyle(
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                          ),
                         ),
-                        title: Text("Display Health Logs", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
+                        title: Text(
+                          "Display Health Logs",
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),
@@ -108,15 +129,31 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                     child: Card(
                       elevation: 0,
                       margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       color: colorScheme.primaryContainer.withAlpha(51),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-                          child: Text("R", style: TextStyle(color: colorScheme.onPrimaryContainer)),
+                          backgroundColor: colorScheme.primaryContainer
+                              .withAlpha(204),
+                          child: Text(
+                            "R",
+                            style: TextStyle(
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                          ),
                         ),
-                        title: Text("Reminders", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
+                        title: Text(
+                          "Reminders",
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),
@@ -126,7 +163,9 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                         context: context,
                         builder: (context) => AlertDialog(
                           title: const Text("Confirm Delink"),
-                          content: Text("Are you sure you want to delink $name?"),
+                          content: Text(
+                            "Are you sure you want to delink $name?",
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
@@ -149,15 +188,28 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                     child: Card(
                       elevation: 0,
                       margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      color: Colors.red.withOpacity(0.2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      color: Colors.red.withValues(alpha: 0.2),
                       child: ListTile(
                         leading: const CircleAvatar(
                           backgroundColor: Colors.red,
-                          child: Text("D", style: TextStyle(color: Colors.white)),
+                          child: Text(
+                            "D",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
-                        title: Text("Delink Senior Citizen", style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
+                        title: Text(
+                          "Delink Senior Citizen",
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),
@@ -186,10 +238,7 @@ class SeniorCitizenDetailPage extends StatelessWidget {
             icon: Icon(Icons.notifications_outlined),
             label: 'Notifications',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Caregivers',
-          ),
+          NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
         ],
       ),
     );

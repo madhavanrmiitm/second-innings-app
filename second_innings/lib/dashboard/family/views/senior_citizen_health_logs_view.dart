@@ -14,10 +14,12 @@ class SeniorCitizenHealthLogsPage extends StatefulWidget {
   });
 
   @override
-  State<SeniorCitizenHealthLogsPage> createState() => _SeniorCitizenHealthLogsPageState();
+  State<SeniorCitizenHealthLogsPage> createState() =>
+      _SeniorCitizenHealthLogsPageState();
 }
 
-class _SeniorCitizenHealthLogsPageState extends State<SeniorCitizenHealthLogsPage> {
+class _SeniorCitizenHealthLogsPageState
+    extends State<SeniorCitizenHealthLogsPage> {
   late DateTime selectedDate;
 
   @override
@@ -71,16 +73,26 @@ class _SeniorCitizenHealthLogsPageState extends State<SeniorCitizenHealthLogsPag
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 24.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Medical History
-                  Text("Medical History", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    "Medical History",
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Card(
                     color: colorScheme.primaryContainer.withAlpha(51),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Text(
@@ -91,11 +103,18 @@ class _SeniorCitizenHealthLogsPageState extends State<SeniorCitizenHealthLogsPag
                   ),
                   const SizedBox(height: 24),
                   // Regular Medications
-                  Text("Regular Medications", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    "Regular Medications",
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Card(
                     color: colorScheme.primaryContainer.withAlpha(51),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Text(
@@ -134,7 +153,9 @@ class _SeniorCitizenHealthLogsPageState extends State<SeniorCitizenHealthLogsPag
                   const SizedBox(height: 8),
                   Card(
                     color: colorScheme.primaryContainer.withAlpha(51),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Text(
@@ -169,10 +190,7 @@ class _SeniorCitizenHealthLogsPageState extends State<SeniorCitizenHealthLogsPag
             icon: Icon(Icons.notifications_outlined),
             label: 'Notifications',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Caregivers',
-          ),
+          NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
         ],
       ),
     );

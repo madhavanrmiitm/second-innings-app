@@ -210,16 +210,23 @@ class _CaregiversViewState extends State<CaregiversView> {
                       style: textTheme.titleSmall,
                     ),
                     const SizedBox(height: 16),
-                    Text(caregiver['desc'] as String, style: textTheme.bodyMedium),
+                    Text(
+                      caregiver['desc'] as String,
+                      style: textTheme.bodyMedium,
+                    ),
                     const SizedBox(height: 16),
                     Wrap(
                       spacing: 8.0,
-                      children: (caregiver['tags'] as List<dynamic>).map<Widget>(
-                        (tag) => Chip(
-                          label: Text(tag as String),
-                          backgroundColor: colorScheme.surface.withAlpha(128),
-                        ),
-                      ).toList(),
+                      children: (caregiver['tags'] as List<dynamic>)
+                          .map<Widget>(
+                            (tag) => Chip(
+                              label: Text(tag as String),
+                              backgroundColor: colorScheme.surface.withAlpha(
+                                128,
+                              ),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ],
                 ),

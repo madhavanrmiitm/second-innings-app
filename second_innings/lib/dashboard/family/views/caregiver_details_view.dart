@@ -26,7 +26,7 @@ class CaregiverDetailsView extends StatefulWidget {
 }
 
 class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
-  int _selectedIndex = 2;
+  final int _selectedIndex = 2;
 
   final List<Widget> _widgetOptions = <Widget>[
     const SeniorCitizensView(),
@@ -46,7 +46,7 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       body: CustomScrollView(
         slivers: [
           SliverAppBar.large(
@@ -70,7 +70,9 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
                 icon: const Icon(Icons.logout_rounded, color: Colors.black),
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
                     (Route<dynamic> route) => false,
                   );
                 },
@@ -112,18 +114,22 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text('${widget.age} • ${widget.gender}', style: textTheme.titleMedium),
+                  Text(
+                    '${widget.age} • ${widget.gender}',
+                    style: textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 16),
                   Text(widget.desc, style: textTheme.bodyLarge),
                   const SizedBox(height: 24),
                   Wrap(
                     spacing: 8.0,
                     children: widget.tags
-                        .map((tag) => Chip(
-                              label: Text(tag),
-                              backgroundColor:
-                                  colorScheme.surface.withAlpha(128),
-                            ))
+                        .map(
+                          (tag) => Chip(
+                            label: Text(tag),
+                            backgroundColor: colorScheme.surface.withAlpha(128),
+                          ),
+                        )
                         .toList(),
                   ),
                   const SizedBox(height: 80),
@@ -160,10 +166,7 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
                   icon: const Icon(Icons.play_arrow, size: 20),
                   label: const Text(
                     'Hire this Caregiver',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
               ),

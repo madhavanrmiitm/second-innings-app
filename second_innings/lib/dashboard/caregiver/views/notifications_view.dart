@@ -6,8 +6,14 @@ class NotificationsView extends StatelessWidget {
   // Sample list of notifications
   final List<Map<String, String>> notifications = const [
     {'title': 'Medication Reminder', 'subtitle': 'Time to take Ibuprofen'},
-    {'title': 'Appointment Reminder', 'subtitle': 'Appointment with Dr. Smith at 3 PM'},
-    {'title': 'New Message', 'subtitle': 'You have a new message from John Doe'},
+    {
+      'title': 'Appointment Reminder',
+      'subtitle': 'Appointment with Dr. Smith at 3 PM',
+    },
+    {
+      'title': 'New Message',
+      'subtitle': 'You have a new message from John Doe',
+    },
     {'title': 'Activity Alert', 'subtitle': 'Patient activity detected'},
     {'title': 'System Update', 'subtitle': 'App update available'},
   ];
@@ -15,9 +21,7 @@ class NotificationsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
-      ),
+      appBar: AppBar(title: const Text('Notifications')),
       body: ListView.builder(
         itemCount: notifications.length,
         itemBuilder: (context, index) {

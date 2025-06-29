@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/welcome.dart';
-import 'package:second_innings/dashboard/family/views/link_new_senior_citizen_view.dart';
-import 'package:second_innings/dashboard/family/family_home.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizen_details_view.dart';
 
 class SeniorCitizensView extends StatelessWidget {
@@ -84,8 +82,8 @@ class SeniorCitizensView extends StatelessWidget {
                   Text(
                     "Senior Citizens",
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     "linked to me.",
@@ -130,10 +128,13 @@ class SeniorCitizensView extends StatelessWidget {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: colorScheme.primaryContainer.withAlpha(204),
+                            backgroundColor: colorScheme.primaryContainer
+                                .withAlpha(204),
                             child: Text(
                               name.isNotEmpty ? name[0] : '?',
-                              style: TextStyle(color: colorScheme.onPrimaryContainer),
+                              style: TextStyle(
+                                color: colorScheme.onPrimaryContainer,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -142,12 +143,8 @@ class SeniorCitizensView extends StatelessWidget {
                             children: [
                               Text(
                                 name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               Text(
                                 relation,
@@ -183,4 +180,3 @@ class SeniorCitizensView extends StatelessWidget {
     );
   }
 }
-

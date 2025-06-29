@@ -37,7 +37,9 @@ class SeniorCitizenNewReminderPage extends StatelessWidget {
                 icon: const Icon(Icons.logout_rounded),
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
                     (route) => false,
                   );
                 },
@@ -80,7 +82,11 @@ class SeniorCitizenNewReminderPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Center(
-                      child: Icon(Icons.mic, size: 64, color: colorScheme.primary),
+                      child: Icon(
+                        Icons.mic,
+                        size: 64,
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -108,7 +114,9 @@ class SeniorCitizenNewReminderPage extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(
                             "Create New Log",
-                            style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                            style: textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -139,10 +147,7 @@ class SeniorCitizenNewReminderPage extends StatelessWidget {
             icon: Icon(Icons.notifications_outlined),
             label: 'Notifications',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Caregivers',
-          ),
+          NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
         ],
       ),
     );

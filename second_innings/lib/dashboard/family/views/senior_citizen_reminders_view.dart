@@ -171,8 +171,6 @@
 //   }
 // }
 
-
-
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/welcome.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
@@ -222,7 +220,9 @@ class SeniorCitizenRemindersPage extends StatelessWidget {
                 icon: const Icon(Icons.logout_rounded),
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
                     (route) => false,
                   );
                 },
@@ -253,20 +253,27 @@ class SeniorCitizenRemindersPage extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 24.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     name,
-                    style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text("Relation: $relation", style: textTheme.bodyLarge),
                   const SizedBox(height: 24),
                   Text(
                     "Reminders",
-                    style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ...reminders.map(
@@ -279,7 +286,10 @@ class SeniorCitizenRemindersPage extends StatelessWidget {
                       color: colorScheme.primaryContainer.withAlpha(51),
                       child: ListTile(
                         title: Text(reminder),
-                        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 18,
+                        ),
                         onTap: () {
                           // Optionally handle reminder tap
                         },
@@ -292,7 +302,8 @@ class SeniorCitizenRemindersPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SeniorCitizenNewReminderPage(name: name),
+                          builder: (context) =>
+                              SeniorCitizenNewReminderPage(name: name),
                         ),
                       );
                     },
@@ -310,7 +321,9 @@ class SeniorCitizenRemindersPage extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(
                             "Add New Reminder",
-                            style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                            style: textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -342,10 +355,7 @@ class SeniorCitizenRemindersPage extends StatelessWidget {
             icon: Icon(Icons.notifications_outlined),
             label: 'Notifications',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Caregivers',
-          ),
+          NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
         ],
       ),
     );
