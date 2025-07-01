@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/create_new_health_log_page.dart'; // Assuming the file path
 
 class HealthLogView extends StatelessWidget {
   const HealthLogView({super.key});
@@ -26,6 +27,16 @@ class HealthLogView extends StatelessWidget {
             subtitle: Text(logEntry['description']!),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CreateNewHealthLogPage()),
+          );
+        },
+        label: const Text('Create New'),
+        icon: const Icon(Icons.add),
       ),
     );
   }
