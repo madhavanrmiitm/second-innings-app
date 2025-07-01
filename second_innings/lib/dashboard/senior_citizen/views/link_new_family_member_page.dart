@@ -6,25 +6,15 @@ class LinkNewFamilyMemberPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Link New Family Member'),
-      ),
+      appBar: AppBar(title: const Text('Link New Family Member')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Name',
-              ),
-            ),
+            TextField(decoration: InputDecoration(labelText: 'Name')),
             SizedBox(height: 16.0),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Relationship',
-              ),
-            ),
+            TextField(decoration: InputDecoration(labelText: 'Relationship')),
             SizedBox(height: 24.0),
             ElevatedButton(
               onPressed: () {
