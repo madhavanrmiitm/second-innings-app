@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/create_new_health_log_page.dart';
 
 class HealthLogView extends StatelessWidget {
   const HealthLogView({super.key});
@@ -14,9 +15,7 @@ class HealthLogView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Health Log'),
-      ),
+      appBar: AppBar(title: const Text('Health Log')),
       body: ListView.builder(
         itemCount: _healthLogs.length,
         itemBuilder: (context, index) {
@@ -26,6 +25,18 @@ class HealthLogView extends StatelessWidget {
             subtitle: Text(logEntry['description']!),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreateNewHealthLogPage(),
+            ),
+          );
+        },
+        label: const Text('Create New'),
+        icon: const Icon(Icons.add),
       ),
     );
   }

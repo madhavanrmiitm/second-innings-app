@@ -40,8 +40,7 @@ class FamilyView extends StatelessWidget {
             ),
           );
         },
-        label: const Text('Link New'),
-        icon: const Icon(Icons.add),
+        label: const Text('+ Link New'),
       ),
     );
   }
