@@ -15,9 +15,7 @@ class HealthLogView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Health Log'),
-      ),
+      appBar: AppBar(title: const Text('Health Log')),
       body: ListView.builder(
         itemCount: _healthLogs.length,
         itemBuilder: (context, index) {
@@ -32,7 +30,9 @@ class HealthLogView extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CreateNewHealthLogPage()),
+            MaterialPageRoute(
+              builder: (context) => const CreateNewHealthLogPage(),
+            ),
           );
         },
         label: const Text('Create New'),
