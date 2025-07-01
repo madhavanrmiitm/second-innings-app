@@ -1,5 +1,7 @@
+// caregivers_view.dart (for Family)
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/welcome.dart';
+import 'package:second_innings/dashboard/family/views/caregiver_details_view.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -23,78 +25,80 @@ class _CaregiversViewState extends State<CaregiversView> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar.large(
-          pinned: true,
-          floating: false,
-          elevation: 0,
-          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.8),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-          ),
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: IconButton(
-              icon: Image.asset("assets/logo.png"),
-              onPressed: () {
-                debugPrint('logo.OnPressed()');
-              },
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            pinned: true,
+            floating: false,
+            elevation: 0,
+            backgroundColor: colorScheme.primaryContainer.withAlpha(204),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
             ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout_rounded),
-              onPressed: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => const WelcomeScreen(),
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: IconButton(
+                icon: Image.asset("assets/logo.png"),
+                onPressed: () {
+                  debugPrint('Logo tapped');
+                },
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout_rounded),
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
+                    (Route<dynamic> route) => false,
+                  );
+                },
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '2nd Innings',
+                    style: textTheme.titleLarge?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  (Route<dynamic> route) => false,
-                );
-              },
-            ),
-          ],
-          flexibleSpace: FlexibleSpaceBar(
-            centerTitle: true,
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '2nd Innings',
-                  style: textTheme.titleLarge?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    'Welcome, Anushka Sharma',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                    ),
                   ),
-                ),
-                Text(
-                  'Welcome, Anushka Sharma',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ],
-            ),
-            titlePadding: const EdgeInsets.only(bottom: 16),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16),
-                _buildSearchBar(colorScheme),
-                const SizedBox(height: 16),
-                _buildFilterChips(context, colorScheme),
-                const SizedBox(height: 24),
-              ],
+                ],
+              ),
+              titlePadding: const EdgeInsets.only(bottom: 16),
             ),
           ),
-        ),
-        _buildCaregiverList(colorScheme, textTheme),
-      ],
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildSearchBar(colorScheme),
+                  const SizedBox(height: 16),
+                  _buildFilterChips(colorScheme),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+          _buildCaregiverList(colorScheme, textTheme),
+        ],
+      ),
     );
   }
 
@@ -104,7 +108,7 @@ class _CaregiversViewState extends State<CaregiversView> {
         hintText: 'Search based on needs',
         prefixIcon: const Icon(Icons.search),
         filled: true,
-        fillColor: colorScheme.primaryContainer.withValues(alpha: 0.2),
+        fillColor: colorScheme.primaryContainer.withAlpha(51),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
@@ -113,7 +117,7 @@ class _CaregiversViewState extends State<CaregiversView> {
     );
   }
 
-  Widget _buildFilterChips(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildFilterChips(ColorScheme colorScheme) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -133,9 +137,7 @@ class _CaregiversViewState extends State<CaregiversView> {
                   }
                 });
               },
-              selectedColor: colorScheme.primaryContainer.withValues(
-                alpha: 0.4,
-              ),
+              selectedColor: colorScheme.primaryContainer.withAlpha(102),
               checkmarkColor: colorScheme.onPrimaryContainer,
             ),
           );
@@ -167,47 +169,68 @@ class _CaregiversViewState extends State<CaregiversView> {
     return SliverList.builder(
       itemCount: caregivers.length,
       itemBuilder: (context, index) {
-        final caregiver = caregivers[index];
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
+        final caregiver = caregivers[index] as Map<String, dynamic>;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Material(
+            color: colorScheme.primaryContainer.withAlpha(51),
             borderRadius: BorderRadius.circular(20),
-          ),
-          color: colorScheme.primaryContainer.withValues(alpha: 0.2),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${caregiver['name']}',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              hoverColor: colorScheme.primaryContainer.withAlpha(100),
+              splashColor: colorScheme.primary.withAlpha(80),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => CaregiverDetailsView(
+                      name: caregiver['name'] as String,
+                      age: caregiver['age'] as String,
+                      gender: caregiver['gender'] as String,
+                      desc: caregiver['desc'] as String,
+                      tags: List<String>.from(caregiver['tags'] as List),
+                    ),
                   ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      caregiver['name'] as String,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${caregiver['age']} . ${caregiver['gender']}',
+                      style: textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      caregiver['desc'] as String,
+                      style: textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8.0,
+                      children: (caregiver['tags'] as List<dynamic>)
+                          .map<Widget>(
+                            (tag) => Chip(
+                              label: Text(tag as String),
+                              backgroundColor: colorScheme.surface.withAlpha(
+                                128,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '${caregiver['age']} . ${caregiver['gender']}',
-                  style: textTheme.titleSmall,
-                ),
-                const SizedBox(height: 12),
-                Text(caregiver['desc'] as String, style: textTheme.bodyMedium),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8.0,
-                  children: (caregiver['tags'] as List<String>)
-                      .map(
-                        (tag) => Chip(
-                          label: Text(tag),
-                          backgroundColor: colorScheme.surface.withValues(
-                            alpha: 0.5,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
+              ),
             ),
           ),
         );
