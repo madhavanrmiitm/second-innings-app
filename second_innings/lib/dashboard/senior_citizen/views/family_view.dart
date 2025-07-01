@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/link_new_family_member_page.dart';
 
 class FamilyView extends StatelessWidget {
   const FamilyView({super.key});
@@ -28,6 +29,17 @@ class FamilyView extends StatelessWidget {
             // Add onTap functionality if needed
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // Navigate to the LinkNewFamilyMemberPage
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const LinkNewFamilyMemberPage()),
+          );
+        },
+        label: const Text('Link New'),
+        icon: const Icon(Icons.add),
       ),
     );
   }
