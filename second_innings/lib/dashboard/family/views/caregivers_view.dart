@@ -47,7 +47,7 @@ class _CaregiversViewState extends State<CaregiversView> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.logout_rounded, color: Colors.black),
+                icon: const Icon(Icons.logout_rounded),
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(

@@ -61,13 +61,13 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
             leading: Padding(
               padding: const EdgeInsets.only(left: 8.0),
               child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.logout_rounded, color: Colors.black),
+                icon: const Icon(Icons.logout_rounded),
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(

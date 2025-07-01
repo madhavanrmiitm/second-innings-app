@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:second_innings/auth/welcome.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizen_health_logs_view.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizen_reminders_view.dart';
@@ -35,19 +34,6 @@ class SeniorCitizenDetailPage extends StatelessWidget {
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.logout_rounded),
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const WelcomeScreen(),
-                    ),
-                    (route) => false,
-                  );
-                },
-              ),
-            ],
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
@@ -67,11 +53,20 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                 vertical: 24.0,
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text("Relation: $relation", style: textTheme.bodyLarge),
+                  Center(
+                    child: Text(
+                      "Relation: $relation",
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 32),
-                  GestureDetector(
+                  _FeatureCard(
+                    title: "Health Logs",
+                    icon: Icons.monitor_heart_outlined,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -83,38 +78,12 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                         ),
                       );
                     },
-                    child: Card(
-                      elevation: 0,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      color: colorScheme.primaryContainer.withAlpha(51),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: colorScheme.primaryContainer
-                              .withAlpha(204),
-                          child: Text(
-                            "H",
-                            style: TextStyle(
-                              color: colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          "Display Health Logs",
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 20,
-                        ),
-                      ),
-                    ),
+                    colorScheme: colorScheme,
                   ),
-                  GestureDetector(
+                  const SizedBox(height: 16),
+                  _FeatureCard(
+                    title: "Reminders",
+                    icon: Icons.notifications_active_outlined,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -126,39 +95,11 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                         ),
                       );
                     },
-                    child: Card(
-                      elevation: 0,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      color: colorScheme.primaryContainer.withAlpha(51),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: colorScheme.primaryContainer
-                              .withAlpha(204),
-                          child: Text(
-                            "R",
-                            style: TextStyle(
-                              color: colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          "Reminders",
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 20,
-                        ),
-                      ),
-                    ),
+                    colorScheme: colorScheme,
                   ),
-                  GestureDetector(
-                    onTap: () {
+                  const SizedBox(height: 32),
+                  OutlinedButton.icon(
+                    onPressed: () {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -185,31 +126,14 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                         ),
                       );
                     },
-                    child: Card(
-                      elevation: 0,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
+                    icon: const Icon(Icons.link_off),
+                    label: const Text("Delink Senior Citizen"),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      foregroundColor: colorScheme.error,
+                      side: BorderSide(color: colorScheme.error),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                      ),
-                      color: Colors.red.withValues(alpha: 0.2),
-                      child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.red,
-                          child: Text(
-                            "D",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        title: Text(
-                          "Delink Senior Citizen",
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 20,
-                        ),
                       ),
                     ),
                   ),
@@ -240,6 +164,56 @@ class SeniorCitizenDetailPage extends StatelessWidget {
           ),
           NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
         ],
+      ),
+    );
+  }
+}
+
+class _FeatureCard extends StatelessWidget {
+  const _FeatureCard({
+    required this.title,
+    required this.icon,
+    required this.onTap,
+    required this.colorScheme,
+  });
+
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Icon(icon, size: 28, color: colorScheme.onPrimaryContainer),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 20,
+                color: colorScheme.onPrimaryContainer,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
