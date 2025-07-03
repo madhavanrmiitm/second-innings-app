@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'local_groups_details.dart'; // Import the details page
 
 class LocalGroupsView extends StatelessWidget {
   const LocalGroupsView({super.key});
@@ -8,20 +9,28 @@ class LocalGroupsView extends StatelessWidget {
     {
       'name': 'Senior Walkers Club',
       'description': 'Meet every morning for a walk in the park.',
+      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
     },
     {
       'name': 'Book Readers Society',
       'description': 'Discuss books and enjoy literary events.',
+      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
     },
     {
       'name': 'Gardening Enthusiasts',
       'description': 'Share tips and grow plants together.',
+      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
     },
     {
       'name': 'Crafting Circle',
       'description': 'Work on various crafts and share your creations.',
+      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
     },
-    {'name': 'Bridge Club', 'description': 'Enjoy friendly games of bridge.'},
+    {
+      'name': 'Bridge Club',
+      'description': 'Enjoy friendly games of bridge.',
+      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
+    },
   ];
 
   @override
@@ -105,36 +114,46 @@ class LocalGroupsView extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           color: colorScheme.primaryContainer.withAlpha(51),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-                  child: Icon(
-                    Icons.group,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
+          child: InkWell( // Wrap with InkWell for tap effect
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LocalGroupDetailsView(group: group),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        group['name']!,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: colorScheme.primaryContainer.withAlpha(204),
+                    child: Icon(
+                      Icons.group,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          group['name']!,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      Text(
-                        group['description']!,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
+                        Text(
+                          group['description']!,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
