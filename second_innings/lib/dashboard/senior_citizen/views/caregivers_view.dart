@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/welcome.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/caregiver_details_view.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/caregiver_requests_view.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/view_current_hired_caregiver_view.dart';
+import 'package:second_innings/widgets/feature_card.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -87,6 +91,8 @@ class _CaregiversViewState extends State<CaregiversView> {
                 _buildSearchBar(colorScheme),
                 const SizedBox(height: 16),
                 _buildFilterChips(context, colorScheme),
+                const SizedBox(height: 16),
+                _buildNavigationButtons(context, colorScheme),
                 const SizedBox(height: 24),
               ],
             ),
@@ -143,6 +149,50 @@ class _CaregiversViewState extends State<CaregiversView> {
     );
   }
 
+  Widget _buildNavigationButtons(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Expanded(
+          child: FeatureCard(
+            title: 'Requests',
+            icon: Icons.request_page_outlined,
+            isColumn: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CaregiverRequestsView(),
+                ),
+              );
+            },
+            colorScheme: colorScheme,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: FeatureCard(
+            title: 'Hired Caregiver',
+            icon: Icons.person_pin_outlined,
+            isColumn: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ViewCurrentHiredCaregiverView(),
+                ),
+              );
+            },
+            colorScheme: colorScheme,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCaregiverList(ColorScheme colorScheme, TextTheme textTheme) {
     final caregivers = [
       {
@@ -167,46 +217,65 @@ class _CaregiversViewState extends State<CaregiversView> {
       itemCount: caregivers.length,
       itemBuilder: (context, index) {
         final caregiver = caregivers[index];
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          color: colorScheme.primaryContainer.withValues(alpha: 0.2),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  caregiver['name'].toString(),
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CaregiverDetailsView(
+                  name: caregiver['name'].toString(),
+                  age: caregiver['age'].toString(),
+                  gender: caregiver['gender'].toString(),
+                  desc: caregiver['desc'] as String,
+                  tags: caregiver['tags'] as List<String>,
+                ),
+              ),
+            );
+          },
+          child: Card(
+            elevation: 0,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    caregiver['name'].toString(),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${caregiver['age']} . ${caregiver['gender']}',
-                  style: textTheme.titleSmall,
-                ),
-                const SizedBox(height: 16),
-                Text(caregiver['desc'] as String, style: textTheme.bodyMedium),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8.0,
-                  children: (caregiver['tags'] as List<String>)
-                      .map(
-                        (tag) => Chip(
-                          label: Text(tag),
-                          backgroundColor: colorScheme.surface.withValues(
-                            alpha: 0.5,
+                  const SizedBox(height: 4),
+                  Text(
+                    '${caregiver['age']} . ${caregiver['gender']}',
+                    style: textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    caregiver['desc'] as String,
+                    style: textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8.0,
+                    children: (caregiver['tags'] as List<String>)
+                        .map(
+                          (tag) => Chip(
+                            label: Text(tag),
+                            backgroundColor: colorScheme.surface.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
             ),
           ),
         );

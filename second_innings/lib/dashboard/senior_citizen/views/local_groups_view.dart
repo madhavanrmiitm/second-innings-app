@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/create_new_local_group_view.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/my_local_groups_view.dart';
 import 'local_groups_details.dart';
 
 class LocalGroupsView extends StatelessWidget {
@@ -83,7 +85,9 @@ class LocalGroupsView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
+                  _buildNavigationButtons(context),
+                  const SizedBox(height: 24),
                   Text(
                     "Nearby Groups",
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -101,6 +105,55 @@ class LocalGroupsView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNavigationButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add_circle_outline),
+            label: const Text('Create Group'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateNewLocalGroupView(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.history_outlined),
+            label: const Text('My Groups'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyLocalGroupsView(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

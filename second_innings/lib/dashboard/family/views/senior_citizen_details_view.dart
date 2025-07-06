@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
-import 'package:second_innings/dashboard/family/views/senior_citizen_health_logs_view.dart';
-import 'package:second_innings/dashboard/family/views/senior_citizen_reminders_view.dart';
+import 'package:second_innings/dashboard/family/views/senior_citizen_tasks_view.dart';
+import 'package:second_innings/dashboard/family/views/all_reminders_for_senior_view.dart';
 
 class SeniorCitizenDetailPage extends StatelessWidget {
   final String name;
@@ -65,13 +65,13 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   _FeatureCard(
-                    title: "Health Logs",
-                    icon: Icons.monitor_heart_outlined,
+                    title: "Tasks",
+                    icon: Icons.checklist_rtl_outlined,
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SeniorCitizenHealthLogsPage(
+                          builder: (context) => SeniorCitizenTasksPage(
                             name: name,
                             relation: relation,
                           ),
@@ -88,7 +88,7 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SeniorCitizenRemindersPage(
+                          builder: (context) => AllRemindersForSeniorPage(
                             name: name,
                             relation: relation,
                           ),

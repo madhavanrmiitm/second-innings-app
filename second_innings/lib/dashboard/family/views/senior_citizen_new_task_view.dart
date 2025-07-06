@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 
-class CreateNewHealthLogPage extends StatefulWidget {
-  const CreateNewHealthLogPage({super.key});
+class SeniorCitizenNewTaskPage extends StatefulWidget {
+  final String name;
+  final String relation;
+
+  const SeniorCitizenNewTaskPage({
+    super.key,
+    required this.name,
+    required this.relation,
+  });
 
   @override
-  State<CreateNewHealthLogPage> createState() => _CreateNewHealthLogPageState();
+  State<SeniorCitizenNewTaskPage> createState() =>
+      _SeniorCitizenNewTaskPageState();
 }
 
-class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
+class _SeniorCitizenNewTaskPageState extends State<SeniorCitizenNewTaskPage> {
   bool _isVoiceInput = true;
   final _formKey = GlobalKey<FormState>();
-  final _dateController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  final _titleController = TextEditingController();
 
   @override
   void dispose() {
-    _dateController.dispose();
-    _descriptionController.dispose();
+    _titleController.dispose();
     super.dispose();
   }
 
@@ -63,14 +69,14 @@ class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'New Log',
+                    'New Task',
                     style: textTheme.titleLarge?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'Setup a new reminder for you!',
+                    'for ${widget.name}',
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                     ),
@@ -94,17 +100,15 @@ class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
                   ElevatedButton.icon(
                     onPressed: () {
                       if (_isVoiceInput) {
-                        // TODO: Implement voice log creation
                         Navigator.pop(context);
                       } else {
                         if (_formKey.currentState!.validate()) {
-                          // TODO: Implement manual log creation
                           Navigator.pop(context);
                         }
                       }
                     },
                     icon: const Icon(Icons.send_rounded),
-                    label: const Text('Create New Log'),
+                    label: const Text('Add Task'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -143,7 +147,7 @@ class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Tap on the mic icon, talk about whatever you want to log, The log will be done automatically for you!',
+          'Tap on the mic icon and describe the task. It will be automatically created.',
           textAlign: TextAlign.center,
           style: textTheme.bodyMedium,
         ),
@@ -152,60 +156,22 @@ class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
   }
 
   Widget _buildManualInputUI(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Form(
       key: _formKey,
-      child: Column(
-        children: [
-          TextFormField(
-            controller: _dateController,
-            readOnly: true,
-            onTap: () async {
-              DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime.now(),
-              );
-              if (pickedDate != null) {
-                String formattedDate =
-                    "${pickedDate.day.toString().padLeft(2, '0')} / ${pickedDate.month.toString().padLeft(2, '0')} / ${pickedDate.year}";
-                _dateController.text = formattedDate;
-              }
-            },
-            decoration: InputDecoration(
-              labelText: 'Date',
-              hintText: 'DD / MM / YYYY',
-              prefixIcon: const Icon(Icons.calendar_today_outlined),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Date is required.';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _descriptionController,
-            maxLines: 5,
-            decoration: InputDecoration(
-              labelText: 'Description',
-              hintText: 'Enter the health log details',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Description is required.';
-              }
-              return null;
-            },
-          ),
-        ],
+      child: TextFormField(
+        controller: _titleController,
+        decoration: InputDecoration(
+          labelText: 'Task Title',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter a title';
+          }
+          return null;
+        },
       ),
     );
   }
