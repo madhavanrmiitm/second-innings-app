@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class CreateNewHealthLogPage extends StatefulWidget {
-  const CreateNewHealthLogPage({super.key});
+class CreateNewTaskPage extends StatefulWidget {
+  const CreateNewTaskPage({super.key});
 
   @override
-  State<CreateNewHealthLogPage> createState() => _CreateNewHealthLogPageState();
+  State<CreateNewTaskPage> createState() => _CreateNewTaskPageState();
 }
 
-class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
+class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   bool _isVoiceInput = true;
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
@@ -63,14 +63,14 @@ class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'New Log',
+                    'New Task',
                     style: textTheme.titleLarge?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'Setup a new reminder for you!',
+                    'Create a new task for yourself',
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                     ),
@@ -104,7 +104,7 @@ class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
                       }
                     },
                     icon: const Icon(Icons.send_rounded),
-                    label: const Text('Create New Log'),
+                    label: const Text('Create New Task'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -143,7 +143,7 @@ class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Tap on the mic icon, talk about whatever you want to log, The log will be done automatically for you!',
+          'Tap on the mic icon, talk about whatever you want to be in the task, The task will be created automatically for you!',
           textAlign: TextAlign.center,
           style: textTheme.bodyMedium,
         ),
@@ -193,7 +193,7 @@ class _CreateNewHealthLogPageState extends State<CreateNewHealthLogPage> {
             maxLines: 5,
             decoration: InputDecoration(
               labelText: 'Description',
-              hintText: 'Enter the health log details',
+              hintText: 'Enter the task details',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

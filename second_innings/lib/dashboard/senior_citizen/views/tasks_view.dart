@@ -1,15 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:second_innings/dashboard/senior_citizen/views/create_new_health_log_page.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/create_new_task_page.dart';
 
-class HealthLogView extends StatelessWidget {
-  const HealthLogView({super.key});
+class TasksView extends StatefulWidget {
+  const TasksView({super.key});
 
-  // Sample health log entries
-  final List<Map<String, String>> _healthLogs = const [
-    {'date': '2023-10-26', 'description': 'Blood pressure check: 120/80'},
-    {'date': '2023-10-25', 'description': 'Took medication as prescribed'},
-    {'date': '2023-10-24', 'description': 'Felt a bit tired today'},
-    {'date': '2023-10-23', 'description': 'Went for a short walk in the park'},
+  @override
+  State<TasksView> createState() => _TasksViewState();
+}
+
+class _TasksViewState extends State<TasksView> {
+  // Sample task entries
+  final List<Map<String, dynamic>> _tasks = [
+    {
+      'type': 'self',
+      'description': 'Blood pressure check: 120/80',
+      'done': true,
+    },
+    {
+      'type': 'family',
+      'description': 'Took medication as prescribed',
+      'done': false,
+    },
+    {'type': 'self', 'description': 'Felt a bit tired today', 'done': false},
+    {
+      'type': 'family',
+      'description': 'Went for a short walk in the park',
+      'done': true,
+    },
   ];
 
   @override
@@ -34,14 +51,14 @@ class HealthLogView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Health Log',
+                    'Tasks',
                     style: textTheme.titleLarge?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'Your recent health activity',
+                    'All your tasks in one place',
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                     ),
@@ -59,7 +76,7 @@ class HealthLogView extends StatelessWidget {
                 children: [
                   const SizedBox(height: 32),
                   Text(
-                    "Recent Logs",
+                    "Your Tasks",
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -71,7 +88,7 @@ class HealthLogView extends StatelessWidget {
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            sliver: _buildHealthLogList(colorScheme),
+            sliver: _buildTasksList(colorScheme),
           ),
         ],
       ),
@@ -79,9 +96,7 @@ class HealthLogView extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const CreateNewHealthLogPage(),
-            ),
+            MaterialPageRoute(builder: (context) => const CreateNewTaskPage()),
           );
         },
         label: const Text('Create New'),
@@ -90,11 +105,11 @@ class HealthLogView extends StatelessWidget {
     );
   }
 
-  SliverList _buildHealthLogList(ColorScheme colorScheme) {
+  SliverList _buildTasksList(ColorScheme colorScheme) {
     return SliverList.builder(
-      itemCount: _healthLogs.length,
+      itemCount: _tasks.length,
       itemBuilder: (context, index) {
-        final logEntry = _healthLogs[index];
+        final task = _tasks[index];
         return Card(
           elevation: 0,
           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -109,7 +124,9 @@ class HealthLogView extends StatelessWidget {
                 CircleAvatar(
                   backgroundColor: colorScheme.primaryContainer.withAlpha(204),
                   child: Icon(
-                    Icons.monitor_heart_outlined,
+                    task['type'] == 'family'
+                        ? Icons.family_restroom_outlined
+                        : Icons.person_outline,
                     color: colorScheme.onPrimaryContainer,
                   ),
                 ),
@@ -119,17 +136,19 @@ class HealthLogView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        logEntry['date']!,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        logEntry['description']!,
+                        task['description']!,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ),
+                ),
+                Checkbox(
+                  value: task['done'],
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _tasks[index]['done'] = value!;
+                    });
+                  },
                 ),
               ],
             ),

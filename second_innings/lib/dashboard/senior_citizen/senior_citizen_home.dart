@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/caregivers_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/family_view.dart';
-import 'package:second_innings/dashboard/senior_citizen/views/health_log_view.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/tasks_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/local_groups_view.dart';
 
 class SeniorCitizenHomePage extends StatefulWidget {
@@ -12,12 +12,12 @@ class SeniorCitizenHomePage extends StatefulWidget {
 }
 
 class _SeniorCitizenHomePageState extends State<SeniorCitizenHomePage> {
-  int _selectedIndex = 3; // Start at Caregivers tab
+  int _selectedIndex = 2;
 
   static const List<Widget> _widgetOptions = <Widget>[
     LocalGroupsView(),
     FamilyView(),
-    HealthLogView(),
+    TasksView(),
     CaregiversView(),
   ];
 
@@ -44,8 +44,8 @@ class _SeniorCitizenHomePageState extends State<SeniorCitizenHomePage> {
             label: 'Family',
           ),
           NavigationDestination(
-            icon: Icon(Icons.monitor_heart_outlined),
-            label: 'Health Log',
+            icon: Icon(Icons.task_alt_outlined),
+            label: 'Tasks',
           ),
           NavigationDestination(
             icon: Icon(Icons.search),
