@@ -2,6 +2,8 @@
 
 This is the admin web portal for the Second Innings project, built with Vue.js 3, Vite, and CSS. It provides administrative and support functionalities for managing the platform.
 
+**Live Demo:** **[https://second-innings-iitm-admin.vercel.app/](https://second-innings-iitm-admin.vercel.app/)**
+
 ## Features
 
 Based on the application's screens, here are the core features available to different user roles:

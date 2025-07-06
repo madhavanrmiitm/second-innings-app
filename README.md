@@ -4,6 +4,11 @@ Software Engineering Project May 2025
 
 This is a monorepo for the IITM - Software Engineering Project May 2025 - Team 40.
 
+## Live Deployments
+
+-   **Admin Web**: [https://second-innings-iitm-admin.vercel.app/](https://second-innings-iitm-admin.vercel.app/)
+-   **User App**: [https://second-innings-iitm.web.app](https://second-innings-iitm.web.app)
+
 ## Directory Structure
 
 This project is a monorepo that includes the following main components:
