@@ -1,5 +1,5 @@
 <template>
-  <IGALayout>
+  <IgaLayout>
     <div class="container-fluid">
       <!-- Header -->
       <div class="mb-4">
@@ -112,12 +112,12 @@
         </div>
       </div>
     </div>
-  </IGALayout>
+  </IgaLayout>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import IGALayout from '@/components/layouts/IGALayout.vue'
+import IgaLayout from '@/components/layouts/IgaLayout.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import DataTable from '@/components/ui/DataTable.vue'
 import { useToast } from 'vue-toast-notification'
