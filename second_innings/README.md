@@ -41,6 +41,24 @@ The application provides a comprehensive set of features tailored to three main 
 -   **Job Management**: View available job opportunities, apply for jobs, and manage current assignments.
 -   **Notifications**: Receive job alerts and other notifications.
 
+## Project Structure
+
+The project follows a standard feature-based structure to keep the codebase organized and scalable.
+
+```
+second_innings/
+├── lib/
+│   ├── auth/             # Authentication flow (welcome, login, registration)
+│   │   ├── caregiver/
+│   │   ├── family/
+│   │   └── senior_citizen/
+│   ├── util/             # Shared utility functions (e.g., validation)
+│   ├── widgets/          # Reusable UI components (e.g., FeatureCard)
+│   └── main.dart         # Application entry point
+├── assets/               # Static assets like images and logos
+└── pubspec.yaml          # Dependencies and project configuration
+```
+
 ## Getting Started: Running the App on the Web
 
 The easiest way to run the app is by targeting the web platform.
