@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/register.dart';
 
+import 'package:second_innings/auth/feedback_query_help_page.dart';
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -95,6 +96,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const FeedbackQueryHelpPage()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
