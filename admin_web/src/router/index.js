@@ -93,7 +93,7 @@ const routes = [
   {
     path: '/iga/dashboard',
     name: 'IGADashboard',
-    component: () => import('@/views/iga/IGADashboardPage.vue'),
+    component: () => import('@/views/iga/IgaDashboardPage.vue'),
     meta: { requiresAuth: true, role: 'iga' }
   },
 
