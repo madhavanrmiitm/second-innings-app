@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'local_groups_details.dart'; // Import the details page
+import 'local_groups_details.dart';
 
 class LocalGroupsView extends StatelessWidget {
   const LocalGroupsView({super.key});
@@ -9,27 +9,32 @@ class LocalGroupsView extends StatelessWidget {
     {
       'name': 'Senior Walkers Club',
       'description': 'Meet every morning for a walk in the park.',
-      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
+      'whatsapp_link':
+          'https://chat.whatsapp.com/your_whatsapp_group_link_here', // Add WhatsApp link
     },
     {
       'name': 'Book Readers Society',
       'description': 'Discuss books and enjoy literary events.',
-      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
+      'whatsapp_link':
+          'https://chat.whatsapp.com/your_whatsapp_group_link_here', // Add WhatsApp link
     },
     {
       'name': 'Gardening Enthusiasts',
       'description': 'Share tips and grow plants together.',
-      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
+      'whatsapp_link':
+          'https://chat.whatsapp.com/your_whatsapp_group_link_here', // Add WhatsApp link
     },
     {
       'name': 'Crafting Circle',
       'description': 'Work on various crafts and share your creations.',
-      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
+      'whatsapp_link':
+          'https://chat.whatsapp.com/your_whatsapp_group_link_here', // Add WhatsApp link
     },
     {
       'name': 'Bridge Club',
       'description': 'Enjoy friendly games of bridge.',
-      'whatsapp_link': 'https://chat.whatsapp.com/your_whatsapp_group_link_here' // Add WhatsApp link
+      'whatsapp_link':
+          'https://chat.whatsapp.com/your_whatsapp_group_link_here', // Add WhatsApp link
     },
   ];
 
@@ -114,7 +119,8 @@ class LocalGroupsView extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           color: colorScheme.primaryContainer.withAlpha(51),
-          child: InkWell( // Wrap with InkWell for tap effect
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
             onTap: () {
               Navigator.push(
                 context,
@@ -128,7 +134,9 @@ class LocalGroupsView extends StatelessWidget {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: colorScheme.primaryContainer.withAlpha(204),
+                    backgroundColor: colorScheme.primaryContainer.withAlpha(
+                      204,
+                    ),
                     child: Icon(
                       Icons.group,
                       color: colorScheme.onPrimaryContainer,
@@ -141,9 +149,8 @@ class LocalGroupsView extends StatelessWidget {
                       children: [
                         Text(
                           group['name']!,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           group['description']!,

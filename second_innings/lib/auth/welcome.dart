@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:second_innings/auth/register.dart';
 
 import 'package:second_innings/auth/feedback_query_help_page.dart';
+
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -104,7 +105,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             icon: const Icon(Icons.help_outline),
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const FeedbackQueryHelpPage()),
+                MaterialPageRoute(
+                  builder: (context) => const FeedbackQueryHelpPage(),
+                ),
               );
             },
           ),
