@@ -20,5 +20,5 @@ This project is a monorepo that includes the following main components:
 ## Project Status
 
 -   **User App Frontend (Flutter)**: The UI is done.
--   **Admin Web Frontend (VueJS)**: The UI is done.
+-   **Admin Web Frontend (VueJS)**: The UI is done..
 -   **Backend**: Development is planned to start soon.
