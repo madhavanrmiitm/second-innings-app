@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/welcome.dart';
 import 'package:second_innings/dashboard/family/views/caregiver_details_view.dart';
+import 'package:second_innings/dashboard/family/views/view_current_hired_caregiver_view.dart';
+import 'package:second_innings/dashboard/family/views/caregiver_requests_view.dart';
+import 'package:second_innings/widgets/feature_card.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -89,6 +92,46 @@ class _CaregiversViewState extends State<CaregiversView> {
                 children: [
                   const SizedBox(height: 16),
                   _buildSearchBar(colorScheme),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FeatureCard(
+                          title: "Current",
+                          isColumn: true,
+                          icon: Icons.person_search_outlined,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ViewCurrentHiredCaregiverPage(),
+                              ),
+                            );
+                          },
+                          colorScheme: colorScheme,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: FeatureCard(
+                          title: "Requests",
+                          isColumn: true,
+                          icon: Icons.request_page_outlined,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const CaregiverRequestsPage(),
+                              ),
+                            );
+                          },
+                          colorScheme: colorScheme,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   _buildFilterChips(colorScheme),
                   const SizedBox(height: 24),

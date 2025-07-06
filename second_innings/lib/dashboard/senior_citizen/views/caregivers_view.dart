@@ -3,6 +3,7 @@ import 'package:second_innings/auth/welcome.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/caregiver_details_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/caregiver_requests_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/view_current_hired_caregiver_view.dart';
+import 'package:second_innings/widgets/feature_card.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -91,7 +92,7 @@ class _CaregiversViewState extends State<CaregiversView> {
                 const SizedBox(height: 16),
                 _buildFilterChips(context, colorScheme),
                 const SizedBox(height: 16),
-                _buildNavigationButtons(context),
+                _buildNavigationButtons(context, colorScheme),
                 const SizedBox(height: 24),
               ],
             ),
@@ -148,15 +149,19 @@ class _CaregiversViewState extends State<CaregiversView> {
     );
   }
 
-  Widget _buildNavigationButtons(BuildContext context) {
+  Widget _buildNavigationButtons(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Expanded(
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.request_page_outlined),
-            label: const Text('Requests'),
-            onPressed: () {
+          child: FeatureCard(
+            title: 'Requests',
+            icon: Icons.request_page_outlined,
+            isColumn: true,
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -164,20 +169,16 @@ class _CaregiversViewState extends State<CaregiversView> {
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            colorScheme: colorScheme,
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.person_pin_outlined),
-            label: const Text('Hired Caregiver'),
-            onPressed: () {
+          child: FeatureCard(
+            title: 'Hired Caregiver',
+            icon: Icons.person_pin_outlined,
+            isColumn: true,
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -185,12 +186,7 @@ class _CaregiversViewState extends State<CaregiversView> {
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            colorScheme: colorScheme,
           ),
         ),
       ],
