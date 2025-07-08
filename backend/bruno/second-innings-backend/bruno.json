@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Second Innings Backend",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

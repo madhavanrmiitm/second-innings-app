@@ -1,0 +1,72 @@
+meta {
+  name: Post Create Item
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/items
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Sample Item",
+    "description": "This is a sample item for testing",
+    "price": 29.99,
+    "tax": 2.40
+  }
+}
+
+docs {
+  # Post Create Item
+
+  Creates a new item in the database.
+
+  **Request:**
+  ```json
+  {
+    "name": "string (required)",
+    "description": "string (optional)",
+    "price": "number (required)",
+    "tax": "number (optional)"
+  }
+  ```
+
+  **Success (201):**
+  ```json
+  {
+    "message": "Item created successfully.",
+    "data": {
+      "id": 1,
+      "name": "Sample Item",
+      "description": "This is a sample item for testing",
+      "price": 29.99
+    }
+  }
+  ```
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("Response has correct structure", function() {
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('data');
+    expect(res.getBody().data).to.have.property('id');
+    expect(res.getBody().data).to.have.property('name');
+    expect(res.getBody().data).to.have.property('price');
+  });
+
+  test("Success message is correct", function() {
+    expect(res.getBody().message).to.equal('Item created successfully.');
+  });
+
+  test("Item data matches request", function() {
+    expect(res.getBody().data.name).to.equal('Sample Item');
+    expect(res.getBody().data.price).to.equal(29.99);
+  });
+}

@@ -1,0 +1,35 @@
+meta {
+  name: Get Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/
+  body: none
+  auth: none
+}
+
+docs {
+  # Health Check
+
+  Returns welcome message to confirm server is running.
+
+  **Response:**
+  ```json
+  {
+    "message": "Welcome to the FastAPI application"
+  }
+  ```
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response contains welcome message", function() {
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody().message).to.include('Welcome');
+  });
+}
