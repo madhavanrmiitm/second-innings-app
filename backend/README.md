@@ -2,6 +2,421 @@
 
 This is a FastAPI project initialized with a modular structure, featuring standardized JSON responses, request validation, and database integration.
 
+## Table of Contents
+
+- [💻 Development Setup (Recommended)](#-development-setup-recommended)
+  - [Prerequisites](#prerequisites)
+  - [Quick Start](#quick-start)
+  - [PostgreSQL with Docker](#postgresql-with-docker)
+  - [Python Environment Setup](#python-environment-setup)
+  - [Running the Application](#running-the-application-1)
+- [🔧 Local Setup (No Docker)](#-local-setup-no-docker)
+  - [Local Prerequisites](#local-prerequisites)
+  - [PostgreSQL Installation](#postgresql-installation)
+  - [Database Setup](#database-setup)
+  - [Python Setup](#python-setup)
+  - [Environment Configuration](#environment-configuration)
+  - [Running Locally](#running-locally)
+- [🐳 Full Docker Setup (Alternative)](#-full-docker-setup-alternative)
+  - [Docker Prerequisites](#docker-prerequisites)
+  - [Quick Start with Full Docker](#quick-start-with-full-docker)
+  - [Docker Services](#docker-services)
+  - [Development Environment](#development-environment)
+  - [Production Deployment](#production-deployment)
+  - [Docker Commands Reference](#docker-commands-reference)
+- [Project Structure](#project-structure)
+- [Features](#features)
+- [Code Quality & Pre-commit Hooks](#code-quality--pre-commit-hooks)
+  - [Setup Pre-commit Hooks](#setup-pre-commit-hooks)
+  - [What Gets Checked](#what-gets-checked)
+  - [Manual Run](#manual-run)
+- [Database Initialization](#database-initialization)
+- [Running the Application](#running-the-application)
+  - [Basic Usage](#basic-usage)
+  - [With Database Initialization](#with-database-initialization)
+  - [Available Command-Line Options](#available-command-line-options)
+  - [Examples](#examples)
+  - [Alternative: Using uvicorn directly](#alternative-using-uvicorn-directly)
+- [Testing](#testing)
+  - [Testing Philosophy](#testing-philosophy)
+  - [Bruno API Testing](#bruno-api-testing)
+  - [Testing Workflow](#testing-workflow)
+  - [Environment Configuration](#environment-configuration)
+- [API Documentation](#api-documentation)
+- [API Endpoints](#api-endpoints)
+  - [Health Check](#health-check)
+  - [Test Endpoints](#test-endpoints)
+
+## 💻 Development Setup (Recommended)
+
+The recommended development setup uses Python installed locally with Docker only for PostgreSQL. This approach provides the best development experience with excellent IDE integration and debugging capabilities.
+
+### Prerequisites
+
+- Python 3.8+ installed locally
+- Docker and Docker Compose for PostgreSQL
+- Git for version control
+
+### Quick Start
+
+1. **Start PostgreSQL with Docker:**
+   ```bash
+   docker-compose up db -d
+   ```
+
+2. **Set up Python environment:**
+   ```bash
+   # Create virtual environment
+   python3 -m venv venv
+
+   # Activate virtual environment
+   source venv/bin/activate  # On macOS/Linux
+   # venv\Scripts\activate   # On Windows
+
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+
+   Update the `.env` file with these database credentials:
+   ```env
+   DATABASE_URL=postgresql://fastapi_user:fastapi_password@localhost:5433/fastapi_db
+   ```
+
+4. **Run the application:**
+   ```bash
+   python main.py --init-db --reload
+   ```
+
+5. **Access the application:**
+   - API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+   - PostgreSQL: localhost:5433
+
+### PostgreSQL with Docker
+
+The PostgreSQL database runs in Docker for consistency and easy setup:
+
+```bash
+# Start only PostgreSQL
+docker-compose up db -d
+
+# View PostgreSQL logs
+docker-compose logs db
+
+# Stop PostgreSQL
+docker-compose stop db
+
+# Reset PostgreSQL data
+docker-compose down db -v
+```
+
+**Database Configuration:**
+- Host: `localhost`
+- Port: `5433`
+- Database: `fastapi_db`
+- Username: `fastapi_user`
+- Password: `fastapi_password`
+- Connection URL: `postgresql://fastapi_user:fastapi_password@localhost:5433/fastapi_db`
+
+### Python Environment Setup
+
+1. **Create and activate virtual environment:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On macOS/Linux
+   # venv\Scripts\activate   # On Windows
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Install pre-commit hooks:**
+   ```bash
+   pre-commit install
+   ```
+
+### Running the Application
+
+```bash
+# Start with database initialization and auto-reload
+python main.py --init-db --reload
+
+# Or start without auto-reload
+python main.py --init-db
+
+# Alternative: using uvicorn directly
+uvicorn main:app --reload
+```
+
+## 🔧 Local Setup (No Docker)
+
+For developers who prefer a completely local setup without any Docker dependencies, this section provides instructions for setting up PostgreSQL and Python natively on your system.
+
+### Local Prerequisites
+
+- Python 3.8+ installed locally
+- PostgreSQL 12+ installed locally
+- Git for version control
+
+### PostgreSQL Installation
+
+#### macOS
+
+**Using Homebrew (Recommended):**
+```bash
+# Install PostgreSQL
+brew install postgresql@15
+
+# Start PostgreSQL service
+brew services start postgresql@15
+
+# Add to PATH (add to your shell profile)
+export PATH="/usr/local/opt/postgresql@15/bin:$PATH"
+```
+
+**Using PostgreSQL.app:**
+1. Download from [PostgreSQL.app](https://postgresapp.com/)
+2. Install and start the application
+3. Add to PATH: `export PATH=$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin`
+
+#### Ubuntu/Debian
+
+```bash
+# Update package list
+sudo apt update
+
+# Install PostgreSQL
+sudo apt install postgresql postgresql-contrib
+
+# Start PostgreSQL service
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+#### Windows
+
+1. Download PostgreSQL installer from [postgresql.org](https://www.postgresql.org/download/windows/)
+2. Run the installer and follow the setup wizard
+3. Remember the password you set for the `postgres` user
+4. Add PostgreSQL bin directory to your PATH environment variable
+
+#### CentOS/RHEL/Fedora
+
+```bash
+# Install PostgreSQL
+sudo dnf install postgresql postgresql-server  # Fedora
+# sudo yum install postgresql postgresql-server  # CentOS/RHEL
+
+# Initialize database
+sudo postgresql-setup initdb
+
+# Start and enable service
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+### Database Setup
+
+1. **Access PostgreSQL:**
+   ```bash
+   # Switch to postgres user (Linux/macOS)
+   sudo -u postgres psql
+
+   # Or directly connect (if PostgreSQL is in PATH)
+   psql -U postgres
+   ```
+
+2. **Create database and user:**
+   ```sql
+   -- Create user
+   CREATE USER fastapi_user WITH PASSWORD 'fastapi_password';
+
+   -- Create database
+   CREATE DATABASE fastapi_db OWNER fastapi_user;
+
+   -- Grant privileges
+   GRANT ALL PRIVILEGES ON DATABASE fastapi_db TO fastapi_user;
+
+   -- Exit PostgreSQL
+   \q
+   ```
+
+3. **Test connection:**
+   ```bash
+   psql -U fastapi_user -d fastapi_db -h localhost
+   ```
+
+### Python Setup
+
+1. **Create and activate virtual environment:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On macOS/Linux
+   # venv\Scripts\activate   # On Windows
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Install pre-commit hooks:**
+   ```bash
+   pre-commit install
+   ```
+
+### Environment Configuration
+
+1. **Create environment file:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Update the `.env` file with local database credentials:**
+   ```env
+   DATABASE_URL=postgresql://fastapi_user:fastapi_password@localhost:5432/fastapi_db
+   ```
+
+   **Note:** Use port `5432` (default PostgreSQL port) instead of `5433` when running PostgreSQL locally.
+
+### Running Locally
+
+1. **Ensure PostgreSQL is running:**
+   ```bash
+   # Check if PostgreSQL is running
+   pg_isready -h localhost -p 5432
+
+   # Start PostgreSQL if needed (macOS with Homebrew)
+   brew services start postgresql@15
+
+   # Start PostgreSQL if needed (Linux)
+   sudo systemctl start postgresql
+   ```
+
+2. **Run the application:**
+   ```bash
+   # Start with database initialization and auto-reload
+   python main.py --init-db --reload
+
+   # Or without auto-reload
+   python main.py --init-db
+
+   # Alternative: using uvicorn directly
+   uvicorn main:app --reload
+   ```
+
+3. **Access the application:**
+   - API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+   - PostgreSQL: localhost:5432
+
+**Troubleshooting Local Setup:**
+
+- **Connection refused:** Ensure PostgreSQL service is running
+- **Authentication failed:** Verify username/password in `.env` file
+- **Database does not exist:** Run the database setup commands again
+- **Permission denied:** Check user privileges on the database
+
+## 🐳 Full Docker Setup (Alternative)
+
+If you prefer to run everything in Docker containers, this section provides the complete Docker setup.
+
+### Docker Prerequisites
+- Docker and Docker Compose installed on your system
+- No need for Python virtual environment when using full Docker
+
+### Quick Start with Full Docker
+
+1. **Start all services:**
+   ```bash
+   docker-compose up --build
+   ```
+
+   Or use the convenient script:
+   ```bash
+   chmod +x docker-start.sh
+   ./docker-start.sh
+   ```
+
+2. **Access the application:**
+   - API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+   - PostgreSQL: localhost:5433 (development) / localhost:5432 (production)
+
+3. **Stop the services:**
+   ```bash
+   docker-compose down
+   ```
+
+### Docker Services
+
+- **backend**: FastAPI application running on port 8000
+- **db**: PostgreSQL 15 database with automatic health checks
+
+### Development Environment
+
+The default `docker-compose.yml` is configured for development with:
+
+- **PostgreSQL**: Exposed on port 5433 (host) → 5432 (container)
+- **Auto-reload**: Enabled for live code changes
+- **Volume mounting**: Local code changes are reflected immediately
+- **Database initialization**: Automatic on container startup
+
+**Environment Variables (Development):**
+- Database: `fastapi_db`
+- Username: `fastapi_user`
+- Password: `fastapi_password`
+- Database URL: `postgresql://fastapi_user:fastapi_password@db:5432/fastapi_db`
+
+### Production Deployment
+
+For production, use the production compose file with enhanced security:
+
+```bash
+POSTGRES_PASSWORD=your_secure_password docker-compose -f docker-compose.prod.yml up --build -d
+```
+
+**Production differences:**
+- **PostgreSQL**: Exposed on port 5432 (standard port)
+- **No auto-reload**: Optimized for production performance
+- **Environment-based password**: Uses `POSTGRES_PASSWORD` environment variable
+- **No volume mounting**: Uses built Docker image for code
+
+### Docker Commands Reference
+
+```bash
+# Start services (development)
+docker-compose up --build
+
+# Start in background
+docker-compose up --build -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs
+
+# Follow logs in real-time
+docker-compose logs -f
+
+# Restart specific service
+docker-compose restart backend
+
+# Remove volumes (complete reset)
+docker-compose down -v
+
+# Production deployment
+POSTGRES_PASSWORD=secure_password docker-compose -f docker-compose.prod.yml up --build -d
+```
+
 ## Project Structure
 
 ```
@@ -49,41 +464,6 @@ backend/
 -   **Command-Line Interface**: Server configuration through command-line arguments.
 -   **Code Quality**: Pre-commit hooks with Black formatter, isort, and file hygiene checks.
 -   **Dependency Management**: All required packages are listed in `requirements.txt`.
-
-## Setup
-
-1.  **Create a virtual environment:**
-
-    ```bash
-    python3 -m venv venv
-    ```
-
-2.  **Activate the virtual environment:**
-
-    -   On macOS and Linux:
-        ```bash
-        source venv/bin/activate
-        ```
-    -   On Windows:
-        ```bash
-        venv\\Scripts\\activate
-        ```
-
-3.  **Install dependencies:**
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  **Set up environment variables:**
-
-    Create a `.env` file by copying the example:
-
-    ```bash
-    cp .env.example .env
-    ```
-
-    Update the `.env` file with your PostgreSQL database credentials.
 
 ## Code Quality & Pre-commit Hooks
 

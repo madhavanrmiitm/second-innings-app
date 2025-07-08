@@ -15,4 +15,4 @@ def read_test():
 @router.post("/items", response_class=JSONResponse)
 @validate_body(Item)
 async def create_item(request: Request, validated_data: Item):
-    return await test_controller.create_item(request, validated_data=validated_data)
+    return await test_controller.create_item(request, validated_data)
