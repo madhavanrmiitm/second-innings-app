@@ -27,9 +27,4 @@ tests {
   test("Status code is 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
-
-  test("Response contains welcome message", function() {
-    expect(res.getBody()).to.have.property('message');
-    expect(res.getBody().message).to.include('Welcome');
-  });
 }

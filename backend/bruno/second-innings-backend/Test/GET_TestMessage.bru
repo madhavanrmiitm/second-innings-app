@@ -1,0 +1,33 @@
+meta {
+  name: Get Test Message
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/test
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+docs {
+  # Get Test Message
+
+  Returns static test message from test module.
+
+  **Response:**
+  ```json
+  {
+    "message": "Test data retrieved successfully.",
+    "data": {
+      "message": "This is a test message from the module."
+    }
+  }
+  ```
+}

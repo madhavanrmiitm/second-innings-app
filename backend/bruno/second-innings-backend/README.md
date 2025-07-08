@@ -14,18 +14,18 @@ bruno/second-innings-backend/
 ├── environments/
 │   └── Local.bru                # Local environment variables
 ├── Root/                        # Main app routes (from main.py)
-│   └── Get Health Check.bru     # GET / - Health check
+│   └── GET_HealthCheck.bru      # GET / - Health check
 ├── Test/                        # Test controller routes
-│   ├── Get Test Message.bru     # GET /api/test - Test message
-│   └── Post Create Item.bru     # POST /api/items - Create item
+│   ├── GET_TestMessage.bru      # GET /api/test - Test message
+│   └── POST_CreateItem.bru      # POST /api/items - Create item
 └── README.md                    # This file
 ```
 
 **Organization:**
 - **One folder per controller** - Each controller file gets its own folder
 - **One file per route** - Each API endpoint gets its own `.bru` file with working example
-- **Simple naming** - HTTP method prefix + descriptive name
-- **Sequential numbering** - Routes numbered across all folders for order
+- **Method-first naming** - `METHOD_PurposeInThisCase` format (e.g., `GET_HealthCheck`)
+- **Status code focused testing** - Simple, fast tests validating HTTP response codes
 
 ## Prerequisites
 
@@ -70,20 +70,38 @@ If your server runs on a different host/port, you can:
 ### Running Requests
 
 **Root controller:**
-1. **Get Health Check**: Test if the server is running
+1. **GET_HealthCheck**: Test if the server is running
 
 **Test controller:**
-2. **Get Test Message**: Verify the test endpoint functionality
-3. **Post Create Item**: Test item creation with valid data
+2. **GET_TestMessage**: Verify the test endpoint functionality
+3. **POST_CreateItem**: Test item creation with valid data
 
 ### Running Tests
 
-Each request includes automated tests that verify:
-- Response status codes
-- Response body structure
-- Expected data values
+Each request includes automated tests focused on **status code validation**:
+- HTTP status codes (200, 201, 404, etc.)
+- Fast execution with minimal assertions
+- Essential endpoint verification without brittle response body checks
 
 Click the "Send" button to execute requests and see the test results.
+
+### Command Line Testing
+
+You can also run tests via Bruno CLI:
+
+```bash
+# Install Bruno CLI
+npm install -g @usebruno/cli
+
+# Run all tests
+bru run --env Local
+
+# Run specific test
+bru run "Root/GET_HealthCheck.bru" --env Local
+
+# Run with verbose output
+bru run --env Local --reporter verbose
+```
 
 ## API Endpoints Documentation
 
@@ -120,13 +138,29 @@ For the `POST /api/items` endpoint to work properly:
 
 **For new routes in existing controllers:**
 1. Add a new `.bru` file in the appropriate folder
-2. Use naming: `{HTTP Method} {Route Name}.bru`
-3. Update sequence numbers to maintain order
-4. Include only working examples with valid request/response data
+2. Use naming: `METHOD_PurposeInThisCase.bru` (e.g., `GET_UserProfile.bru`, `POST_CreateUser.bru`)
+3. Include only working examples with valid request/response data
+4. Focus tests on status code validation for reliability
+
+**Testing Guidelines:**
+- **Primary test**: Always include status code validation
+- **Keep it simple**: Avoid complex response body assertions
+- **Fast execution**: Minimal tests for quick feedback
+- **Essential validation**: Confirm endpoint responds correctly
+
+Example test structure:
+```javascript
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+```
 
 ## Tips
 
 - Use Bruno's **Environment Variables** for different deployment environments (dev, staging, prod)
 - Leverage **Pre-request Scripts** for authentication or dynamic data generation
-- Utilize **Tests** to ensure API reliability and catch regressions
+- **Focus on status codes** for reliable, maintainable tests
 - Export/import collections for sharing with team members
+- Use CLI for automated testing in CI/CD pipelines

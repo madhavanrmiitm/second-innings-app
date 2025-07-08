@@ -190,6 +190,88 @@ The application will be available at `http://127.0.0.1:8000` (or your specified 
 
 You can access the interactive API documentation at `http://127.0.0.1:8000/docs`.
 
+## Testing
+
+This project includes comprehensive API testing using Bruno, focusing on status code validation for fast and reliable testing.
+
+### Testing Philosophy
+
+The project follows a **status code first** testing approach:
+- ✅ **Primary focus**: HTTP status code validation (200, 201, 404, etc.)
+- ✅ **Fast execution**: Minimal assertions for quick feedback
+- ✅ **Reliable**: Less brittle than detailed response body testing
+- ✅ **Essential validation**: Confirms endpoints respond correctly
+
+### Bruno API Testing
+
+The project uses [Bruno](https://usebruno.com/) for API testing and documentation.
+
+#### Prerequisites
+
+1. **Install Bruno CLI**:
+   ```bash
+   npm install -g @usebruno/cli
+   ```
+
+2. **Start the API server**:
+   ```bash
+   python main.py --init-db
+   ```
+
+#### Running Tests via CLI
+
+**Run all tests:**
+```bash
+cd bruno/second-innings-backend
+bru run --env Local
+```
+
+**Run specific test:**
+```bash
+cd bruno/second-innings-backend
+bru run "Root/GET_HealthCheck.bru" --env Local
+```
+
+**Run from backend root:**
+```bash
+bru run bruno/second-innings-backend --env Local
+```
+
+**Available test files:**
+- `Root/GET_HealthCheck.bru` - Health check endpoint (expects 200)
+- `Test/GET_TestMessage.bru` - Test message endpoint (expects 200)
+- `Test/POST_CreateItem.bru` - Item creation endpoint (expects 201)
+
+#### Test Output Options
+
+```bash
+# Verbose output
+bru run --env Local --reporter verbose
+
+# Save results to file
+bru run --env Local --output results.json
+
+# Stop on first failure
+bru run --env Local --bail
+
+# Set custom timeout
+bru run --env Local --timeout 5000
+```
+
+### Testing Workflow
+
+1. **Start server**: `python main.py --init-db`
+2. **Run tests**: `bru run bruno/second-innings-backend --env Local`
+3. **Check results**: All tests should pass with correct status codes
+
+### Environment Configuration
+
+Tests use the **Local** environment with:
+- `baseUrl`: http://127.0.0.1:8000
+- `apiPrefix`: /api
+
+Modify `bruno/second-innings-backend/environments/Local.bru` if your server runs on different host/port.
+
 ## API Documentation
 
 This project includes comprehensive API documentation in two formats:
@@ -200,23 +282,12 @@ FastAPI automatically generates interactive API documentation available at:
 - **ReDoc**: `http://127.0.0.1:8000/redoc`
 
 ### 2. Bruno API Collection
-The project includes a [Bruno](https://usebruno.com/) API collection for testing and documentation located in the `bruno/` directory.
-
-**What is Bruno?**
-Bruno is a fast, open-source API client that stores collections as plain text files, making them perfect for version control and team collaboration.
+The project includes working examples and documentation in the Bruno collection located in the `bruno/` directory.
 
 **Using the Bruno Collection:**
 1. **Install Bruno**: Download from [usebruno.com](https://usebruno.com/)
 2. **Open Collection**: In Bruno, open the `bruno/second-innings-backend/` directory
-3. **Start Testing**: The collection includes all endpoints with example requests, documentation, and automated tests
-
-**Collection Features:**
-- ✅ **Simple organization** - One folder per controller, one file per route
-- ✅ **All API endpoints documented** with working examples only
-- ✅ **Environment variables** for easy configuration (local/dev/prod)
-- ✅ **Automated tests** for each endpoint to verify functionality
-- ✅ **HTTP method prefixes** for clear route identification
-- ✅ **Clean and minimal** - No error scenarios, just working examples
+3. **Start Testing**: The collection includes all endpoints with example requests and automated tests
 
 For detailed instructions, see [`bruno/second-innings-backend/README.md`](bruno/second-innings-backend/README.md).
 

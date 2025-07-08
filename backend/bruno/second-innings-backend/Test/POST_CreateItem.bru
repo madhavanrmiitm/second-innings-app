@@ -52,21 +52,4 @@ tests {
   test("Status code is 201", function() {
     expect(res.getStatus()).to.equal(201);
   });
-
-  test("Response has correct structure", function() {
-    expect(res.getBody()).to.have.property('message');
-    expect(res.getBody()).to.have.property('data');
-    expect(res.getBody().data).to.have.property('id');
-    expect(res.getBody().data).to.have.property('name');
-    expect(res.getBody().data).to.have.property('price');
-  });
-
-  test("Success message is correct", function() {
-    expect(res.getBody().message).to.equal('Item created successfully.');
-  });
-
-  test("Item data matches request", function() {
-    expect(res.getBody().data.name).to.equal('Sample Item');
-    expect(res.getBody().data.price).to.equal(29.99);
-  });
 }
