@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:second_innings/auth/welcome.dart';
+import 'package:second_innings/services/session_manager.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -45,7 +46,17 @@ class MyApp extends StatelessWidget {
             fontFamily: GoogleFonts.poppins().fontFamily,
           ),
           themeMode: ThemeMode.system,
-          home: const WelcomeScreen(),
+          home: FutureBuilder<Widget>(
+            future: SessionManager.getInitialRoute(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+              return snapshot.data ?? const WelcomeScreen();
+            },
+          ),
         );
       },
     );

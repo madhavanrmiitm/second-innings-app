@@ -111,6 +111,7 @@ class _AllRemindersForSeniorPageState extends State<AllRemindersForSeniorPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: "family_senior_reminders_fab",
         onPressed: () {
           Navigator.push(
             context,

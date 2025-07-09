@@ -76,6 +76,7 @@ class FamilyView extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: "senior_citizen_family_fab",
         onPressed: () {
           // Navigate to the LinkNewFamilyMemberPage
           Navigator.push(

@@ -3,12 +3,21 @@ import 'package:second_innings/dashboard/caregiver/caregiver_home.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
 import 'package:second_innings/dashboard/senior_citizen/senior_citizen_home.dart';
 import 'package:second_innings/util/validate.dart';
+import 'package:second_innings/services/registration_service.dart';
 
 enum UserType { seniorCitizen, family, caregiver }
 
 class RegisterScreen extends StatefulWidget {
   final String googleAccountId;
-  const RegisterScreen({super.key, required this.googleAccountId});
+  final String? idToken;
+  final String? googleDisplayName;
+
+  const RegisterScreen({
+    super.key,
+    required this.googleAccountId,
+    this.idToken,
+    this.googleDisplayName,
+  });
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -22,12 +31,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _youtubeController = TextEditingController();
   late final TextEditingController _googleAccountController;
 
+  bool _isRegistering = false;
+
   @override
   void initState() {
     super.initState();
     _googleAccountController = TextEditingController(
       text: widget.googleAccountId,
     );
+
+    // Autofill name from Google display name if available
+    if (widget.googleDisplayName != null &&
+        widget.googleDisplayName!.isNotEmpty) {
+      _nameController.text = widget.googleDisplayName!;
+    }
   }
 
   @override
@@ -143,13 +160,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: InputDecoration(
                         labelText: 'Full Name',
                         prefixIcon: const Icon(Icons.person_outline_rounded),
-                        hintText: 'Please Enter your full name',
+                        hintText: widget.googleDisplayName != null
+                            ? 'Autofilled from Google (editable)'
+                            : 'Please Enter your full name',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       validator: Validators.validateFullName,
                     ),
+                    if (widget.googleDisplayName != null &&
+                        widget.googleDisplayName!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'Name autofilled from your Google account. You can edit if needed.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _dobController,
@@ -181,40 +211,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _buildCaregiverFields(context),
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          switch (_selectedUserType) {
-                            case UserType.seniorCitizen:
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SeniorCitizenHomePage(),
-                                ),
-                              );
-                              break;
-                            case UserType.family:
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const FamilyHomePage(),
-                                ),
-                              );
-                              break;
-                            case UserType.caregiver:
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const CaregiverHomePage(),
-                                ),
-                              );
-                              break;
-                          }
-                        }
-                      },
-                      icon: const Icon(Icons.navigate_next_rounded),
-                      label: const Text('Register'),
+                      onPressed: _isRegistering ? null : _handleRegistration,
+                      icon: _isRegistering
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.navigate_next_rounded),
+                      label: Text(
+                        _isRegistering ? 'Registering...' : 'Register',
+                      ),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -272,6 +279,144 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: textTheme.bodySmall,
         ),
       ],
+    );
+  }
+
+  Future<void> _handleRegistration() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (widget.idToken == null) {
+      _showErrorMessage(
+        'Authentication token is missing. Please sign in again.',
+      );
+      return;
+    }
+
+    setState(() {
+      _isRegistering = true;
+    });
+
+    try {
+      // Parse date of birth
+      final dateOfBirth = RegistrationService.parseDateFromForm(
+        _dobController.text,
+      );
+      if (dateOfBirth == null) {
+        _showErrorMessage('Invalid date format. Please select a valid date.');
+        return;
+      }
+
+      // Map UI user type to service enum
+      UserRole userRole;
+      switch (_selectedUserType) {
+        case UserType.seniorCitizen:
+          userRole = UserRole.seniorCitizen;
+          break;
+        case UserType.family:
+          userRole = UserRole.family;
+          break;
+        case UserType.caregiver:
+          userRole = UserRole.caregiver;
+          break;
+      }
+
+      // Prepare optional fields for caregivers
+      String? description;
+      String? tags;
+      if (_selectedUserType == UserType.caregiver &&
+          _youtubeController.text.isNotEmpty) {
+        final extras = RegistrationService.generateCaregiverExtras(
+          fullName: _nameController.text,
+          youtubeUrl: _youtubeController.text,
+        );
+        description = extras['description'];
+        tags = extras['tags'];
+      }
+
+      // Call registration service
+      final result = await RegistrationService.handleRegistration(
+        idToken: widget.idToken!,
+        fullName: _nameController.text,
+        userRole: userRole,
+        dateOfBirth: dateOfBirth,
+        youtubeUrl: _selectedUserType == UserType.caregiver
+            ? _youtubeController.text
+            : null,
+        description: description,
+        tags: tags,
+      );
+
+      if (mounted) {
+        if (result.isSuccess) {
+          // Registration successful - navigate to appropriate dashboard
+          _showSuccessMessage(result.message ?? 'Registration successful!');
+          await _navigateToUserDashboard();
+        } else {
+          // Registration failed - show error message
+          _showErrorMessage(result.error ?? 'Registration failed');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('Registration error: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRegistering = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _navigateToUserDashboard() async {
+    await Future.delayed(
+      const Duration(seconds: 1),
+    ); // Brief delay to show success message
+
+    if (!mounted) return;
+
+    switch (_selectedUserType) {
+      case UserType.seniorCitizen:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SeniorCitizenHomePage(),
+          ),
+        );
+        break;
+      case UserType.family:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const FamilyHomePage()),
+        );
+        break;
+      case UserType.caregiver:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const CaregiverHomePage()),
+        );
+        break;
+    }
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
+
+  void _showSuccessMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 }

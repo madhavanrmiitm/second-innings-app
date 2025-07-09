@@ -46,21 +46,16 @@ A FastAPI-based backend with Firebase authentication, PostgreSQL database, and m
 backend/
 ├── app/
 │   ├── controllers/           # Request handlers and business logic
-│   │   ├── auth.py           # Authentication controller
-│   │   └── test.py           # Test endpoints controller
+│   │   └── auth.py           # Authentication controller
 │   ├── database/             # Database configuration and schema
 │   │   ├── db.py            # Database connection management
 │   │   ├── init_db.py       # Database initialization
-│   │   └── schema.sql       # Database schema (users, items tables)
+│   │   └── schema.sql       # Database schema (users table)
 │   ├── modules/              # Business logic modules
-│   │   ├── auth/            # Authentication module
-│   │   │   ├── __init__.py
-│   │   │   └── auth_service.py  # Firebase authentication service
-│   │   └── test/            # Test module
-│   │       └── test.py
+│   │   └── auth/            # Authentication module
+│   │       └── auth_service.py  # Firebase authentication service
 │   ├── routes/               # API route definitions
-│   │   ├── auth.py          # Authentication routes
-│   │   └── test.py          # Test routes
+│   │   └── auth.py          # Authentication routes
 │   ├── utils/                # Utility functions
 │   │   ├── request_validator.py   # Request validation decorators
 │   │   └── response_formatter.py  # Standardized response formatting
@@ -70,7 +65,6 @@ backend/
 ├── bruno/                    # API testing collection
 │   └── second-innings-backend/
 │       ├── Auth/             # Authentication API tests
-│       ├── Test/             # Test endpoint API tests
 │       └── Root/             # Health check tests
 ├── docs/                     # Documentation files
 │   ├── API_DOCUMENTATION.md
@@ -121,8 +115,8 @@ docker-compose logs -f backend
 
 - **Health Check**: `GET /` - Application status
 - **Authentication**: `POST /api/auth/verify-token` - Firebase token verification
-- **Test Endpoints**: `GET /api/test`, `POST /api/items` - Testing and examples
-- **API Docs**: `http://localhost:8000/docs` - Interactive documentation
+- **User Registration**: `POST /api/auth/register` - Complete user registration with profile
+- **API Documentation**: `http://localhost:8000/docs` - Interactive Swagger UI
 
 ## 🤝 Contributing
 

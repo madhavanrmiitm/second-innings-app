@@ -47,6 +47,9 @@ Returns a welcome message confirming the application is running.
 #### POST /api/auth/verify-token
 Verify Firebase ID token and authenticate user.
 
+#### POST /api/auth/register
+Register a new user with complete profile information.
+
 **Request Body:**
 ```json
 {
@@ -97,48 +100,163 @@ Verify Firebase ID token and authenticate user.
 }
 ```
 
-### Test Endpoints
-
-#### GET /api/test
-Returns a static test message.
-
-**Response:**
-```json
-{
-  "status_code": 200,
-  "message": "Test data retrieved successfully.",
-  "data": {
-    "message": "This is a test message from the module."
-  }
-}
-```
-
-#### POST /api/items
-Creates a new item in the database.
+#### POST /api/auth/register
+Register a new user with complete profile information.
 
 **Request Body:**
 ```json
 {
-  "name": "Item Name",
-  "description": "Item Description",
-  "price": 29.99,
-  "tax": 2.10
+  "id_token": "firebase_id_token_here",
+  "full_name": "John Doe",
+  "role": "caregiver",
+  "youtube_url": "https://youtube.com/watch?v=example",
+  "date_of_birth": "1990-01-15",
+  "description": "I am a passionate cricket caregiver with 10 years of experience.",
+  "tags": "cricket, rehabilitation, sports medicine, coaching"
 }
 ```
 
-**Success Response (201):**
+**Available User Roles:**
+- `admin` - System administrator
+- `caregiver` - Professional caregiver/coach
+- `family_member` - Family member of senior citizen
+- `senior_citizen` - Senior citizen requiring care
+- `interest_group_admin` - Administrator of interest groups
+- `support_user` - Support staff member
+
+**Field Requirements:**
+
+**Common Fields (all roles):**
+- `id_token` (string, required): Firebase ID token
+- `full_name` (string, required): User's full name
+- `role` (string, required): User role from available options above
+- `date_of_birth` (date, optional): User's date of birth in YYYY-MM-DD format
+
+**Role-Specific Requirements:**
+
+**CAREGIVER role requires:**
+- `youtube_url` (string, required): YouTube profile URL
+- `description` (string, required): Professional description
+- `tags` (string, required): Comma-separated skills/specialties
+
+**All other roles (ADMIN, FAMILY_MEMBER, SENIOR_CITIZEN, INTEREST_GROUP_ADMIN, SUPPORT_USER):**
+- Only common fields required (no additional requirements)
+
+**Role-Based Examples:**
+
+**Caregiver Registration:**
+```json
+{
+  "id_token": "firebase_id_token_here",
+  "full_name": "John Doe",
+  "role": "caregiver",
+  "youtube_url": "https://youtube.com/watch?v=example",
+  "date_of_birth": "1990-01-15",
+  "description": "Experienced cricket coach with sports rehabilitation expertise",
+  "tags": "cricket, rehabilitation, sports medicine, coaching"
+}
+```
+
+**Family Member Registration:**
+```json
+{
+  "id_token": "firebase_id_token_here",
+  "full_name": "Jane Smith",
+  "role": "family_member",
+  "date_of_birth": "1985-03-20"
+}
+```
+
+**Senior Citizen Registration:**
+```json
+{
+  "id_token": "firebase_id_token_here",
+  "full_name": "Robert Johnson",
+  "role": "senior_citizen",
+  "date_of_birth": "1945-08-10"
+}
+```
+
+**Admin Registration:**
+```json
+{
+  "id_token": "firebase_id_token_here",
+  "full_name": "Admin User",
+  "role": "admin",
+  "date_of_birth": "1980-12-05"
+}
+```
+
+**Success Response (201) - User Registered:**
 ```json
 {
   "status_code": 201,
-  "message": "Item created successfully.",
+  "message": "User registered successfully.",
   "data": {
-    "id": 1,
-    "name": "Item Name",
-    "description": "Item Description",
-    "price": 29.99
+    "user": {
+      "id": 1,
+      "gmail_id": "user@gmail.com",
+      "firebase_uid": "firebase_uid_here",
+      "full_name": "John Doe",
+      "role": "caregiver",
+      "youtube_url": "https://youtube.com/watch?v=example",
+      "date_of_birth": "1990-01-15",
+      "description": "I am a passionate cricket caregiver with 10 years of experience.",
+      "tags": "cricket, rehabilitation, sports medicine, coaching",
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00"
+    },
+    "message": "User registered successfully"
   }
 }
 ```
+
+**Error Response (401) - Invalid Token:**
+```json
+{
+  "status_code": 401,
+  "message": "Registration failed. Invalid token."
+}
+```
+
+**Error Response (400) - Validation Error:**
+
+*Example: Missing required caregiver fields:*
+```json
+{
+  "status_code": 400,
+  "message": "Validation error",
+  "data": {
+    "detail": [
+      {
+        "loc": ["body", "youtube_url"],
+        "msg": "youtube_url is required for caregiver role",
+        "type": "value_error"
+      },
+      {
+        "loc": ["body", "description"],
+        "msg": "description is required for caregiver role",
+        "type": "value_error"
+      },
+      {
+        "loc": ["body", "tags"],
+        "msg": "tags is required for caregiver role",
+        "type": "value_error"
+      }
+    ]
+  }
+}
+```
+
+**Error Response (409) - User Already Registered:**
+```json
+{
+  "status_code": 409,
+  "message": "User already registered."
+}
+```
+
+
 
 ## Interactive Documentation
 
@@ -187,9 +305,8 @@ bru run "Auth/POST_VerifyToken.bru" --env Local
 
 **Available test files:**
 - `Root/GET_HealthCheck.bru` - Health check endpoint
-- `Test/GET_TestMessage.bru` - Test message endpoint
-- `Test/POST_CreateItem.bru` - Item creation endpoint
 - `Auth/POST_VerifyToken.bru` - Authentication endpoint
+- `Auth/POST_RegisterUser.bru` - User registration endpoint
 
 #### Test Configuration
 
@@ -245,6 +362,10 @@ CREATE TABLE users (
     gmail_id VARCHAR(255) UNIQUE NOT NULL,
     firebase_uid VARCHAR(255) UNIQUE NOT NULL,
     full_name VARCHAR(255) NOT NULL,
+    youtube_url VARCHAR(500),
+    date_of_birth DATE,
+    description TEXT,
+    tags TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

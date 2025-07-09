@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:second_innings/auth/welcome.dart';
+import 'package:second_innings/widgets/user_app_bar.dart';
 
 class NotificationsView extends StatelessWidget {
   final int selectedIndex;
@@ -27,54 +27,7 @@ class NotificationsView extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            pinned: true,
-            floating: true,
-            elevation: 0,
-            backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.logout_rounded),
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const WelcomeScreen(),
-                    ),
-                    (route) => false,
-                  );
-                },
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              titlePadding: const EdgeInsets.only(bottom: 16),
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '2nd Innings',
-                    style: textTheme.titleLarge?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Welcome, Anushka Sharma',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          const UserAppBar(title: '2nd Innings', showBackButton: true),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(

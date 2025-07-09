@@ -96,6 +96,7 @@ class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: "family_senior_tasks_fab",
         onPressed: () {
           Navigator.push(
             context,

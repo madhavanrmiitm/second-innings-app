@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:second_innings/auth/welcome.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/caregiver_details_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/caregiver_requests_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/view_current_hired_caregiver_view.dart';
 import 'package:second_innings/widgets/feature_card.dart';
+import 'package:second_innings/widgets/user_app_bar.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -29,58 +29,7 @@ class _CaregiversViewState extends State<CaregiversView> {
 
     return CustomScrollView(
       slivers: [
-        SliverAppBar.large(
-          pinned: true,
-          floating: true,
-          snap: false,
-          elevation: 0,
-          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.8),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-          ),
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: IconButton(
-              icon: Image.asset("assets/logo.png"),
-              onPressed: () {},
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout_rounded),
-              onPressed: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => const WelcomeScreen(),
-                  ),
-                  (Route<dynamic> route) => false,
-                );
-              },
-            ),
-          ],
-          flexibleSpace: FlexibleSpaceBar(
-            centerTitle: true,
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '2nd Innings',
-                  style: textTheme.titleLarge?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Welcome, Virat Kohli',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ],
-            ),
-            titlePadding: const EdgeInsets.only(bottom: 16),
-          ),
-        ),
+        const UserAppBar(title: '2nd Innings'),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),

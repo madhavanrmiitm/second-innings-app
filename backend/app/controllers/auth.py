@@ -1,10 +1,16 @@
 from app.logger import logger
 from app.modules.auth.auth_service import auth_service
-from app.payloads import AuthResponse, TokenRequest, UnregisteredUserResponse, User
+from app.payloads import (
+    AuthResponse,
+    RegistrationRequest,
+    RegistrationResponse,
+    TokenRequest,
+    UnregisteredUserResponse,
+)
 from app.utils.response_formatter import format_response
 
 
-async def authenticate_user(request, validated_data: TokenRequest):
+async def authenticate_user(_, validated_data: TokenRequest):
     """
     Controller logic to authenticate a user using Firebase ID token.
 
@@ -52,4 +58,53 @@ async def authenticate_user(request, validated_data: TokenRequest):
         logger.error(f"Error during authentication: {e}")
         return format_response(
             status_code=500, message="Internal server error during authentication."
+        )
+
+
+async def register_user(_, validated_data: RegistrationRequest):
+    """
+    Controller logic to register a new user with complete profile information.
+
+    Args:
+        request: The FastAPI request object
+        validated_data: RegistrationRequest containing the registration data
+
+    Returns:
+        Response with status code 201 (user created) or error codes
+    """
+    logger.info("Executing user registration controller logic.")
+
+    try:
+        # Register user using the auth service
+        user = auth_service.register_user(validated_data)
+
+        # Create response payload
+        registration_response = RegistrationResponse(
+            user=user, message="User registered successfully"
+        )
+
+        return format_response(
+            status_code=201,
+            message="User registered successfully.",
+            data=registration_response.model_dump(),
+        )
+
+    except ValueError as e:
+        # Token verification failed or user already exists
+        error_message = str(e)
+        if "already registered" in error_message:
+            status_code = 409  # Conflict
+            message = "User already registered."
+        else:
+            status_code = 401  # Unauthorized
+            message = "Registration failed. Invalid token."
+
+        logger.error(f"Registration failed: {e}")
+        return format_response(status_code=status_code, message=message)
+
+    except Exception as e:
+        # Other errors (database, etc.)
+        logger.error(f"Error during registration: {e}")
+        return format_response(
+            status_code=500, message="Internal server error during registration."
         )

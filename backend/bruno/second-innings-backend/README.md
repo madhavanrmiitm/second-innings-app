@@ -15,9 +15,9 @@ bruno/second-innings-backend/
 │   └── Local.bru                # Local environment variables
 ├── Root/                        # Main app routes (from main.py)
 │   └── GET_HealthCheck.bru      # GET / - Health check
-├── Test/                        # Test controller routes
-│   ├── GET_TestMessage.bru      # GET /api/test - Test message
-│   └── POST_CreateItem.bru      # POST /api/items - Create item
+├── Auth/                        # Authentication routes
+│   ├── POST_VerifyToken.bru     # POST /api/auth/verify-token - Token verification
+│   └── POST_RegisterUser.bru    # POST /api/auth/register - User registration
 └── README.md                    # This file
 ```
 
@@ -69,12 +69,10 @@ If your server runs on a different host/port, you can:
 
 ### Running Requests
 
-**Root controller:**
+**Available requests:**
 1. **GET_HealthCheck**: Test if the server is running
-
-**Test controller:**
-2. **GET_TestMessage**: Verify the test endpoint functionality
-3. **POST_CreateItem**: Test item creation with valid data
+2. **POST_VerifyToken**: Verify Firebase authentication tokens
+3. **POST_RegisterUser**: Register new users with role-based validation
 
 ### Running Tests
 
@@ -97,7 +95,7 @@ npm install -g @usebruno/cli
 bru run --env Local
 
 # Run specific test
-bru run "Root/GET_HealthCheck.bru" --env Local
+bru run "Auth/POST_VerifyToken.bru" --env Local
 
 # Run with verbose output
 bru run --env Local --reporter verbose
@@ -110,35 +108,27 @@ bru run --env Local --reporter verbose
 - **Response**: Welcome message
 - **Status**: 200 OK
 
-### GET /api/test
-- **Purpose**: Returns test data from the test module
-- **Response**: Standardized JSON with test message
-- **Status**: 200 OK
+### POST /api/auth/verify-token
+- **Purpose**: Verify Firebase ID tokens and authenticate users
+- **Request Body**: JSON with id_token
+- **Success Response**: 200 (existing user) or 201 (new user)
+- **Error Responses**: 401 (invalid token)
 
-### POST /api/items
-- **Purpose**: Create a new item in the database
-- **Request Body**: JSON with name, description, price, and optional tax
-- **Success Response**: 201 Created with item data
-- **Error Responses**:
-  - 422 Unprocessable Entity (validation errors)
-  - 500 Internal Server Error (database errors)
-
-## Database Requirements
-
-For the `POST /api/items` endpoint to work properly:
-1. Ensure PostgreSQL is running
-2. Configure your `.env` file with correct database credentials
-3. Initialize the database schema using `python main.py --init-db`
+### POST /api/auth/register
+- **Purpose**: Register new users with role-based profile data
+- **Request Body**: JSON with user details and role-specific requirements
+- **Success Response**: 201 Created with user data
+- **Error Responses**: 400 (validation), 409 (already registered), 401 (invalid token)
 
 ## Extending the Collection
 
 **For new controllers:**
-1. Create a new folder (e.g., `User/`, `Product/`)
+1. Create a new folder (e.g., `User/`, `Activity/`, `Group/`)
 2. Add `.bru` files for each route in that controller
 
 **For new routes in existing controllers:**
 1. Add a new `.bru` file in the appropriate folder
-2. Use naming: `METHOD_PurposeInThisCase.bru` (e.g., `GET_UserProfile.bru`, `POST_CreateUser.bru`)
+2. Use naming: `METHOD_PurposeInThisCase.bru` (e.g., `GET_UserProfile.bru`, `POST_CreateActivity.bru`)
 3. Include only working examples with valid request/response data
 4. Focus tests on status code validation for reliability
 

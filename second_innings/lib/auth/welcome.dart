@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:second_innings/auth/register.dart';
 import 'package:second_innings/auth/feedback_query_help_page.dart';
 import 'package:second_innings/services/user_service.dart';
-
-// TODO: Uncomment this when we have an android app.
-// import 'package:google_sign_in/google_sign_in.dart';
+import 'package:second_innings/dashboard/senior_citizen/senior_citizen_home.dart';
+import 'package:second_innings/dashboard/family/family_home.dart';
+import 'package:second_innings/dashboard/caregiver/caregiver_home.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -84,6 +84,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   authResult.gmailId ??
                   userCredential.user?.email ??
                   'user@gmail.com',
+              idToken: idToken,
+              googleDisplayName: userCredential.user?.displayName,
             ),
           ),
         );
@@ -109,10 +111,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Future<void> _navigateToUserDashboard(Map<String, dynamic> userData) async {
-    // This would typically determine user type from userData and navigate accordingly
-    // For now, we'll show a success message - you can modify this based on your user types
-
     final userName = userData['full_name'] ?? 'User';
+    final userType = userData['role']?.toString().toLowerCase();
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Welcome back, $userName!'),
@@ -120,21 +121,28 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       ),
     );
 
-    // TODO: Navigate to appropriate dashboard based on user type
-    // Example:
-    // if (userData['user_type'] == 'senior_citizen') {
-    //   Navigator.pushReplacement(context, MaterialPageRoute(
-    //     builder: (context) => const SeniorCitizenHomePage(),
-    //   ));
-    // } else if (userData['user_type'] == 'family') {
-    //   Navigator.pushReplacement(context, MaterialPageRoute(
-    //     builder: (context) => const FamilyHomePage(),
-    //   ));
-    // } else if (userData['user_type'] == 'caregiver') {
-    //   Navigator.pushReplacement(context, MaterialPageRoute(
-    //     builder: (context) => const CaregiverHomePage(),
-    //   ));
-    // }
+    // Navigate to appropriate dashboard based on user type
+    Widget targetScreen;
+    switch (userType) {
+      case 'senior_citizen':
+        targetScreen = const SeniorCitizenHomePage();
+        break;
+      case 'family':
+        targetScreen = const FamilyHomePage();
+        break;
+      case 'caregiver':
+        targetScreen = const CaregiverHomePage();
+        break;
+      default:
+        // If user type is unknown, stay on welcome screen
+        _showErrorMessage('Unknown user type: $userType');
+        return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => targetScreen),
+    );
   }
 
   void _showErrorMessage(String message) {

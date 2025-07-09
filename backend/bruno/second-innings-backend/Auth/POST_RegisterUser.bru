@@ -1,0 +1,103 @@
+meta {
+  name: POST_RegisterUser
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/api/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
+    "full_name": "John Doe",
+    "role": "caregiver",
+    "youtube_url": "https://youtube.com/watch?v=example",
+    "date_of_birth": "1990-01-15",
+    "description": "I am a passionate cricket caregiver with 10 years of experience in sports rehabilitation.",
+    "tags": "cricket, rehabilitation, sports medicine, coaching"
+  }
+}
+
+// Example for FAMILY_MEMBER role (minimal fields):
+// {
+//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
+//   "full_name": "Jane Smith",
+//   "role": "family_member",
+//   "date_of_birth": "1985-03-20"
+// }
+
+// Example for SENIOR_CITIZEN role (minimal fields):
+// {
+//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
+//   "full_name": "Robert Johnson",
+//   "role": "senior_citizen",
+//   "date_of_birth": "1945-08-10"
+// }
+
+// Example for ADMIN role (minimal fields):
+// {
+//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
+//   "full_name": "Admin User",
+//   "role": "admin",
+//   "date_of_birth": "1980-12-05"
+// }
+
+// Example for INTEREST_GROUP_ADMIN role (minimal fields):
+// {
+//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
+//   "full_name": "Group Admin",
+//   "role": "interest_group_admin",
+//   "date_of_birth": "1975-07-15"
+// }
+
+// Example for SUPPORT_USER role (minimal fields):
+// {
+//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
+//   "full_name": "Support Staff",
+//   "role": "support_user",
+//   "date_of_birth": "1988-11-25"
+// }
+
+tests {
+  test("Status code is 201 for successful registration", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.equal("User registered successfully.");
+  });
+
+  test("Response contains user data", function() {
+    expect(res.getBody().data).to.have.property('user');
+    expect(res.getBody().data).to.have.property('message');
+  });
+
+  test("User has all required fields", function() {
+    const user = res.getBody().data.user;
+    expect(user).to.have.property('id');
+    expect(user).to.have.property('gmail_id');
+    expect(user).to.have.property('firebase_uid');
+    expect(user).to.have.property('full_name');
+    expect(user).to.have.property('role');
+    expect(user).to.have.property('youtube_url');
+    expect(user).to.have.property('date_of_birth');
+    expect(user).to.have.property('description');
+    expect(user).to.have.property('tags');
+    expect(user).to.have.property('created_at');
+    expect(user).to.have.property('updated_at');
+  });
+
+  test("User data matches input", function() {
+    const user = res.getBody().data.user;
+    expect(user.full_name).to.equal("John Doe");
+    expect(user.role).to.equal("caregiver");
+    expect(user.youtube_url).to.equal("https://youtube.com/watch?v=example");
+    expect(user.date_of_birth).to.equal("1990-01-15");
+    expect(user.description).to.equal("I am a passionate cricket caregiver with 10 years of experience in sports rehabilitation.");
+    expect(user.tags).to.equal("cricket, rehabilitation, sports medicine, coaching");
+  });
+}
