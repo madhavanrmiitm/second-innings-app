@@ -2,6 +2,7 @@ fastapi
 uvicorn[standard]
 psycopg2-binary
 pydantic-settings
+firebase-admin
 
 # Development tools
 black

@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/register.dart';
-
 import 'package:second_innings/auth/feedback_query_help_page.dart';
+import 'package:second_innings/services/user_service.dart';
+
+// TODO: Uncomment this when we have an android app.
+// import 'package:google_sign_in/google_sign_in.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -26,11 +30,120 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   // Bottom Sheet Animation.
   late Animation<Offset> _bottomSheetSlide;
 
+  bool _isSigningIn = false;
+
   @override
   void initState() {
     super.initState();
     _setupAnimations();
     _controller.forward();
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    // Web Google Sign-In using Firebase SDK.
+    GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+    googleProvider.addScope(
+      'https://www.googleapis.com/auth/contacts.readonly',
+    );
+    googleProvider.setCustomParameters({'login_hint': 'user@gmail.com'});
+
+    // Once signed in, return the UserCredential
+    return await FirebaseAuth.instance.signInWithPopup(googleProvider);
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    if (_isSigningIn) return;
+
+    setState(() {
+      _isSigningIn = true;
+    });
+
+    try {
+      // Step 1: Sign in with Google/Firebase
+      final UserCredential userCredential = await signInWithGoogle();
+      final String? idToken = await userCredential.user?.getIdToken();
+
+      if (idToken == null || !mounted) {
+        throw Exception('Failed to get ID token');
+      }
+
+      debugPrint('ID Token: $idToken'); // For debugging
+
+      // Step 2: Verify token with backend and handle user flow
+      final authResult = await UserService.handleAuthFlow(idToken);
+
+      if (!mounted) return;
+
+      if (authResult.isNewUser) {
+        // Status 201: New user - Navigate to registration
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => RegisterScreen(
+              googleAccountId:
+                  authResult.gmailId ??
+                  userCredential.user?.email ??
+                  'user@gmail.com',
+            ),
+          ),
+        );
+      } else if (authResult.isExistingUser) {
+        // Status 200: Existing user - Data saved to SharedPreferences
+        // Navigate to appropriate dashboard based on user type
+        await _navigateToUserDashboard(authResult.userData!);
+      } else if (authResult.hasError) {
+        // Error occurred during authentication
+        _showErrorMessage(authResult.error ?? 'Authentication failed');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('Sign in failed: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningIn = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _navigateToUserDashboard(Map<String, dynamic> userData) async {
+    // This would typically determine user type from userData and navigate accordingly
+    // For now, we'll show a success message - you can modify this based on your user types
+
+    final userName = userData['full_name'] ?? 'User';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Welcome back, $userName!'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+
+    // TODO: Navigate to appropriate dashboard based on user type
+    // Example:
+    // if (userData['user_type'] == 'senior_citizen') {
+    //   Navigator.pushReplacement(context, MaterialPageRoute(
+    //     builder: (context) => const SeniorCitizenHomePage(),
+    //   ));
+    // } else if (userData['user_type'] == 'family') {
+    //   Navigator.pushReplacement(context, MaterialPageRoute(
+    //     builder: (context) => const FamilyHomePage(),
+    //   ));
+    // } else if (userData['user_type'] == 'caregiver') {
+    //   Navigator.pushReplacement(context, MaterialPageRoute(
+    //     builder: (context) => const CaregiverHomePage(),
+    //   ));
+    // }
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
   }
 
   void _setupAnimations() {
@@ -225,15 +338,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               builder: (context) => Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
                 child: FilledButton.tonalIcon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterScreen(
-                          googleAccountId: 'user@gmail.com',
-                        ),
-                      ),
-                    );
-                  },
+                  onPressed: _isSigningIn ? null : _handleGoogleSignIn,
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(Colors.white),
                     padding: WidgetStateProperty.all(
@@ -245,14 +350,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       ),
                     ),
                   ),
-                  icon: Image.asset(
-                    "assets/google_logo.png",
-                    width: 28,
-                    height: 28,
-                  ),
+                  icon: _isSigningIn
+                      ? const SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Image.asset(
+                          "assets/google_logo.png",
+                          width: 28,
+                          height: 28,
+                        ),
                   iconAlignment: IconAlignment.start,
                   label: Text(
-                    "Continue With Google",
+                    _isSigningIn ? "Signing In..." : "Continue With Google",
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Colors.black,
