@@ -32,10 +32,7 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
       backgroundColor: colorScheme.surface,
       body: CustomScrollView(
         slivers: [
-          const UserAppBar(
-            title: '2nd Innings',
-            showBackButton: true,
-          ),
+          const UserAppBar(title: '2nd Innings', showBackButton: true),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

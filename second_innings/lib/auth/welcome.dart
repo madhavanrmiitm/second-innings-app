@@ -127,7 +127,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       case 'senior_citizen':
         targetScreen = const SeniorCitizenHomePage();
         break;
-      case 'family':
+      case 'family_member':
         targetScreen = const FamilyHomePage();
         break;
       case 'caregiver':
