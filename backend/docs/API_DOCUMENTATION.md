@@ -111,8 +111,6 @@ Register a new user with complete profile information.
   "role": "caregiver",
   "youtube_url": "https://youtube.com/watch?v=example",
   "date_of_birth": "1990-01-15",
-  "description": "I am a passionate cricket caregiver with 10 years of experience.",
-  "tags": "cricket, rehabilitation, sports medicine, coaching"
 }
 ```
 
@@ -136,15 +134,28 @@ Register a new user with complete profile information.
 
 **CAREGIVER role requires:**
 - `youtube_url` (string, required): YouTube profile URL
-- `description` (string, required): Professional description
-- `tags` (string, required): Comma-separated skills/specialties
+- `description` (string, optional): Professional description (auto-generated from YouTube video if not provided)
+- `tags` (string, optional): Comma-separated skills/specialties (auto-generated from YouTube video if not provided)
+
+**Note:** For caregivers, if `description` and `tags` are not provided, the system will automatically analyze the YouTube video using Google Gemini AI to generate relevant cricket/caregiving tags and a professional description.
 
 **All other roles (ADMIN, FAMILY_MEMBER, SENIOR_CITIZEN, INTEREST_GROUP_ADMIN, SUPPORT_USER):**
 - Only common fields required (no additional requirements)
 
 **Role-Based Examples:**
 
-**Caregiver Registration:**
+**Caregiver Registration (with AI auto-generation):**
+```json
+{
+  "id_token": "firebase_id_token_here",
+  "full_name": "John Doe",
+  "role": "caregiver",
+  "youtube_url": "https://youtube.com/watch?v=example",
+  "date_of_birth": "1990-01-15"
+}
+```
+
+**Caregiver Registration (with manual description and tags):**
 ```json
 {
   "id_token": "firebase_id_token_here",
@@ -201,8 +212,8 @@ Register a new user with complete profile information.
       "role": "caregiver",
       "youtube_url": "https://youtube.com/watch?v=example",
       "date_of_birth": "1990-01-15",
-      "description": "I am a passionate cricket caregiver with 10 years of experience.",
-      "tags": "cricket, rehabilitation, sports medicine, coaching",
+      "description": "John Doe is a dedicated caregiver with expertise in cricket and senior citizen support. They bring experience in sports coaching and rehabilitation to help seniors stay active and engaged. Passionate about combining cricket activities with compassionate care for the elderly.",
+      "tags": "cricket coaching, senior care, sports rehabilitation, mentoring, fitness guidance, patient care",
       "created_at": "2024-01-01T00:00:00",
       "updated_at": "2024-01-01T00:00:00"
     },
@@ -221,7 +232,7 @@ Register a new user with complete profile information.
 
 **Error Response (400) - Validation Error:**
 
-*Example: Missing required caregiver fields:*
+*Example: Missing required caregiver field:*
 ```json
 {
   "status_code": 400,
@@ -231,16 +242,6 @@ Register a new user with complete profile information.
       {
         "loc": ["body", "youtube_url"],
         "msg": "youtube_url is required for caregiver role",
-        "type": "value_error"
-      },
-      {
-        "loc": ["body", "description"],
-        "msg": "description is required for caregiver role",
-        "type": "value_error"
-      },
-      {
-        "loc": ["body", "tags"],
-        "msg": "tags is required for caregiver role",
         "type": "value_error"
       }
     ]

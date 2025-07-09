@@ -55,16 +55,15 @@ class RegistrationRequest(BaseModel):
     description: Optional[str] = None
     tags: Optional[str] = None
 
-    @field_validator("youtube_url", "description", "tags")
+    @field_validator("youtube_url")
     @classmethod
-    def validate_caregiver_fields(cls, v, info):
-        """Validate that youtube_url, description, and tags are provided for caregiver role"""
+    def validate_caregiver_youtube_url(cls, v, info):
+        """Validate that youtube_url is provided for caregiver role (tags and description will be auto-generated)"""
         # Get the role from the model data
         role = info.data.get("role")
-        field_name = info.field_name
 
         if role == UserRole.CAREGIVER and v is None:
-            raise ValueError(f"{field_name} is required for caregiver role")
+            raise ValueError("youtube_url is required for caregiver role")
 
         return v
 

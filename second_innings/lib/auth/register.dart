@@ -322,19 +322,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           break;
       }
 
-      // Prepare optional fields for caregivers
-      String? description;
-      String? tags;
-      if (_selectedUserType == UserType.caregiver &&
-          _youtubeController.text.isNotEmpty) {
-        final extras = RegistrationService.generateCaregiverExtras(
-          fullName: _nameController.text,
-          youtubeUrl: _youtubeController.text,
-        );
-        description = extras['description'];
-        tags = extras['tags'];
-      }
-
       // Call registration service
       final result = await RegistrationService.handleRegistration(
         idToken: widget.idToken!,
@@ -344,8 +331,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         youtubeUrl: _selectedUserType == UserType.caregiver
             ? _youtubeController.text
             : null,
-        description: description,
-        tags: tags,
       );
 
       if (mounted) {

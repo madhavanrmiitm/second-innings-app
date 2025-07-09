@@ -21,7 +21,9 @@ A FastAPI-based backend with Firebase authentication, PostgreSQL database, and m
 3. **Configure environment:**
    ```bash
    cp .env.example .env
-   # Update DATABASE_URL in .env file
+   # Update the following in .env file:
+   # - DATABASE_URL: PostgreSQL connection string
+   # - GEMINI_API_KEY: Google Gemini AI API key for YouTube processing
    ```
 
 4. **Run the application:**
@@ -52,8 +54,10 @@ backend/
 │   │   ├── init_db.py       # Database initialization
 │   │   └── schema.sql       # Database schema (users table)
 │   ├── modules/              # Business logic modules
-│   │   └── auth/            # Authentication module
-│   │       └── auth_service.py  # Firebase authentication service
+│   │   ├── auth/            # Authentication module
+│   │   │   └── auth_service.py  # Firebase authentication service
+│   │   └── youtube/         # YouTube processing module
+│   │       └── youtube_processor.py  # AI-powered video analysis
 │   ├── routes/               # API route definitions
 │   │   └── auth.py          # Authentication routes
 │   ├── utils/                # Utility functions
@@ -84,6 +88,7 @@ backend/
 - **🔐 Firebase Authentication**: Complete Firebase ID token verification with user management
 - **🏗️ Modular Architecture**: Clean separation of controllers, services, routes, and utilities
 - **📊 Database Integration**: PostgreSQL with automated schema management and connection pooling
+- **🤖 AI-Powered YouTube Processing**: Automatic tag extraction and description generation for caregiver YouTube videos using Google Gemini AI
 - **🌐 CORS Support**: Configured for cross-origin requests from web and mobile clients
 - **📝 Request Validation**: Pydantic-based request/response validation with automatic OpenAPI docs
 - **🔄 Standardized Responses**: Consistent JSON response format across all endpoints
@@ -101,11 +106,11 @@ python main.py --init-db --reload
 # Run tests
 bru run bruno/second-innings-backend --env Local
 
-# Docker development
+# Docker development (ensure GEMINI_API_KEY is set in .env file)
 docker-compose up --build
 
 # Production deployment
-POSTGRES_PASSWORD=secure_pass docker-compose -f docker-compose.prod.yml up -d
+POSTGRES_PASSWORD=secure_pass GEMINI_API_KEY=your_api_key docker-compose -f docker-compose.prod.yml up -d
 
 # View logs
 docker-compose logs -f backend

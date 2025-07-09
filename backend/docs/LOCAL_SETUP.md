@@ -122,10 +122,16 @@ sudo systemctl enable postgresql
    cp .env.example .env
    ```
 
-2. **Update the `.env` file with local database credentials:**
+2. **Update the `.env` file with required credentials:**
    ```env
+   # Database Configuration
    DATABASE_URL=postgresql://fastapi_user:fastapi_password@localhost:5432/fastapi_db
+
+   # Firebase Configuration
    FIREBASE_ADMIN_SDK_PATH=second-innings-iitm-firebase-adminsdk-fbsvc-3521fdd41b.json
+
+   # Google Gemini AI Configuration (Required for YouTube processing)
+   GEMINI_API_KEY=your_gemini_api_key_here
    ```
 
    **Note:** Use port `5432` (default PostgreSQL port) instead of `5433` when running PostgreSQL locally.

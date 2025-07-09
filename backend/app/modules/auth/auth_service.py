@@ -4,7 +4,14 @@ import firebase_admin
 from app.config import settings
 from app.database.db import get_db_connection
 from app.logger import logger
-from app.payloads import RegistrationRequest, UnregisteredUser, User, UserCreateRequest
+from app.modules.youtube.youtube_processor import youtube_processor
+from app.payloads import (
+    RegistrationRequest,
+    UnregisteredUser,
+    User,
+    UserCreateRequest,
+    UserRole,
+)
 from firebase_admin import auth, credentials
 
 
@@ -161,6 +168,7 @@ class AuthService:
     def register_user(self, registration_data: RegistrationRequest) -> User:
         """
         Register a new user with complete profile information.
+        For caregivers with YouTube URLs, automatically processes the video to extract tags and description.
 
         Args:
             registration_data: The registration data containing ID token and user details
@@ -183,6 +191,40 @@ class AuthService:
         if existing_user:
             raise ValueError("User already registered")
 
+        # Process YouTube video for caregivers
+        processed_tags = registration_data.tags
+        processed_description = registration_data.description
+
+        if (
+            registration_data.role == UserRole.CAREGIVER
+            and registration_data.youtube_url
+        ):
+            try:
+                logger.info(
+                    f"Processing YouTube video for caregiver: {registration_data.full_name}"
+                )
+                ai_analysis = youtube_processor.generate_caregiver_analysis(
+                    registration_data.youtube_url, registration_data.full_name
+                )
+
+                # Use AI-generated content, fallback to user-provided if AI fails
+                processed_tags = ai_analysis.get("tags") or registration_data.tags
+                processed_description = (
+                    ai_analysis.get("description") or registration_data.description
+                )
+
+                logger.info(
+                    f"YouTube processing completed for {registration_data.full_name}"
+                )
+
+            except Exception as e:
+                logger.warning(
+                    f"YouTube processing failed for {registration_data.full_name}: {e}"
+                )
+                # Continue with user-provided data if AI processing fails
+                processed_tags = registration_data.tags
+                processed_description = registration_data.description
+
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cur:
@@ -197,8 +239,8 @@ class AuthService:
                             registration_data.role,
                             registration_data.youtube_url,
                             registration_data.date_of_birth,
-                            registration_data.description,
-                            registration_data.tags,
+                            processed_description,  # Use AI-processed description
+                            processed_tags,  # Use AI-processed tags
                         ),
                     )
                     created_user = cur.fetchone()

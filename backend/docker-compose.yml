@@ -23,6 +23,7 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://fastapi_user:fastapi_password@db:5432/fastapi_db
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       INIT_DB_ON_STARTUP: "true"
     depends_on:
       db:

@@ -119,18 +119,6 @@ class RegistrationService {
       return null;
     }
   }
-
-  // Generate description and tags for caregiver (if needed)
-  static Map<String, String> generateCaregiverExtras({
-    required String fullName,
-    required String youtubeUrl,
-  }) {
-    return {
-      'description':
-          'I am a passionate caregiver ready to help senior citizens with their daily needs and provide companionship.',
-      'tags': 'caregiving, companionship, daily assistance, elderly care',
-    };
-  }
 }
 
 // User roles enum to match the registration form

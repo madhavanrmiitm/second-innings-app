@@ -7,3 +7,5 @@ firebase-admin
 # Development tools
 black
 pre-commit
+
+google-genai

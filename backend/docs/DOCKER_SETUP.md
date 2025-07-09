@@ -12,7 +12,13 @@ If you prefer to run everything in Docker containers, this section provides the 
 
 ### Quick Start with Full Docker
 
-1. **Start all services:**
+1. **Set up environment variables:**
+   ```bash
+   # Create .env file with required variables
+   echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
+   ```
+
+2. **Start all services:**
    ```bash
    docker-compose up --build
    ```
@@ -53,13 +59,14 @@ The default `docker-compose.yml` is configured for development with:
 - Username: `fastapi_user`
 - Password: `fastapi_password`
 - Database URL: `postgresql://fastapi_user:fastapi_password@db:5432/fastapi_db`
+- Gemini API Key: Set via `GEMINI_API_KEY` environment variable (required for YouTube processing)
 
 ### Production Deployment
 
 For production, use the production compose file with enhanced security:
 
 ```bash
-POSTGRES_PASSWORD=your_secure_password docker-compose -f docker-compose.prod.yml up --build -d
+POSTGRES_PASSWORD=your_secure_password GEMINI_API_KEY=your_gemini_api_key docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 **Production differences:**
@@ -93,7 +100,7 @@ docker-compose restart backend
 docker-compose down -v
 
 # Production deployment
-POSTGRES_PASSWORD=secure_password docker-compose -f docker-compose.prod.yml up --build -d
+POSTGRES_PASSWORD=secure_password GEMINI_API_KEY=your_api_key docker-compose -f docker-compose.prod.yml up --build -d
 ```
 
 ## Docker Troubleshooting

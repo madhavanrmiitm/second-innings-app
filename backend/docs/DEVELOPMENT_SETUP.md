@@ -37,9 +37,16 @@ The recommended setup uses Python locally with Docker for PostgreSQL only. This 
    cp .env.example .env
    ```
 
-   Update the `.env` file with these database credentials:
+   Update the `.env` file with these required credentials:
    ```env
+   # Database Configuration
    DATABASE_URL=postgresql://fastapi_user:fastapi_password@localhost:5433/fastapi_db
+
+   # Firebase Configuration
+   FIREBASE_ADMIN_SDK_PATH=second-innings-iitm-firebase-adminsdk-fbsvc-3521fdd41b.json
+
+   # Google Gemini AI Configuration (Required for YouTube processing)
+   GEMINI_API_KEY=your_gemini_api_key_here
    ```
 
 4. **Run the application:**
