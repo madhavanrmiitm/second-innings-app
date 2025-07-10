@@ -2,6 +2,7 @@ class ApiConfig {
   // API endpoints
   static const String verifyTokenEndpoint = '/api/auth/verify-token';
   static const String registerEndpoint = '/api/auth/register';
+  static const String profileEndpoint = '/api/user/profile';
 
   // Request timeout
   static const Duration requestTimeout = Duration(seconds: 30);

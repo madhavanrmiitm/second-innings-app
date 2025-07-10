@@ -116,11 +116,16 @@ Register a new user with complete profile information.
 
 **Available User Roles:**
 - `admin` - System administrator
-- `caregiver` - Professional caregiver/coach
+- `caregiver` - Professional caregiver/coach (requires approval)
 - `family_member` - Family member of senior citizen
 - `senior_citizen` - Senior citizen requiring care
-- `interest_group_admin` - Administrator of interest groups
+- `interest_group_admin` - Administrator of interest groups (requires approval)
 - `support_user` - Support staff member
+
+**User Status System:**
+- `pending_approval` - Account awaiting admin approval (caregiver, interest_group_admin)
+- `active` - Account is active and can use the system
+- `blocked` - Account is blocked and cannot access the system
 
 **Field Requirements:**
 
@@ -137,9 +142,14 @@ Register a new user with complete profile information.
 - `description` (string, optional): Professional description (auto-generated from YouTube video if not provided)
 - `tags` (string, optional): Comma-separated skills/specialties (auto-generated from YouTube video if not provided)
 
-**Note:** For caregivers, if `description` and `tags` are not provided, the system will automatically analyze the YouTube video using Google Gemini AI to generate relevant cricket/caregiving tags and a professional description.
+**INTEREST_GROUP_ADMIN role requires:**
+- `youtube_url` (string, required): YouTube profile URL
+- `description` (string, optional): Professional description (auto-generated from YouTube video if not provided)
+- `tags` (string, optional): Comma-separated skills/specialties (auto-generated from YouTube video if not provided)
 
-**All other roles (ADMIN, FAMILY_MEMBER, SENIOR_CITIZEN, INTEREST_GROUP_ADMIN, SUPPORT_USER):**
+**Note:** For caregivers and interest group admins, if `description` and `tags` are not provided, the system will automatically analyze the YouTube video using Google Gemini AI to generate relevant tags and a professional description based on their role.
+
+**All other roles (ADMIN, FAMILY_MEMBER, SENIOR_CITIZEN, SUPPORT_USER):**
 - Only common fields required (no additional requirements)
 
 **Role-Based Examples:**
@@ -188,6 +198,17 @@ Register a new user with complete profile information.
 }
 ```
 
+**Interest Group Admin Registration:**
+```json
+{
+  "id_token": "firebase_id_token_here",
+  "full_name": "Sarah Johnson",
+  "role": "interest_group_admin",
+  "youtube_url": "https://youtube.com/watch?v=example",
+  "date_of_birth": "1975-07-15"
+}
+```
+
 **Admin Registration:**
 ```json
 {
@@ -210,6 +231,7 @@ Register a new user with complete profile information.
       "firebase_uid": "firebase_uid_here",
       "full_name": "John Doe",
       "role": "caregiver",
+      "status": "pending_approval",
       "youtube_url": "https://youtube.com/watch?v=example",
       "date_of_birth": "1990-01-15",
       "description": "John Doe is a dedicated caregiver with expertise in cricket and senior citizen support. They bring experience in sports coaching and rehabilitation to help seniors stay active and engaged. Passionate about combining cricket activities with compassionate care for the elderly.",
@@ -221,6 +243,8 @@ Register a new user with complete profile information.
   }
 }
 ```
+
+**Note:** Caregivers and Interest Group Admins will have `status: "pending_approval"` and require admin approval to become active. All other roles will have `status: "active"` by default.
 
 **Error Response (401) - Invalid Token:**
 ```json
@@ -254,6 +278,58 @@ Register a new user with complete profile information.
 {
   "status_code": 409,
   "message": "User already registered."
+}
+```
+
+### User Profile
+
+#### POST /api/user/profile
+Get user profile information using Firebase ID token.
+
+**Request Body:**
+```json
+{
+  "id_token": "firebase_id_token_here"
+}
+```
+
+**Success Response (200) - Profile Retrieved:**
+```json
+{
+  "status_code": 200,
+  "message": "User profile retrieved successfully.",
+  "data": {
+    "user": {
+      "id": 1,
+      "gmail_id": "user@gmail.com",
+      "firebase_uid": "firebase_uid_here",
+      "full_name": "John Doe",
+      "role": "caregiver",
+      "status": "pending_approval",
+      "youtube_url": "https://youtube.com/watch?v=example",
+      "date_of_birth": "1990-01-15",
+      "description": "John Doe is a dedicated caregiver with expertise in cricket and senior citizen support.",
+      "tags": "cricket coaching, senior care, sports rehabilitation, mentoring",
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00"
+    }
+  }
+}
+```
+
+**Error Response (401) - Invalid Token:**
+```json
+{
+  "status_code": 401,
+  "message": "Authentication failed. Invalid token."
+}
+```
+
+**Error Response (404) - User Not Found:**
+```json
+{
+  "status_code": 404,
+  "message": "User not found. Please register first."
 }
 ```
 
@@ -308,6 +384,7 @@ bru run "Auth/POST_VerifyToken.bru" --env Local
 - `Root/GET_HealthCheck.bru` - Health check endpoint
 - `Auth/POST_VerifyToken.bru` - Authentication endpoint
 - `Auth/POST_RegisterUser.bru` - User registration endpoint
+- `User/POST_GetProfile.bru` - User profile endpoint
 
 #### Test Configuration
 
@@ -358,11 +435,19 @@ The API is configured to allow cross-origin requests from all origins for develo
 
 ### Users Table
 ```sql
+-- Create ENUM type for user roles
+CREATE TYPE user_role AS ENUM ('admin', 'caregiver', 'family_member', 'senior_citizen', 'interest_group_admin', 'support_user');
+
+-- Create ENUM type for user status
+CREATE TYPE user_status AS ENUM ('pending_approval', 'active', 'blocked');
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     gmail_id VARCHAR(255) UNIQUE NOT NULL,
     firebase_uid VARCHAR(255) UNIQUE NOT NULL,
     full_name VARCHAR(255) NOT NULL,
+    role user_role NOT NULL,
+    status user_status NOT NULL DEFAULT 'active',
     youtube_url VARCHAR(500),
     date_of_birth DATE,
     description TEXT,

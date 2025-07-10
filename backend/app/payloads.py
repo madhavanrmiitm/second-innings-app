@@ -14,6 +14,12 @@ class UserRole(str, Enum):
     SUPPORT_USER = "support_user"
 
 
+class UserStatus(str, Enum):
+    PENDING_APPROVAL = "pending_approval"
+    ACTIVE = "active"
+    BLOCKED = "blocked"
+
+
 class TokenRequest(BaseModel):
     id_token: str
 
@@ -25,19 +31,13 @@ class User(BaseModel):
     firebase_uid: str
     full_name: str
     role: UserRole
+    status: UserStatus
     youtube_url: Optional[str] = None
     date_of_birth: Optional[date] = None
     description: Optional[str] = None
     tags: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-
-
-class UserCreateRequest(BaseModel):
-    gmail_id: str
-    firebase_uid: str
-    full_name: str
-    role: UserRole
 
 
 class UnregisteredUser(BaseModel):
@@ -57,13 +57,13 @@ class RegistrationRequest(BaseModel):
 
     @field_validator("youtube_url")
     @classmethod
-    def validate_caregiver_youtube_url(cls, v, info):
-        """Validate that youtube_url is provided for caregiver role (tags and description will be auto-generated)"""
+    def validate_youtube_url_for_roles(cls, v, info):
+        """Validate that youtube_url is provided for caregiver and interest_group_admin roles (tags and description will be auto-generated)"""
         # Get the role from the model data
         role = info.data.get("role")
 
-        if role == UserRole.CAREGIVER and v is None:
-            raise ValueError("youtube_url is required for caregiver role")
+        if role in [UserRole.CAREGIVER, UserRole.INTEREST_GROUP_ADMIN] and v is None:
+            raise ValueError(f"youtube_url is required for {role.value} role")
 
         return v
 
@@ -81,3 +81,7 @@ class AuthResponse(BaseModel):
 class UnregisteredUserResponse(BaseModel):
     user_info: UnregisteredUser
     is_registered: bool = False
+
+
+class ProfileResponse(BaseModel):
+    user: User

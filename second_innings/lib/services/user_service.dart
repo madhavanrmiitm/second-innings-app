@@ -123,6 +123,85 @@ class UserService {
       return false;
     }
   }
+
+  // Fetch user profile from backend
+  static Future<ApiResponse<Map<String, dynamic>>> fetchUserProfile() async {
+    try {
+      // Get current user data to extract stored ID token or Firebase UID
+      final userData = await getUserData();
+      if (userData == null) {
+        return ApiResponse<Map<String, dynamic>>(
+          statusCode: 401,
+          error: 'No user session found',
+        );
+      }
+
+      // For now, we'll use the stored user data. In a real implementation,
+      // you might want to make an API call to get fresh data
+      // Using Firebase Auth to get a fresh ID token would be ideal
+      return ApiResponse<Map<String, dynamic>>(
+        statusCode: 200,
+        data: {
+          'data': {'user': userData},
+        },
+      );
+    } catch (e) {
+      print('Error fetching user profile: $e');
+      return ApiResponse<Map<String, dynamic>>(
+        statusCode: 500,
+        error: 'Failed to fetch user profile: $e',
+      );
+    }
+  }
+
+  // Refresh user profile from backend
+  static Future<ApiResponse<Map<String, dynamic>>> refreshUserProfile(
+    String idToken,
+  ) async {
+    return await ApiService.post(
+      ApiConfig.profileEndpoint,
+      body: {'id_token': idToken},
+    );
+  }
+
+  // Check if user status allows access
+  static Future<bool> canUserAccess() async {
+    final userData = await getUserData();
+    if (userData == null) return false;
+
+    final status = userData['status']?.toString().toLowerCase();
+    return status == 'active';
+  }
+
+  // Check if user is blocked
+  static Future<bool> isUserBlocked() async {
+    final userData = await getUserData();
+    if (userData == null) return false;
+
+    final status = userData['status']?.toString().toLowerCase();
+    return status == 'blocked';
+  }
+
+  // Check if user is pending approval
+  static Future<bool> isUserPendingApproval() async {
+    final userData = await getUserData();
+    if (userData == null) return false;
+
+    final status = userData['status']?.toString().toLowerCase();
+    return status == 'pending_approval';
+  }
+
+  // Get user role
+  static Future<String?> getUserRole() async {
+    final userData = await getUserData();
+    return userData?['role']?.toString();
+  }
+
+  // Get user status
+  static Future<String?> getUserStatus() async {
+    final userData = await getUserData();
+    return userData?['status']?.toString();
+  }
 }
 
 // Result class for authentication flow

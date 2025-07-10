@@ -9,8 +9,8 @@ from app.payloads import (
     RegistrationRequest,
     UnregisteredUser,
     User,
-    UserCreateRequest,
     UserRole,
+    UserStatus,
 )
 from firebase_admin import auth, credentials
 
@@ -58,7 +58,7 @@ class AuthService:
             with get_db_connection() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        """SELECT id, gmail_id, firebase_uid, full_name, role, youtube_url, date_of_birth, description, tags, created_at, updated_at
+                        """SELECT id, gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags, created_at, updated_at
                            FROM users WHERE firebase_uid = %s""",
                         (firebase_uid,),
                     )
@@ -71,62 +71,17 @@ class AuthService:
                             firebase_uid=user_data[2],
                             full_name=user_data[3],
                             role=user_data[4],
-                            youtube_url=user_data[5],
-                            date_of_birth=user_data[6],
-                            description=user_data[7],
-                            tags=user_data[8],
-                            created_at=user_data[9],
-                            updated_at=user_data[10],
+                            status=user_data[5],
+                            youtube_url=user_data[6],
+                            date_of_birth=user_data[7],
+                            description=user_data[8],
+                            tags=user_data[9],
+                            created_at=user_data[10],
+                            updated_at=user_data[11],
                         )
                     return None
         except Exception as e:
             logger.error(f"Error retrieving user: {e}")
-            raise
-
-    def create_user(self, user_data: UserCreateRequest) -> User:
-        """
-        Create a new user in the database.
-
-        Args:
-            user_data: The user data to create
-
-        Returns:
-            The created User object
-        """
-        try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        """INSERT INTO users (gmail_id, firebase_uid, full_name, role)
-                           VALUES (%s, %s, %s, %s)
-                           RETURNING id, gmail_id, firebase_uid, full_name, role, youtube_url, date_of_birth, description, tags, created_at, updated_at""",
-                        (
-                            user_data.gmail_id,
-                            user_data.firebase_uid,
-                            user_data.full_name,
-                            user_data.role,
-                        ),
-                    )
-                    created_user = cur.fetchone()
-
-                    if created_user:
-                        logger.info(f"User created with ID: {created_user[0]}")
-                        return User(
-                            id=created_user[0],
-                            gmail_id=created_user[1],
-                            firebase_uid=created_user[2],
-                            full_name=created_user[3],
-                            role=created_user[4],
-                            youtube_url=created_user[5],
-                            date_of_birth=created_user[6],
-                            description=created_user[7],
-                            tags=created_user[8],
-                            created_at=created_user[9],
-                            updated_at=created_user[10],
-                        )
-                    raise Exception("Failed to create user")
-        except Exception as e:
-            logger.error(f"Error creating user: {e}")
             raise
 
     def authenticate_user(
@@ -191,7 +146,16 @@ class AuthService:
         if existing_user:
             raise ValueError("User already registered")
 
-        # Process YouTube video for caregivers
+        # Determine status based on role
+        if registration_data.role in [
+            UserRole.CAREGIVER,
+            UserRole.INTEREST_GROUP_ADMIN,
+        ]:
+            user_status = UserStatus.PENDING_APPROVAL
+        else:
+            user_status = UserStatus.ACTIVE
+
+        # Process YouTube video for caregivers and interest group admins
         processed_tags = registration_data.tags
         processed_description = registration_data.description
 
@@ -214,12 +178,42 @@ class AuthService:
                 )
 
                 logger.info(
-                    f"YouTube processing completed for {registration_data.full_name}"
+                    f"YouTube processing completed for caregiver {registration_data.full_name}"
                 )
 
             except Exception as e:
                 logger.warning(
-                    f"YouTube processing failed for {registration_data.full_name}: {e}"
+                    f"YouTube processing failed for caregiver {registration_data.full_name}: {e}"
+                )
+                # Continue with user-provided data if AI processing fails
+                processed_tags = registration_data.tags
+                processed_description = registration_data.description
+
+        elif (
+            registration_data.role == UserRole.INTEREST_GROUP_ADMIN
+            and registration_data.youtube_url
+        ):
+            try:
+                logger.info(
+                    f"Processing YouTube video for interest group admin: {registration_data.full_name}"
+                )
+                ai_analysis = youtube_processor.generate_interest_group_admin_analysis(
+                    registration_data.youtube_url, registration_data.full_name
+                )
+
+                # Use AI-generated content, fallback to user-provided if AI fails
+                processed_tags = ai_analysis.get("tags") or registration_data.tags
+                processed_description = (
+                    ai_analysis.get("description") or registration_data.description
+                )
+
+                logger.info(
+                    f"YouTube processing completed for interest group admin {registration_data.full_name}"
+                )
+
+            except Exception as e:
+                logger.warning(
+                    f"YouTube processing failed for interest group admin {registration_data.full_name}: {e}"
                 )
                 # Continue with user-provided data if AI processing fails
                 processed_tags = registration_data.tags
@@ -229,14 +223,15 @@ class AuthService:
             with get_db_connection() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
-                        """INSERT INTO users (gmail_id, firebase_uid, full_name, role, youtube_url, date_of_birth, description, tags)
-                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                           RETURNING id, gmail_id, firebase_uid, full_name, role, youtube_url, date_of_birth, description, tags, created_at, updated_at""",
+                        """INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                           RETURNING id, gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags, created_at, updated_at""",
                         (
                             email,
                             firebase_uid,
                             registration_data.full_name,
                             registration_data.role,
+                            user_status,
                             registration_data.youtube_url,
                             registration_data.date_of_birth,
                             processed_description,  # Use AI-processed description
@@ -246,19 +241,22 @@ class AuthService:
                     created_user = cur.fetchone()
 
                     if created_user:
-                        logger.info(f"User registered with ID: {created_user[0]}")
+                        logger.info(
+                            f"User registered with ID: {created_user[0]} with status: {user_status}"
+                        )
                         return User(
                             id=created_user[0],
                             gmail_id=created_user[1],
                             firebase_uid=created_user[2],
                             full_name=created_user[3],
                             role=created_user[4],
-                            youtube_url=created_user[5],
-                            date_of_birth=created_user[6],
-                            description=created_user[7],
-                            tags=created_user[8],
-                            created_at=created_user[9],
-                            updated_at=created_user[10],
+                            status=created_user[5],
+                            youtube_url=created_user[6],
+                            date_of_birth=created_user[7],
+                            description=created_user[8],
+                            tags=created_user[9],
+                            created_at=created_user[10],
+                            updated_at=created_user[11],
                         )
                     raise Exception("Failed to register user")
         except Exception as e:

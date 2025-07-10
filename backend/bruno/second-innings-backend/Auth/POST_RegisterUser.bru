@@ -20,61 +20,6 @@ body:json {
   }
 }
 
-// Example for CAREGIVER role (AI will auto-generate tags and description from YouTube video):
-// {
-//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
-//   "full_name": "Sarah Johnson",
-//   "role": "caregiver",
-//   "youtube_url": "https://youtube.com/watch?v=dQw4w9WgXcQ",
-//   "date_of_birth": "1985-06-15"
-// }
-//
-// Note: For caregivers, the system will automatically:
-// 1. Analyze the YouTube video using Gemini AI
-// 2. Extract relevant cricket/caregiving tags
-// 3. Generate a professional description
-// 4. Save the processed data to the database
-
-// Example for FAMILY_MEMBER role (minimal fields):
-// {
-//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
-//   "full_name": "Jane Smith",
-//   "role": "family_member",
-//   "date_of_birth": "1985-03-20"
-// }
-
-// Example for SENIOR_CITIZEN role (minimal fields):
-// {
-//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
-//   "full_name": "Robert Johnson",
-//   "role": "senior_citizen",
-//   "date_of_birth": "1945-08-10"
-// }
-
-// Example for ADMIN role (minimal fields):
-// {
-//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
-//   "full_name": "Admin User",
-//   "role": "admin",
-//   "date_of_birth": "1980-12-05"
-// }
-
-// Example for INTEREST_GROUP_ADMIN role (minimal fields):
-// {
-//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
-//   "full_name": "Group Admin",
-//   "role": "interest_group_admin",
-//   "date_of_birth": "1975-07-15"
-// }
-
-// Example for SUPPORT_USER role (minimal fields):
-// {
-//   "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE",
-//   "full_name": "Support Staff",
-//   "role": "support_user",
-//   "date_of_birth": "1988-11-25"
-// }
-
 tests {
   test("Status code is 201 for successful registration", function() {
     expect(res.getStatus()).to.equal(201);

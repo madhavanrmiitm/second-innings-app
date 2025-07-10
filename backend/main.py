@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from app.database.init_db import initialize_schema
 from app.logger import logger
 from app.routes import auth as auth_routes
+from app.routes import user as user_routes
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -40,6 +41,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_routes.router, prefix="/api")
+app.include_router(user_routes.router, prefix="/api")
 
 
 @app.get("/")

@@ -113,6 +113,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Future<void> _navigateToUserDashboard(Map<String, dynamic> userData) async {
     final userName = userData['full_name'] ?? 'User';
     final userType = userData['role']?.toString().toLowerCase();
+    final userStatus = userData['status']?.toString().toLowerCase();
+
+    // Check if user is blocked
+    if (userStatus == 'blocked') {
+      await UserService.clearUserData(); // Clear blocked user session
+      _showErrorMessage(
+        'Your account has been blocked. Please contact support.',
+      );
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

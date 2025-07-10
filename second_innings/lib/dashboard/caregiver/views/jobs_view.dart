@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/widgets/user_app_bar.dart';
+import 'package:second_innings/services/user_service.dart';
 
 class JobsView extends StatefulWidget {
   const JobsView({super.key});
@@ -18,11 +19,160 @@ class _JobsViewState extends State<JobsView> {
   ];
   final Set<String> _selectedFilters = {'Madras'};
 
+  bool _isLoading = true;
+  bool _isPendingApproval = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserStatus();
+  }
+
+  Future<void> _checkUserStatus() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final userData = await UserService.getUserData();
+      if (userData != null) {
+        final status = userData['status']?.toString().toLowerCase();
+        setState(() {
+          _isPendingApproval = status == 'pending_approval';
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'Unable to load user data';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error checking user status: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    if (_isLoading) {
+      return const CustomScrollView(
+        slivers: [
+          UserAppBar(title: '2nd Innings'),
+          SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+        ],
+      );
+    }
+
+    if (_error != null) {
+      return CustomScrollView(
+        slivers: [
+          const UserAppBar(title: '2nd Innings'),
+          SliverToBoxAdapter(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text(_error!, style: textTheme.bodyLarge),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _checkUserStatus,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_isPendingApproval) {
+      return CustomScrollView(
+        slivers: [
+          const UserAppBar(title: '2nd Innings'),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 60),
+                  Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: colorScheme.error, width: 2),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.pending_actions,
+                          size: 80,
+                          color: colorScheme.error,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Profile Under Review',
+                          style: textTheme.headlineSmall?.copyWith(
+                            color: colorScheme.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Your caregiver profile has been sent for admin review. You\'ll be able to access job listings once your profile is approved.',
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onErrorContainer,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        Icon(
+                          Icons.access_time,
+                          size: 40,
+                          color: colorScheme.onErrorContainer,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Waiting for approval...',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: colorScheme.onErrorContainer,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _checkUserStatus,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Check Status'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Original job listing view for approved caregivers
     return CustomScrollView(
       slivers: [
         const UserAppBar(title: '2nd Innings'),

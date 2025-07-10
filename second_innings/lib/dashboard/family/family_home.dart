@@ -71,6 +71,7 @@ import 'package:second_innings/dashboard/family/views/caregivers_view.dart';
 import 'package:second_innings/dashboard/family/views/notifications_view.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizens_view.dart';
 import 'package:second_innings/dashboard/family/views/link_new_senior_citizen_view.dart';
+import 'package:second_innings/dashboard/family/views/profile_view.dart';
 
 class FamilyHomePage extends StatefulWidget {
   final int selectedIndex;
@@ -102,10 +103,11 @@ class _FamilyHomePageState extends State<FamilyHomePage> {
       const SeniorCitizensView(),
       const NotificationsView(),
       const CaregiversView(),
+      const ProfileView(),
     ];
 
     return Scaffold(
-      body: widgetOptions[_selectedIndex],
+      body: IndexedStack(index: _selectedIndex, children: widgetOptions),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton.extended(
               heroTag: 'linkNewFab',
@@ -133,6 +135,11 @@ class _FamilyHomePageState extends State<FamilyHomePage> {
             label: 'Notifications',
           ),
           NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline_rounded),
+            selectedIcon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
         ],
       ),
     );

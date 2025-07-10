@@ -111,6 +111,65 @@ class YouTubeProcessor:
             # Return fallback content
             return self._generate_fallback_content(full_name)
 
+    def generate_interest_group_admin_analysis(
+        self, youtube_url: str, full_name: str
+    ) -> Dict[str, str]:
+        """
+        Analyze YouTube video and generate tags and description for interest group admin.
+
+        Args:
+            youtube_url: YouTube video URL
+            full_name: Interest group admin's full name
+
+        Returns:
+            Dictionary with 'tags' and 'description' keys
+        """
+        try:
+            video_id = self.extract_video_id(youtube_url)
+            if not video_id:
+                raise ValueError("Invalid YouTube URL format")
+
+            # Construct the prompt for Gemini AI
+            prompt = f"""
+            Analyze this YouTube video URL: {youtube_url}
+
+            This is an interest group admin who is registering on a platform called "Second Innings"
+            which focuses on organizing activities and interest groups for senior citizens.
+
+            Based on the video content, please provide:
+
+            1. TAGS: Generate 4-6 relevant tags separated by commas. Focus on:
+               - Activity/interest areas (arts, crafts, music, sports, reading, gardening, etc.)
+               - Leadership qualities (organized, enthusiastic, communicative, etc.)
+               - Group management skills (event planning, coordination, mentoring, etc.)
+               - Location (if mentioned)
+
+            2. DESCRIPTION: Write a 200 word professional description of this interest group admin
+               highlighting their expertise, experience, and what makes them suitable for
+               organizing and managing interest groups for senior citizens.
+
+            Format your response exactly like this:
+            TAGS: tag1, tag2, tag3, tag4, tag5
+            DESCRIPTION: Professional description here.
+
+            If you cannot access the video content, generate appropriate interest group management
+            tags and description based on the fact they submitted a YouTube video for interest group admin registration.
+            """
+
+            # Call Gemini AI
+            response = self.client.models.generate_content(
+                model="gemini-2.5-flash", contents=prompt
+            )
+
+            print(response.text)
+
+            return self._parse_ai_response(response.text, full_name)
+
+        except Exception as e:
+            logger.error(f"Error analyzing YouTube video {youtube_url}: {e}")
+            # Return fallback content
+            return self._generate_fallback_content_interest_group(full_name)
+
     def _parse_ai_response(self, response_text: str, full_name: str) -> Dict[str, str]:
         """
         Parse the AI response to extract tags and description.
@@ -170,6 +229,26 @@ class YouTubeProcessor:
 
         Args:
             full_name: Caregiver's name
+
+        Returns:
+            Dictionary with fallback tags and description
+        """
+
+        return {
+            "tags": "none",
+            "description": "Failed to generate tags and description for "
+            + full_name
+            + " either because the video is not available or the AI failed to generate the tags and description for the video.",
+        }
+
+    def _generate_fallback_content_interest_group(
+        self, full_name: str
+    ) -> Dict[str, str]:
+        """
+        Generate fallback tags and description when AI analysis fails for interest group admin.
+
+        Args:
+            full_name: Interest group admin's name
 
         Returns:
             Dictionary with fallback tags and description

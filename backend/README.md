@@ -48,18 +48,20 @@ A FastAPI-based backend with Firebase authentication, PostgreSQL database, and m
 backend/
 ├── app/
 │   ├── controllers/           # Request handlers and business logic
-│   │   └── auth.py           # Authentication controller
+│   │   ├── auth.py           # Authentication controller
+│   │   └── user.py           # User profile controller
 │   ├── database/             # Database configuration and schema
 │   │   ├── db.py            # Database connection management
 │   │   ├── init_db.py       # Database initialization
-│   │   └── schema.sql       # Database schema (users table)
+│   │   └── schema.sql       # Database schema with user roles and status
 │   ├── modules/              # Business logic modules
 │   │   ├── auth/            # Authentication module
 │   │   │   └── auth_service.py  # Firebase authentication service
 │   │   └── youtube/         # YouTube processing module
 │   │       └── youtube_processor.py  # AI-powered video analysis
 │   ├── routes/               # API route definitions
-│   │   └── auth.py          # Authentication routes
+│   │   ├── auth.py          # Authentication routes
+│   │   └── user.py          # User profile routes
 │   ├── utils/                # Utility functions
 │   │   ├── request_validator.py   # Request validation decorators
 │   │   └── response_formatter.py  # Standardized response formatting
@@ -69,6 +71,7 @@ backend/
 ├── bruno/                    # API testing collection
 │   └── second-innings-backend/
 │       ├── Auth/             # Authentication API tests
+│       ├── User/             # User profile API tests
 │       └── Root/             # Health check tests
 ├── docs/                     # Documentation files
 │   ├── API_DOCUMENTATION.md
@@ -86,9 +89,11 @@ backend/
 ## ✨ Features
 
 - **🔐 Firebase Authentication**: Complete Firebase ID token verification with user management
+- **👤 User Profile Management**: Secure profile retrieval with role-based access control
+- **📊 Status-Based Approval System**: Automatic status assignment with pending approval for caregivers and interest group admins
 - **🏗️ Modular Architecture**: Clean separation of controllers, services, routes, and utilities
 - **📊 Database Integration**: PostgreSQL with automated schema management and connection pooling
-- **🤖 AI-Powered YouTube Processing**: Automatic tag extraction and description generation for caregiver YouTube videos using Google Gemini AI
+- **🤖 AI-Powered YouTube Processing**: Automatic tag extraction and description generation for caregiver and interest group admin YouTube videos using Google Gemini AI
 - **🌐 CORS Support**: Configured for cross-origin requests from web and mobile clients
 - **📝 Request Validation**: Pydantic-based request/response validation with automatic OpenAPI docs
 - **🔄 Standardized Responses**: Consistent JSON response format across all endpoints
@@ -120,7 +125,8 @@ docker-compose logs -f backend
 
 - **Health Check**: `GET /` - Application status
 - **Authentication**: `POST /api/auth/verify-token` - Firebase token verification
-- **User Registration**: `POST /api/auth/register` - Complete user registration with profile
+- **User Registration**: `POST /api/auth/register` - Complete user registration with profile and status assignment
+- **User Profile**: `POST /api/user/profile` - Retrieve user profile information
 - **API Documentation**: `http://localhost:8000/docs` - Interactive Swagger UI
 
 ## 🤝 Contributing

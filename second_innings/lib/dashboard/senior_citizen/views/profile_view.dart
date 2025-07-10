@@ -82,13 +82,10 @@ class _ProfileViewState extends State<ProfileView> {
       );
     }
 
-    final userStatus = _userData!['status']?.toString().toLowerCase();
-    final isPendingApproval = userStatus == 'pending_approval';
-
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const UserAppBar(title: 'Caregiver Profile'),
+          const UserAppBar(title: 'My Profile'),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -108,45 +105,6 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Pending Approval Banner
-                  if (isPendingApproval) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: colorScheme.errorContainer,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: colorScheme.error),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.pending_actions,
-                            size: 48,
-                            color: colorScheme.error,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Profile Under Review',
-                            style: textTheme.titleMedium?.copyWith(
-                              color: colorScheme.error,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Sent to review for admin. Waiting for approval.',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onErrorContainer,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
 
                   // Profile Information
                   _buildProfileCard(context, 'Personal Information', [
@@ -175,62 +133,6 @@ class _ProfileViewState extends State<ProfileView> {
                       _formatStatus(_userData!['status']),
                     ),
                   ]),
-
-                  const SizedBox(height: 16),
-
-                  // YouTube URL (Caregiver specific)
-                  if (_userData!['youtube_url'] != null &&
-                      _userData!['youtube_url'].toString().isNotEmpty)
-                    _buildProfileCard(context, 'Professional Information', [
-                      _buildInfoRow(
-                        'YouTube Profile',
-                        _userData!['youtube_url'] ?? 'Not provided',
-                      ),
-                    ]),
-
-                  const SizedBox(height: 16),
-
-                  // Description (Caregiver specific)
-                  if (_userData!['description'] != null &&
-                      _userData!['description'].toString().isNotEmpty)
-                    _buildProfileCard(context, 'About Me', [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _userData!['description'] ??
-                              'No description provided',
-                          style: textTheme.bodyMedium,
-                        ),
-                      ),
-                    ]),
-
-                  const SizedBox(height: 16),
-
-                  // Tags (Caregiver specific)
-                  if (_userData!['tags'] != null &&
-                      _userData!['tags'].toString().isNotEmpty)
-                    _buildProfileCard(context, 'Skills & Specializations', [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _userData!['tags']
-                            .toString()
-                            .split(',')
-                            .map<Widget>(
-                              (tag) => Chip(
-                                label: Text(tag.trim()),
-                                backgroundColor: colorScheme.primaryContainer,
-                                side: BorderSide.none,
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    ]),
 
                   const SizedBox(height: 24),
 

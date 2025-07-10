@@ -3,6 +3,7 @@ import 'package:second_innings/dashboard/senior_citizen/views/caregivers_view.da
 import 'package:second_innings/dashboard/senior_citizen/views/family_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/tasks_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/local_groups_view.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/profile_view.dart';
 
 class SeniorCitizenHomePage extends StatefulWidget {
   const SeniorCitizenHomePage({super.key});
@@ -19,6 +20,7 @@ class _SeniorCitizenHomePageState extends State<SeniorCitizenHomePage> {
     FamilyView(),
     TasksView(),
     CaregiversView(),
+    ProfileView(),
   ];
 
   void _onItemTapped(int index) {
@@ -51,6 +53,11 @@ class _SeniorCitizenHomePageState extends State<SeniorCitizenHomePage> {
             icon: Icon(Icons.search),
             selectedIcon: Icon(Icons.person_search),
             label: 'Caregivers',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline_rounded),
+            selectedIcon: Icon(Icons.person_rounded),
+            label: 'Profile',
           ),
         ],
       ),
