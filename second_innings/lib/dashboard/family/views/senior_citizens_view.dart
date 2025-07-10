@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:second_innings/auth/welcome.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizen_details_view.dart';
+import 'package:second_innings/widgets/user_app_bar.dart';
 
 class SeniorCitizensView extends StatelessWidget {
   const SeniorCitizensView({super.key});
@@ -8,7 +8,6 @@ class SeniorCitizensView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     final seniorCitizens = [
       {'name': 'Leela', 'relation': 'Mom'},
@@ -19,59 +18,7 @@ class SeniorCitizensView extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            pinned: true,
-            floating: true,
-            snap: false,
-            elevation: 0,
-            backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-            ),
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: IconButton(
-                icon: Image.asset("assets/logo.png"),
-                alignment: Alignment.centerLeft,
-                onPressed: () => debugPrint("logo.onPressed() called"),
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.logout_rounded),
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const WelcomeScreen(),
-                    ),
-                    (Route<dynamic> route) => false,
-                  );
-                },
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '2nd Innings',
-                    style: textTheme.titleLarge?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Welcome, Anushka Sharma',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
-              ),
-              titlePadding: const EdgeInsets.only(bottom: 16),
-            ),
-          ),
+          const UserAppBar(title: '2nd Innings'),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),

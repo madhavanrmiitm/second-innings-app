@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "937122069187",
+    "project_id": "second-innings-iitm",
+    "storage_bucket": "second-innings-iitm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937122069187:android:02a768a5b59acb1f280076",
+        "android_client_info": {
+          "package_name": "com.iitm.se.second_innings.second_innings"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "937122069187-0mthksk2nh1n2j2ccrvri6r584cqungo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO84Hl4qnkoIXYtWr2ifxXTatiK2yV6MY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "937122069187-0mthksk2nh1n2j2ccrvri6r584cqungo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -37,6 +37,11 @@ dependencies:
   google_fonts: ^6.2.1
   dynamic_color: ^1.7.0
   url_launcher: ^6.0.0 # Use the latest version
+  google_sign_in: ^7.1.0
+  firebase_core: ^3.9.0
+  firebase_auth: ^5.6.2
+  http: ^1.2.0
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/create_new_task_page.dart';
+import 'package:second_innings/widgets/user_app_bar.dart';
 
 class TasksView extends StatefulWidget {
   const TasksView({super.key});
@@ -32,42 +33,10 @@ class _TasksViewState extends State<TasksView> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            pinned: true,
-            floating: true,
-            snap: false,
-            elevation: 0,
-            backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Tasks',
-                    style: textTheme.titleLarge?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'All your tasks in one place',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
-              ),
-              titlePadding: const EdgeInsets.only(bottom: 16),
-            ),
-          ),
+          const UserAppBar(title: 'Tasks'),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -93,6 +62,7 @@ class _TasksViewState extends State<TasksView> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: "senior_citizen_tasks_fab",
         onPressed: () {
           Navigator.push(
             context,

@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/register.dart';
-
 import 'package:second_innings/auth/feedback_query_help_page.dart';
+import 'package:second_innings/services/user_service.dart';
+import 'package:second_innings/dashboard/senior_citizen/senior_citizen_home.dart';
+import 'package:second_innings/dashboard/family/family_home.dart';
+import 'package:second_innings/dashboard/caregiver/caregiver_home.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -26,11 +30,138 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   // Bottom Sheet Animation.
   late Animation<Offset> _bottomSheetSlide;
 
+  bool _isSigningIn = false;
+
   @override
   void initState() {
     super.initState();
     _setupAnimations();
     _controller.forward();
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    // Web Google Sign-In using Firebase SDK.
+    GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+    googleProvider.addScope(
+      'https://www.googleapis.com/auth/contacts.readonly',
+    );
+    googleProvider.setCustomParameters({'login_hint': 'user@gmail.com'});
+
+    // Once signed in, return the UserCredential
+    return await FirebaseAuth.instance.signInWithPopup(googleProvider);
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    if (_isSigningIn) return;
+
+    setState(() {
+      _isSigningIn = true;
+    });
+
+    try {
+      // Step 1: Sign in with Google/Firebase
+      final UserCredential userCredential = await signInWithGoogle();
+      final String? idToken = await userCredential.user?.getIdToken();
+
+      if (idToken == null || !mounted) {
+        throw Exception('Failed to get ID token');
+      }
+
+      debugPrint('ID Token: $idToken'); // For debugging
+
+      // Step 2: Verify token with backend and handle user flow
+      final authResult = await UserService.handleAuthFlow(idToken);
+
+      if (!mounted) return;
+
+      if (authResult.isNewUser) {
+        // Status 201: New user - Navigate to registration
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => RegisterScreen(
+              googleAccountId:
+                  authResult.gmailId ??
+                  userCredential.user?.email ??
+                  'user@gmail.com',
+              idToken: idToken,
+              googleDisplayName: userCredential.user?.displayName,
+            ),
+          ),
+        );
+      } else if (authResult.isExistingUser) {
+        // Status 200: Existing user - Data saved to SharedPreferences
+        // Navigate to appropriate dashboard based on user type
+        await _navigateToUserDashboard(authResult.userData!);
+      } else if (authResult.hasError) {
+        // Error occurred during authentication
+        _showErrorMessage(authResult.error ?? 'Authentication failed');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('Sign in failed: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningIn = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _navigateToUserDashboard(Map<String, dynamic> userData) async {
+    final userName = userData['full_name'] ?? 'User';
+    final userType = userData['role']?.toString().toLowerCase();
+    final userStatus = userData['status']?.toString().toLowerCase();
+
+    // Check if user is blocked
+    if (userStatus == 'blocked') {
+      await UserService.clearUserData(); // Clear blocked user session
+      _showErrorMessage(
+        'Your account has been blocked. Please contact support.',
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Welcome back, $userName!'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+
+    // Navigate to appropriate dashboard based on user type
+    Widget targetScreen;
+    switch (userType) {
+      case 'senior_citizen':
+        targetScreen = const SeniorCitizenHomePage();
+        break;
+      case 'family_member':
+        targetScreen = const FamilyHomePage();
+        break;
+      case 'caregiver':
+        targetScreen = const CaregiverHomePage();
+        break;
+      default:
+        // If user type is unknown, stay on welcome screen
+        _showErrorMessage('Unknown user type: $userType');
+        return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => targetScreen),
+    );
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      ),
+    );
   }
 
   void _setupAnimations() {
@@ -225,15 +356,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               builder: (context) => Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
                 child: FilledButton.tonalIcon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterScreen(
-                          googleAccountId: 'user@gmail.com',
-                        ),
-                      ),
-                    );
-                  },
+                  onPressed: _isSigningIn ? null : _handleGoogleSignIn,
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(Colors.white),
                     padding: WidgetStateProperty.all(
@@ -245,14 +368,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       ),
                     ),
                   ),
-                  icon: Image.asset(
-                    "assets/google_logo.png",
-                    width: 28,
-                    height: 28,
-                  ),
+                  icon: _isSigningIn
+                      ? const SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Image.asset(
+                          "assets/google_logo.png",
+                          width: 28,
+                          height: 28,
+                        ),
                   iconAlignment: IconAlignment.start,
                   label: Text(
-                    "Continue With Google",
+                    _isSigningIn ? "Signing In..." : "Continue With Google",
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Colors.black,
