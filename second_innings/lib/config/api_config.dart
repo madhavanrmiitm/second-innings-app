@@ -17,7 +17,7 @@ class ApiConfig {
   static String get developmentUrl =>
       'http://localhost:8000'; // Your local development server
   static String get productionUrl =>
-      'https://your-production-api.com'; // Your production server
+      'https://second-innings-iitm-249726620429.asia-south1.run.app'; // Your production server
 
   // Get the appropriate base URL based on environment
   static String get currentBaseUrl {
