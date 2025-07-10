@@ -11,7 +11,7 @@ class ApiConfig {
   static const String apiVersion = 'v1';
 
   // Environment-specific configurations
-  static const bool isDevelopment = true; // Set to false for production
+  static const bool isDevelopment = false; // Set to false for production
 
   // Development vs Production URLs
   static String get developmentUrl =>
