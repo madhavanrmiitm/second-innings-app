@@ -28,6 +28,18 @@ The API uses Firebase ID tokens for authentication. Include the token in your re
 3. Server verifies token and returns user information
 4. Use returned data for subsequent authenticated requests
 
+## Default Admin Account
+
+The system includes a pre-configured admin account for immediate access:
+
+- **Email**: `21f3001600@ds.study.iitm.ac.in`
+- **Firebase UID**: `qEGg9NTOjfgSaw646IhSRCXKtaZ2`
+- **Full Name**: `Ashwin Narayanan S`
+- **Role**: `admin`
+- **Status**: `active`
+
+This account is automatically created when the database schema is initialized and provides immediate administrative access to the system. Use this account to manage user approvals, system settings, and other administrative functions.
+
 ## API Endpoints
 
 ### Health Check

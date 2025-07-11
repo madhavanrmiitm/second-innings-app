@@ -59,6 +59,18 @@ The recommended setup uses Python locally with Docker for PostgreSQL only. This 
    - API Documentation: http://localhost:8000/docs
    - PostgreSQL: localhost:5433
 
+## 🔑 Default Admin Account
+
+The system includes a pre-configured admin account that's automatically created during database initialization:
+
+- **Email**: `21f3001600@ds.study.iitm.ac.in`
+- **Firebase UID**: `qEGg9NTOjfgSaw646IhSRCXKtaZ2`
+- **Full Name**: `Ashwin Narayanan S`
+- **Role**: `admin`
+- **Status**: `active`
+
+This account provides immediate administrative access for managing user approvals and system settings.
+
 ### PostgreSQL with Docker
 
 The PostgreSQL database runs in Docker for consistency and easy setup:

@@ -26,4 +26,4 @@ CREATE TABLE users (
 
 -- Insert default admin account
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
-VALUES ('ashrockzzz2003@gmail.com', 'T22ediAPNobKcQM3TnQDtnYn9U32', 'Ashwin Narayanan S', 'admin', 'active');
+VALUES ('21f3001600@ds.study.iitm.ac.in', 'qEGg9NTOjfgSaw646IhSRCXKtaZ2', 'Ashwin Narayanan S', 'admin', 'active');
