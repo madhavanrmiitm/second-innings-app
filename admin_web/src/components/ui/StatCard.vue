@@ -21,14 +21,14 @@ defineProps({
   icon: String,
   color: {
     type: String,
-    default: 'primary'
-  }
+    default: 'primary',
+  },
 })
 
 const iconMap = {
-  'users': 'people-fill',
+  users: 'people-fill',
   'user-check': 'person-check-fill',
-  'ticket': 'ticket-perforated-fill',
-  'bell': 'bell-fill'
+  ticket: 'ticket-perforated-fill',
+  bell: 'bell-fill',
 }
 </script>

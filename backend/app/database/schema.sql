@@ -23,3 +23,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Insert default admin account
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
+VALUES ('ashrockzzz2003@gmail.com', 'T22ediAPNobKcQM3TnQDtnYn9U32', 'Ashwin Narayanan S', 'admin', 'active');

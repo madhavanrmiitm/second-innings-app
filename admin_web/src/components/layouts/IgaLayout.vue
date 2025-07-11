@@ -1,69 +1,13 @@
 <template>
   <div>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-      <div class="container-fluid">
-        <a class="navbar-brand fw-bold text-success" href="#">
-          <i class="bi bi-heart-fill text-danger"></i>
-          2nd Innings - IGA
-        </a>
-        
-        <div class="ms-auto d-flex align-items-center gap-3">
-          <!-- Profile Dropdown -->
-          <div class="dropdown">
-            <a 
-              class="d-flex align-items-center text-decoration-none dropdown-toggle" 
-              href="#" 
-              role="button" 
-              data-bs-toggle="dropdown"
-            >
-              <img 
-                :src="user?.profileImage || `https://ui-avatars.com/api/?name=${user?.name}`" 
-                :alt="user?.name" 
-                class="avatar me-2"
-              >
-              <span class="text-dark">{{ user?.name }}</span>
-            </a>
-            
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <router-link to="/profile" class="dropdown-item">
-                  <i class="bi bi-person me-2"></i>Profile
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/role-selection" class="dropdown-item">
-                  <i class="bi bi-arrow-left-right me-2"></i>Switch Role
-                </router-link>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <a href="#" @click.prevent="handleLogout" class="dropdown-item text-danger">
-                  <i class="bi bi-box-arrow-right me-2"></i>Logout
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </nav>
-    
+    <AppNavbar brand-text="2nd Innings - IGA" :show-notifications="false" />
+
     <!-- Main Layout -->
     <div class="d-flex">
       <!-- Sidebar -->
-      <nav class="sidebar">
-        <div class="p-3">
-          <ul class="nav flex-column">
-            <li class="nav-item" v-for="item in menuItems" :key="item.path">
-              <router-link :to="item.path" class="nav-link">
-                <i :class="item.icon"></i>
-                {{ item.name }}
-              </router-link>
-            </li>
-          </ul>
-        </div>
-      </nav>
-      
+      <AppSidebar :menu-items="menuItems" />
+
       <!-- Main Content -->
       <main class="main-content">
         <slot />
@@ -74,22 +18,45 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import AppNavbar from '@/components/common/AppNavbar.vue'
+import AppSidebar from '@/components/common/AppSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
 
-const router = useRouter()
 const authStore = useAuthStore()
 
-const user = computed(() => authStore.user)
+// Check if user can access group management features
+const canAccessGroups = computed(() => {
+  return authStore.canAccess && authStore.userStatus === 'active'
+})
 
-const menuItems = [
-  { name: 'Dashboard', path: '/iga/dashboard', icon: 'bi bi-speedometer2' },
-  { name: 'My Groups', path: '/iga/groups', icon: 'bi bi-people' },
-  { name: 'Profile', path: '/profile', icon: 'bi bi-person' }
-]
+// Dynamic menu items based on user status
+const menuItems = computed(() => {
+  const baseItems = [{ name: 'Dashboard', path: '/iga/dashboard', icon: 'bi bi-speedometer2' }]
 
-const handleLogout = async () => {
-  await authStore.logout()
-  router.push('/login')
-}
+  // Only show group management for active users
+  if (canAccessGroups.value) {
+    baseItems.push({ name: 'My Groups', path: '/iga/groups', icon: 'bi bi-people' })
+  }
+
+  // Profile is always accessible
+  baseItems.push({ name: 'Profile', path: '/profile', icon: 'bi bi-person' })
+
+  return baseItems
+})
 </script>
+
+<style scoped>
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+}
+</style>

@@ -93,9 +93,9 @@ const recentTickets = computed(() => ticketsStore.tickets.slice(0, 5))
 
 const getStatusColor = (status) => {
   const colors = {
-    'Open': 'warning',
+    Open: 'warning',
     'In Progress': 'info',
-    'Closed': 'success'
+    Closed: 'success',
   }
   return colors[status] || 'secondary'
 }
@@ -104,7 +104,7 @@ onMounted(async () => {
   await Promise.all([
     officialsStore.fetchOfficials(),
     ticketsStore.fetchTickets(),
-    notificationsStore.fetchNotifications()
+    notificationsStore.fetchNotifications(),
   ])
 })
 </script>

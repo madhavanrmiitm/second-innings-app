@@ -3,15 +3,15 @@
     <div class="container-fluid">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Notifications</h1>
-        <button 
+        <button
           v-if="unreadCount > 0"
-          @click="markAllAsRead" 
+          @click="markAllAsRead"
           class="btn btn-outline-primary btn-sm"
         >
           <i class="bi bi-check-all me-2"></i>Mark all as read
         </button>
       </div>
-      
+
       <div class="card">
         <div class="card-body p-0">
           <div v-if="loading" class="text-center py-5">
@@ -19,12 +19,12 @@
               <span class="visually-hidden">Loading...</span>
             </div>
           </div>
-          
+
           <div v-else-if="sortedNotifications.length === 0" class="text-center py-5 text-muted">
             <i class="bi bi-bell-slash fs-1 mb-3 d-block"></i>
             <p>No notifications yet</p>
           </div>
-          
+
           <div v-else class="list-group list-group-flush">
             <div
               v-for="notification in sortedNotifications"
@@ -34,7 +34,7 @@
               @click="handleNotificationClick(notification)"
             >
               <div class="d-flex align-items-start">
-                <div 
+                <div
                   class="rounded-circle p-2 me-3"
                   :class="getNotificationIconClass(notification.type)"
                 >
@@ -74,20 +74,20 @@ const unreadCount = computed(() => notificationsStore.unreadCount)
 
 const getNotificationIcon = (type) => {
   const icons = {
-    'ticket': 'bi-ticket-perforated',
-    'user': 'bi-person',
-    'system': 'bi-gear',
-    'alert': 'bi-exclamation-triangle'
+    ticket: 'bi-ticket-perforated',
+    user: 'bi-person',
+    system: 'bi-gear',
+    alert: 'bi-exclamation-triangle',
   }
   return icons[type] || 'bi-bell'
 }
 
 const getNotificationIconClass = (type) => {
   const classes = {
-    'ticket': 'bg-primary bg-opacity-10 text-primary',
-    'user': 'bg-success bg-opacity-10 text-success',
-    'system': 'bg-info bg-opacity-10 text-info',
-    'alert': 'bg-danger bg-opacity-10 text-danger'
+    ticket: 'bg-primary bg-opacity-10 text-primary',
+    user: 'bg-success bg-opacity-10 text-success',
+    system: 'bg-info bg-opacity-10 text-info',
+    alert: 'bg-danger bg-opacity-10 text-danger',
   }
   return classes[type] || 'bg-secondary bg-opacity-10 text-secondary'
 }
@@ -96,15 +96,15 @@ const formatTime = (timestamp) => {
   const date = new Date(timestamp)
   const now = new Date()
   const diff = now - date
-  
+
   const minutes = Math.floor(diff / 60000)
   const hours = Math.floor(diff / 3600000)
   const days = Math.floor(diff / 86400000)
-  
+
   if (minutes < 60) return `${minutes}m ago`
   if (hours < 24) return `${hours}h ago`
   if (days < 7) return `${days}d ago`
-  
+
   return date.toLocaleDateString()
 }
 
@@ -112,7 +112,7 @@ const handleNotificationClick = async (notification) => {
   if (!notification.read) {
     await notificationsStore.markAsRead(notification.id)
   }
-  
+
   // Navigate based on notification type
   if (notification.type === 'ticket' && notification.ticketId) {
     router.push(`/tickets/${notification.ticketId}`)

@@ -9,41 +9,42 @@ export const useOfficialsStore = defineStore('officials', {
     filters: {
       search: '',
       status: '',
-      department: ''
-    }
+      department: '',
+    },
   }),
 
   getters: {
     filteredOfficials: (state) => {
       let result = state.officials
-      
+
       if (state.filters.search) {
         const search = state.filters.search.toLowerCase()
-        result = result.filter(official => 
-          official.name.toLowerCase().includes(search) ||
-          official.email.toLowerCase().includes(search)
+        result = result.filter(
+          (official) =>
+            official.name.toLowerCase().includes(search) ||
+            official.email.toLowerCase().includes(search),
         )
       }
-      
+
       if (state.filters.status) {
-        result = result.filter(official => official.status === state.filters.status)
+        result = result.filter((official) => official.status === state.filters.status)
       }
-      
+
       if (state.filters.department) {
-        result = result.filter(official => official.department === state.filters.department)
+        result = result.filter((official) => official.department === state.filters.department)
       }
-      
+
       return result
     },
-    
+
     totalOfficials: (state) => state.officials.length,
-    
-    activeOfficials: (state) => state.officials.filter(o => o.status === 'Active').length,
-    
+
+    activeOfficials: (state) => state.officials.filter((o) => o.status === 'Active').length,
+
     departments: (state) => {
-      const depts = new Set(state.officials.map(o => o.department))
+      const depts = new Set(state.officials.map((o) => o.department))
       return Array.from(depts)
-    }
+    },
   },
 
   actions: {
@@ -74,7 +75,7 @@ export const useOfficialsStore = defineStore('officials', {
     async updateOfficial(id, data) {
       try {
         const updated = await officialsAPI.update(id, data)
-        const index = this.officials.findIndex(o => o.id === id)
+        const index = this.officials.findIndex((o) => o.id === id)
         if (index !== -1) {
           this.officials[index] = { ...this.officials[index], ...updated }
         }
@@ -88,7 +89,7 @@ export const useOfficialsStore = defineStore('officials', {
     async deleteOfficial(id) {
       try {
         await officialsAPI.delete(id)
-        this.officials = this.officials.filter(o => o.id !== id)
+        this.officials = this.officials.filter((o) => o.id !== id)
         return { success: true }
       } catch (error) {
         console.error('Failed to delete official:', error)
@@ -99,13 +100,13 @@ export const useOfficialsStore = defineStore('officials', {
     updateFilters(filters) {
       this.filters = { ...this.filters, ...filters }
     },
-    
+
     clearFilters() {
       this.filters = {
         search: '',
         status: '',
-        department: ''
+        department: '',
       }
-    }
-  }
+    },
+  },
 })

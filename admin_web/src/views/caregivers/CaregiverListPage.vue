@@ -55,10 +55,19 @@
       <!-- Caregivers Table -->
       <div class="card">
         <div class="card-body p-0">
-          <DataTable :columns="columns" :data="filteredCaregivers" :loading="loading" empty-message="No caregivers found">
+          <DataTable
+            :columns="columns"
+            :data="filteredCaregivers"
+            :loading="loading"
+            empty-message="No caregivers found"
+          >
             <template #cell-caregiver="{ item }">
               <div class="d-flex align-items-center">
-                <img :src="`https://ui-avatars.com/api/?name=${item.name}`" :alt="item.name" class="avatar me-3" />
+                <img
+                  :src="`https://ui-avatars.com/api/?name=${item.name}`"
+                  :alt="item.name"
+                  class="avatar me-3"
+                />
                 <div>
                   <div class="fw-medium">{{ item.name }}</div>
                   <small class="text-muted">{{ item.email }}</small>
@@ -69,10 +78,15 @@
               {{ item.specialization }}
             </template>
             <template #cell-status="{ item }">
-              <span :class="`badge bg-${
-                item.status === 'Approved' ? 'success' : item.status === 'Rejected' ? 'danger' : 'warning'
-              }`
-              ">
+              <span
+                :class="`badge bg-${
+                  item.status === 'Approved'
+                    ? 'success'
+                    : item.status === 'Rejected'
+                      ? 'danger'
+                      : 'warning'
+                }`"
+              >
                 {{ item.status }}
               </span>
             </template>
@@ -95,11 +109,18 @@
     </div>
 
     <!-- Add/Edit Modal -->
-    <div class="modal fade" tabindex="-1" :class="{ show: showAddModal || showEditModal }" :style="{ display: showAddModal || showEditModal ? 'block' : 'none' }">
+    <div
+      class="modal fade"
+      tabindex="-1"
+      :class="{ show: showAddModal || showEditModal }"
+      :style="{ display: showAddModal || showEditModal ? 'block' : 'none' }"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ showEditModal ? 'Edit Caregiver' : 'Add New Caregiver' }}</h5>
+            <h5 class="modal-title">
+              {{ showEditModal ? 'Edit Caregiver' : 'Add New Caregiver' }}
+            </h5>
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <form @submit.prevent="saveCaregiver">
@@ -145,7 +166,11 @@
         </div>
       </div>
     </div>
-    <div v-if="showAddModal || showEditModal" class="modal-backdrop fade show" @click="closeModal"></div>
+    <div
+      v-if="showAddModal || showEditModal"
+      class="modal-backdrop fade show"
+      @click="closeModal"
+    ></div>
   </AppLayout>
 </template>
 
@@ -172,27 +197,57 @@ const columns = [
   { key: 'specialization', label: 'Specialization' },
   { key: 'status', label: 'Status' },
   { key: 'joinedDate', label: 'Joined Date' },
-  { key: 'actions', label: 'Actions', class: 'text-end' }
+  { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
 // Mock data
 const caregivers = ref([
-  { id: 1, name: 'Ramesh Kumar', email: 'ramesh.kumar@example.com', phone: '+91 98765 43211', specialization: 'Medical Assistance', status: 'Approved', joinedDate: '2024-01-15' },
-  { id: 2, name: 'Meena Patel', email: 'meena.patel@example.com', phone: '+91 98765 43212', specialization: 'Mobility Support', status: 'Pending', joinedDate: '2024-03-10' },
-  { id: 3, name: 'Sunita Das', email: 'sunita.das@example.com', phone: '+91 98765 43213', specialization: 'Daily Living', status: 'Rejected', joinedDate: '2024-02-25' }
+  {
+    id: 1,
+    name: 'Ramesh Kumar',
+    email: 'ramesh.kumar@example.com',
+    phone: '+91 98765 43211',
+    specialization: 'Medical Assistance',
+    status: 'Approved',
+    joinedDate: '2024-01-15',
+  },
+  {
+    id: 2,
+    name: 'Meena Patel',
+    email: 'meena.patel@example.com',
+    phone: '+91 98765 43212',
+    specialization: 'Mobility Support',
+    status: 'Pending',
+    joinedDate: '2024-03-10',
+  },
+  {
+    id: 3,
+    name: 'Sunita Das',
+    email: 'sunita.das@example.com',
+    phone: '+91 98765 43213',
+    specialization: 'Daily Living',
+    status: 'Rejected',
+    joinedDate: '2024-02-25',
+  },
 ])
 
 const filteredCaregivers = computed(() => {
-  return caregivers.value.filter(c => {
-    const matchesSearch = [c.name, c.email].some(field => field.toLowerCase().includes(filters.value.search.toLowerCase()))
+  return caregivers.value.filter((c) => {
+    const matchesSearch = [c.name, c.email].some((field) =>
+      field.toLowerCase().includes(filters.value.search.toLowerCase()),
+    )
     const matchesStatus = filters.value.status ? c.status === filters.value.status : true
-    const matchesSpec = filters.value.specialization ? c.specialization === filters.value.specialization : true
+    const matchesSpec = filters.value.specialization
+      ? c.specialization === filters.value.specialization
+      : true
     return matchesSearch && matchesStatus && matchesSpec
   })
 })
 
 const updateFilters = () => {}
-const resetFilters = () => { filters.value = { search: '', status: '', specialization: '' } }
+const resetFilters = () => {
+  filters.value = { search: '', status: '', specialization: '' }
+}
 
 const editCaregiver = (item) => {
   editingId.value = item.id
@@ -206,7 +261,7 @@ const viewDetails = (item) => {
 
 const confirmDelete = (item) => {
   if (confirm(`Delete ${item.name}?`)) {
-    caregivers.value = caregivers.value.filter(c => c.id !== item.id)
+    caregivers.value = caregivers.value.filter((c) => c.id !== item.id)
     toast.success('Caregiver deleted')
   }
 }
@@ -222,12 +277,16 @@ const saveCaregiver = () => {
   saving.value = true
   setTimeout(() => {
     if (showEditModal.value) {
-      const idx = caregivers.value.findIndex(c => c.id === editingId.value)
+      const idx = caregivers.value.findIndex((c) => c.id === editingId.value)
       caregivers.value[idx] = { id: editingId.value, ...formData.value }
       toast.success('Caregiver updated')
     } else {
-      const newId = Math.max(...caregivers.value.map(c => c.id)) + 1
-      caregivers.value.push({ id: newId, joinedDate: new Date().toISOString().split('T')[0], ...formData.value })
+      const newId = Math.max(...caregivers.value.map((c) => c.id)) + 1
+      caregivers.value.push({
+        id: newId,
+        joinedDate: new Date().toISOString().split('T')[0],
+        ...formData.value,
+      })
       toast.success('Caregiver added')
     }
     closeModal()
@@ -239,5 +298,7 @@ const goToApprovals = () => {
   router.push('/caregivers/approvals')
 }
 
-onMounted(() => { loading.value = false })
+onMounted(() => {
+  loading.value = false
+})
 </script>

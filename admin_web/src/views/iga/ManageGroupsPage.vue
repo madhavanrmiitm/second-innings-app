@@ -7,7 +7,7 @@
           <i class="bi bi-plus-circle me-2"></i>Add Group
         </button>
       </div>
-      
+
       <!-- Groups Grid -->
       <div class="row g-4">
         <div v-for="group in groups" :key="group.id" class="col-12 col-md-6 col-lg-4">
@@ -19,9 +19,9 @@
                   {{ group.active ? 'Active' : 'Inactive' }}
                 </span>
               </div>
-              
+
               <p class="card-text text-muted">{{ group.description }}</p>
-              
+
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <small class="text-muted">
                   <i class="bi bi-people me-1"></i>
@@ -32,7 +32,7 @@
                   {{ group.events }} events
                 </small>
               </div>
-              
+
               <div class="mb-3">
                 <small class="text-muted d-block mb-1">Admin:</small>
                 <div class="d-flex align-items-center">
@@ -40,11 +40,11 @@
                     :src="`https://ui-avatars.com/api/?name=${group.admin}`"
                     :alt="group.admin"
                     class="avatar-sm me-2"
-                  >
+                  />
                   <span>{{ group.admin }}</span>
                 </div>
               </div>
-              
+
               <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-outline-primary" @click="editGroup(group)">
                   <i class="bi bi-pencil me-1"></i>Edit
@@ -63,8 +63,8 @@
     </div>
 
     <!-- Add/Edit Modal -->
-    <div 
-      class="modal fade" 
+    <div
+      class="modal fade"
       :class="{ show: showAddModal || showEditModal }"
       :style="{ display: showAddModal || showEditModal ? 'block' : 'none' }"
     >
@@ -80,12 +80,7 @@
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label">Group Name</label>
-                <input
-                  v-model="formData.name"
-                  type="text"
-                  class="form-control"
-                  required
-                >
+                <input v-model="formData.name" type="text" class="form-control" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Description</label>
@@ -98,11 +93,7 @@
               </div>
               <div class="mb-3">
                 <label class="form-label">Category</label>
-                <select
-                  v-model="formData.category"
-                  class="form-select"
-                  required
-                >
+                <select v-model="formData.category" class="form-select" required>
                   <option value="">Select Category</option>
                   <option value="sports">Sports & Fitness</option>
                   <option value="arts">Arts & Culture</option>
@@ -112,11 +103,7 @@
               </div>
               <div class="mb-3">
                 <label class="form-label">Admin</label>
-                <select
-                  v-model="formData.adminId"
-                  class="form-select"
-                  required
-                >
+                <select v-model="formData.adminId" class="form-select" required>
                   <option value="">Select Admin</option>
                   <option value="1">John Doe</option>
                   <option value="2">Jane Smith</option>
@@ -129,17 +116,13 @@
                     type="checkbox"
                     class="form-check-input"
                     id="activeCheck"
-                  >
-                  <label class="form-check-label" for="activeCheck">
-                    Active
-                  </label>
+                  />
+                  <label class="form-check-label" for="activeCheck"> Active </label>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeModal">
-                Cancel
-              </button>
+              <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
               <button type="submit" class="btn btn-success" :disabled="saving">
                 <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
                 {{ showEditModal ? 'Update' : 'Create' }} Group
@@ -149,8 +132,8 @@
         </div>
       </div>
     </div>
-    <div 
-      v-if="showAddModal || showEditModal" 
+    <div
+      v-if="showAddModal || showEditModal"
       class="modal-backdrop fade show"
       @click="closeModal"
     ></div>
@@ -177,7 +160,7 @@ const groups = ref([
     members: 45,
     events: 120,
     admin: 'John Doe',
-    active: true
+    active: true,
   },
   {
     id: 2,
@@ -187,7 +170,7 @@ const groups = ref([
     members: 28,
     events: 24,
     admin: 'Jane Smith',
-    active: true
+    active: true,
   },
   {
     id: 3,
@@ -197,8 +180,8 @@ const groups = ref([
     members: 32,
     events: 48,
     admin: 'Mike Johnson',
-    active: false
-  }
+    active: false,
+  },
 ])
 
 const formData = ref({
@@ -206,7 +189,7 @@ const formData = ref({
   description: '',
   category: '',
   adminId: '',
-  active: true
+  active: true,
 })
 
 const editGroup = (group) => {
@@ -216,7 +199,7 @@ const editGroup = (group) => {
 
 const deleteGroup = (group) => {
   if (confirm(`Are you sure you want to delete "${group.name}"?`)) {
-    groups.value = groups.value.filter(g => g.id !== group.id)
+    groups.value = groups.value.filter((g) => g.id !== group.id)
     toast.success('Group deleted successfully')
   }
 }
@@ -229,19 +212,19 @@ const closeModal = () => {
     description: '',
     category: '',
     adminId: '',
-    active: true
+    active: true,
   }
 }
 
 const saveGroup = async () => {
   saving.value = true
-  
+
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
     if (showEditModal.value) {
       // Update existing group
-      const index = groups.value.findIndex(g => g.id === formData.value.id)
+      const index = groups.value.findIndex((g) => g.id === formData.value.id)
       if (index !== -1) {
         groups.value[index] = { ...formData.value }
       }
@@ -253,11 +236,11 @@ const saveGroup = async () => {
         id: Date.now(),
         members: 0,
         events: 0,
-        admin: 'New Admin'
+        admin: 'New Admin',
       })
       toast.success('Group created successfully')
     }
-    
+
     closeModal()
   } catch (error) {
     toast.error('Operation failed')
