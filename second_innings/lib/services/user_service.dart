@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'api_response.dart';
@@ -62,7 +63,7 @@ class UserService {
       await prefs.setBool(_isLoggedInKey, true);
       return true;
     } catch (e) {
-      print('Error saving user data: $e');
+      debugPrint('Error saving user data: $e');
       return false;
     }
   }
@@ -77,7 +78,7 @@ class UserService {
       }
       return null;
     } catch (e) {
-      print('Error getting user data: $e');
+      debugPrint('Error getting user data: $e');
       return null;
     }
   }
@@ -88,7 +89,7 @@ class UserService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool(_isLoggedInKey) ?? false;
     } catch (e) {
-      print('Error checking login status: $e');
+      debugPrint('Error checking login status: $e');
       return false;
     }
   }
@@ -101,7 +102,7 @@ class UserService {
       await prefs.setBool(_isLoggedInKey, false);
       return true;
     } catch (e) {
-      print('Error clearing user data: $e');
+      debugPrint('Error clearing user data: $e');
       return false;
     }
   }
@@ -119,7 +120,7 @@ class UserService {
       currentData.addAll(newData);
       return await _saveUserData(currentData);
     } catch (e) {
-      print('Error updating user data: $e');
+      debugPrint('Error updating user data: $e');
       return false;
     }
   }
@@ -146,7 +147,7 @@ class UserService {
         },
       );
     } catch (e) {
-      print('Error fetching user profile: $e');
+      debugPrint('Error fetching user profile: $e');
       return ApiResponse<Map<String, dynamic>>(
         statusCode: 500,
         error: 'Failed to fetch user profile: $e',

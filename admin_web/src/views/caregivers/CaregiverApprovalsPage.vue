@@ -25,9 +25,7 @@
               <div>{{ item.requestedDate }}</div>
             </template>
             <template #cell-actions="{ item }">
-              <button class="btn btn-sm btn-primary" @click="viewDetails(item)">
-                View
-              </button>
+              <button class="btn btn-sm btn-primary" @click="viewDetails(item)">View</button>
             </template>
           </DataTable>
         </div>
@@ -53,7 +51,8 @@
             <p><strong>Phone:</strong> {{ selected.phone }}</p>
             <p><strong>Address:</strong> {{ selected.address }}</p>
             <p><strong>Bio:</strong> {{ selected.bio }}</p>
-            <p><strong>YouTube:</strong>
+            <p>
+              <strong>YouTube:</strong>
               <a :href="selected.youtube" target="_blank">{{ selected.youtube }}</a>
             </p>
           </div>
@@ -83,7 +82,7 @@ const columns = [
   { key: 'name', label: 'Name' },
   { key: 'email', label: 'Email' },
   { key: 'requestedDate', label: 'Requested Date' },
-  { key: 'actions', label: 'Actions', class: 'text-end' }
+  { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
 // mock data
@@ -96,7 +95,7 @@ const caregivers = ref([
     address: 'Mumbai, Maharashtra',
     bio: 'Experienced caregiver with 5 years of senior care.',
     youtube: 'https://youtu.be/example1',
-    requestedDate: '2024-06-20'
+    requestedDate: '2024-06-20',
   },
   {
     id: 2,
@@ -106,8 +105,8 @@ const caregivers = ref([
     address: 'Delhi, Delhi',
     bio: 'Professional caregiver specializing in mobility assistance.',
     youtube: 'https://youtu.be/example2',
-    requestedDate: '2024-06-25'
-  }
+    requestedDate: '2024-06-25',
+  },
 ])
 
 const pendingCaregivers = computed(() => caregivers.value)
@@ -142,4 +141,3 @@ onMounted(() => {
   }, 500)
 })
 </script>
-

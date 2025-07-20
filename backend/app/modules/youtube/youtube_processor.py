@@ -1,6 +1,5 @@
 import re
-from typing import Dict, Optional
-from urllib.parse import parse_qs, urlparse
+from typing import Dict
 
 from app.config import settings
 from app.logger import logger
@@ -17,42 +16,6 @@ class YouTubeProcessor:
             logger.error(f"Failed to initialize YouTube processor: {e}")
             raise
 
-    def extract_video_id(self, youtube_url: str) -> Optional[str]:
-        """
-        Extract video ID from various YouTube URL formats.
-
-        Args:
-            youtube_url: YouTube URL in various formats
-
-        Returns:
-            Video ID if found, None otherwise
-        """
-        try:
-            # Handle different YouTube URL formats
-            patterns = [
-                r"(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})",
-                r"youtube\.com\/.*[?&]v=([a-zA-Z0-9_-]{11})",
-            ]
-
-            for pattern in patterns:
-                match = re.search(pattern, youtube_url)
-                if match:
-                    return match.group(1)
-
-            # Fallback: try to parse as query parameter
-            parsed_url = urlparse(youtube_url)
-            if parsed_url.hostname in ["youtube.com", "www.youtube.com"]:
-                query_params = parse_qs(parsed_url.query)
-                if "v" in query_params:
-                    return query_params["v"][0]
-
-            logger.warning(f"Could not extract video ID from URL: {youtube_url}")
-            return None
-
-        except Exception as e:
-            logger.error(f"Error extracting video ID from URL {youtube_url}: {e}")
-            return None
-
     def generate_caregiver_analysis(
         self, youtube_url: str, full_name: str
     ) -> Dict[str, str]:
@@ -67,10 +30,6 @@ class YouTubeProcessor:
             Dictionary with 'tags' and 'description' keys
         """
         try:
-            video_id = self.extract_video_id(youtube_url)
-            if not video_id:
-                raise ValueError("Invalid YouTube URL format")
-
             # Construct the prompt for Gemini AI
             prompt = f"""
             Analyze this YouTube video URL: {youtube_url}
@@ -125,10 +84,6 @@ class YouTubeProcessor:
             Dictionary with 'tags' and 'description' keys
         """
         try:
-            video_id = self.extract_video_id(youtube_url)
-            if not video_id:
-                raise ValueError("Invalid YouTube URL format")
-
             # Construct the prompt for Gemini AI
             prompt = f"""
             Analyze this YouTube video URL: {youtube_url}

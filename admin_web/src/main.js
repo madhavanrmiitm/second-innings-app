@@ -16,12 +16,18 @@ import router from './router'
 import './assets/main.scss'
 
 const app = createApp(App)
+const pinia = createPinia()
 
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
 app.use(VueToast, {
   position: 'top-right',
-  duration: 3000
+  duration: 3000,
 })
+
+// Initialize auth after creating the app
+import { useAuthStore } from './stores/auth'
+const authStore = useAuthStore()
+authStore.initializeAuth()
 
 app.mount('#app')

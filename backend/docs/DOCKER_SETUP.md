@@ -34,7 +34,16 @@ If you prefer to run everything in Docker containers, this section provides the 
    - API Documentation: http://localhost:8000/docs
    - PostgreSQL: localhost:5433 (development) / localhost:5432 (production)
 
-3. **Stop the services:**
+3. **Default Admin Account:**
+
+   A pre-configured admin account is automatically available:
+   - **Email**: `21f3001600@ds.study.iitm.ac.in`
+   - **Firebase UID**: `qEGg9NTOjfgSaw646IhSRCXKtaZ2`
+   - **Full Name**: `Ashwin Narayanan S`
+   - **Role**: `admin`
+   - **Status**: `active`
+
+4. **Stop the services:**
    ```bash
    docker-compose down
    ```

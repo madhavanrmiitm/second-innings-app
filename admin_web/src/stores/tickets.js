@@ -10,41 +10,41 @@ export const useTicketsStore = defineStore('tickets', {
     filters: {
       status: '',
       priority: '',
-      assignedTo: ''
-    }
+      assignedTo: '',
+    },
   }),
 
   getters: {
-    openTickets: (state) => state.tickets.filter(t => t.status === 'Open').length,
-    inProgressTickets: (state) => state.tickets.filter(t => t.status === 'In Progress').length,
-    closedTickets: (state) => state.tickets.filter(t => t.status === 'Closed').length,
-    
-    highPriorityTickets: (state) => state.tickets.filter(t => t.priority === 'High').length,
-    
+    openTickets: (state) => state.tickets.filter((t) => t.status === 'Open').length,
+    inProgressTickets: (state) => state.tickets.filter((t) => t.status === 'In Progress').length,
+    closedTickets: (state) => state.tickets.filter((t) => t.status === 'Closed').length,
+
+    highPriorityTickets: (state) => state.tickets.filter((t) => t.priority === 'High').length,
+
     filteredTickets: (state) => {
       let result = state.tickets
-      
+
       if (state.filters.status) {
-        result = result.filter(t => t.status === state.filters.status)
+        result = result.filter((t) => t.status === state.filters.status)
       }
-      
+
       if (state.filters.priority) {
-        result = result.filter(t => t.priority === state.filters.priority)
+        result = result.filter((t) => t.priority === state.filters.priority)
       }
-      
+
       if (state.filters.assignedTo) {
-        result = result.filter(t => t.assignedTo === state.filters.assignedTo)
+        result = result.filter((t) => t.assignedTo === state.filters.assignedTo)
       }
-      
+
       return result
     },
-    
+
     ticketStats: (state) => ({
       total: state.tickets.length,
       open: state.openTickets,
       inProgress: state.inProgressTickets,
-      closed: state.closedTickets
-    })
+      closed: state.closedTickets,
+    }),
   },
 
   actions: {
@@ -88,7 +88,7 @@ export const useTicketsStore = defineStore('tickets', {
     async updateTicketStatus(id, status) {
       try {
         await ticketsAPI.updateStatus(id, status)
-        const ticket = this.tickets.find(t => t.id === id)
+        const ticket = this.tickets.find((t) => t.id === id)
         if (ticket) {
           ticket.status = status
         }
@@ -105,7 +105,7 @@ export const useTicketsStore = defineStore('tickets', {
     async assignTicket(id, assignedTo) {
       try {
         await ticketsAPI.assign(id, assignedTo)
-        const ticket = this.tickets.find(t => t.id === id)
+        const ticket = this.tickets.find((t) => t.id === id)
         if (ticket) {
           ticket.assignedTo = assignedTo
         }
@@ -122,13 +122,13 @@ export const useTicketsStore = defineStore('tickets', {
     updateFilters(filters) {
       this.filters = { ...this.filters, ...filters }
     },
-    
+
     clearFilters() {
       this.filters = {
         status: '',
         priority: '',
-        assignedTo: ''
+        assignedTo: '',
       }
-    }
-  }
+    },
+  },
 })

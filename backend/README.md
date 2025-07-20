@@ -35,6 +35,17 @@ A FastAPI-based backend with Firebase authentication, PostgreSQL database, and m
    - API: http://localhost:8000
    - Docs: http://localhost:8000/docs
 
+## 🔑 Default Admin Account
+
+The database schema includes a default admin account for immediate system access:
+- **Email**: 21f3001600@ds.study.iitm.ac.in
+- **Firebase UID**: qEGg9NTOjfgSaw646IhSRCXKtaZ2
+- **Full Name**: Ashwin Narayanan S
+- **Role**: admin
+- **Status**: active
+
+This account is automatically created when the database is initialized.
+
 ## 📚 Documentation
 
 - **[Development Setup](docs/DEVELOPMENT_SETUP.md)** - Recommended development environment
@@ -53,12 +64,12 @@ backend/
 │   ├── database/             # Database configuration and schema
 │   │   ├── db.py            # Database connection management
 │   │   ├── init_db.py       # Database initialization
-│   │   └── schema.sql       # Database schema with user roles and status
+│   │   └── schema.sql       # Database schema with user roles, status, and default admin
 │   ├── modules/              # Business logic modules
 │   │   ├── auth/            # Authentication module
 │   │   │   └── auth_service.py  # Firebase authentication service
 │   │   └── youtube/         # YouTube processing module
-│   │       └── youtube_processor.py  # AI-powered video analysis
+│   │       └── youtube_processor.py  # AI-powered video analysis for content generation
 │   ├── routes/               # API route definitions
 │   │   ├── auth.py          # Authentication routes
 │   │   └── user.py          # User profile routes
@@ -90,10 +101,11 @@ backend/
 
 - **🔐 Firebase Authentication**: Complete Firebase ID token verification with user management
 - **👤 User Profile Management**: Secure profile retrieval with role-based access control
+- **👑 Default Admin Access**: Pre-configured admin account for immediate system administration
 - **📊 Status-Based Approval System**: Automatic status assignment with pending approval for caregivers and interest group admins
 - **🏗️ Modular Architecture**: Clean separation of controllers, services, routes, and utilities
-- **📊 Database Integration**: PostgreSQL with automated schema management and connection pooling
-- **🤖 AI-Powered YouTube Processing**: Automatic tag extraction and description generation for caregiver and interest group admin YouTube videos using Google Gemini AI
+- **📊 Database Integration**: PostgreSQL with automated schema management, connection pooling, and default admin account
+- **🤖 AI-Powered Content Generation**: Automatic tag and description generation for caregiver and interest group admin profiles using Google Gemini AI and YouTube URLs
 - **🌐 CORS Support**: Configured for cross-origin requests from web and mobile clients
 - **📝 Request Validation**: Pydantic-based request/response validation with automatic OpenAPI docs
 - **🔄 Standardized Responses**: Consistent JSON response format across all endpoints

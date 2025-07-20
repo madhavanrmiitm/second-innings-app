@@ -39,19 +39,19 @@
 defineProps({
   columns: {
     type: Array,
-    required: true
+    required: true,
   },
   data: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   emptyMessage: {
     type: String,
-    default: 'No data found'
-  }
+    default: 'No data found',
+  },
 })
 </script>

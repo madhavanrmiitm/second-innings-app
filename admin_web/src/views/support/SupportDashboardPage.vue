@@ -10,20 +10,10 @@
       <!-- Stats Grid -->
       <div class="row g-3 mb-4">
         <div class="col-12 col-sm-6 col-lg-3">
-          <StatCard
-            title="My Tickets"
-            :value="myTickets.length"
-            icon="ticket"
-            color="primary"
-          />
+          <StatCard title="My Tickets" :value="myTickets.length" icon="ticket" color="primary" />
         </div>
         <div class="col-12 col-sm-6 col-lg-3">
-          <StatCard
-            title="Open Tickets"
-            :value="openTicketsCount"
-            icon="bell"
-            color="warning"
-          />
+          <StatCard title="Open Tickets" :value="openTicketsCount" icon="bell" color="warning" />
         </div>
         <div class="col-12 col-sm-6 col-lg-3">
           <StatCard
@@ -34,12 +24,7 @@
           />
         </div>
         <div class="col-12 col-sm-6 col-lg-3">
-          <StatCard
-            title="Avg Response Time"
-            value="2.5h"
-            icon="users"
-            color="info"
-          />
+          <StatCard title="Avg Response Time" value="2.5h" icon="users" color="info" />
         </div>
       </div>
 
@@ -61,41 +46,36 @@
                   <div class="fw-medium">{{ item.title }}</div>
                   <small class="text-muted">{{ item.description }}</small>
                 </template>
-                
+
                 <template #cell-status="{ item }">
                   <span :class="`badge bg-${getStatusColor(item.status)}`">
                     {{ item.status }}
                   </span>
                 </template>
-                
+
                 <template #cell-priority="{ item }">
                   <span :class="`badge bg-${getPriorityColor(item.priority)}`">
                     {{ item.priority }}
                   </span>
                 </template>
-                
+
                 <template #cell-actions="{ item }">
                   <div class="btn-group btn-group-sm">
-                    <button 
+                    <button
                       @click="updateStatus(item, 'In Progress')"
                       class="btn btn-outline-primary"
                       v-if="item.status === 'Open'"
                     >
                       Start
                     </button>
-                    <button 
+                    <button
                       @click="updateStatus(item, 'Closed')"
                       class="btn btn-outline-success"
                       v-if="item.status === 'In Progress'"
                     >
                       Resolve
                     </button>
-                    <button 
-                      @click="viewTicket(item)"
-                      class="btn btn-outline-info"
-                    >
-                      View
-                    </button>
+                    <button @click="viewTicket(item)" class="btn btn-outline-info">View</button>
                   </div>
                 </template>
               </DataTable>
@@ -126,7 +106,7 @@ const myTickets = ref([
     status: 'Open',
     priority: 'High',
     createdBy: 'Ramesh Kumar',
-    createdAt: '2024-07-06T08:30:00Z'
+    createdAt: '2024-07-06T08:30:00Z',
   },
   {
     id: 'TICK-003',
@@ -135,7 +115,7 @@ const myTickets = ref([
     status: 'In Progress',
     priority: 'Medium',
     createdBy: 'Meena Patel',
-    createdAt: '2024-07-06T10:15:00Z'
+    createdAt: '2024-07-06T10:15:00Z',
   },
   {
     id: 'TICK-005',
@@ -144,7 +124,7 @@ const myTickets = ref([
     status: 'Open',
     priority: 'Low',
     createdBy: 'Sunita Das',
-    createdAt: '2024-07-06T11:45:00Z'
+    createdAt: '2024-07-06T11:45:00Z',
   },
   {
     id: 'TICK-007',
@@ -153,8 +133,8 @@ const myTickets = ref([
     status: 'Closed',
     priority: 'Medium',
     createdBy: 'Priya Sharma',
-    createdAt: '2024-07-05T14:20:00Z'
-  }
+    createdAt: '2024-07-05T14:20:00Z',
+  },
 ])
 
 const columns = [
@@ -163,33 +143,33 @@ const columns = [
   { key: 'status', label: 'Status' },
   { key: 'priority', label: 'Priority' },
   { key: 'createdBy', label: 'Customer' },
-  { key: 'actions', label: 'Actions', class: 'text-end' }
+  { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
-const openTicketsCount = computed(() => 
-  myTickets.value.filter(t => t.status === 'Open').length
-)
+const openTicketsCount = computed(() => myTickets.value.filter((t) => t.status === 'Open').length)
 
-const resolvedTodayCount = computed(() => 
-  myTickets.value.filter(t => t.status === 'Closed' && 
-    new Date(t.createdAt).toDateString() === new Date().toDateString()
-  ).length
+const resolvedTodayCount = computed(
+  () =>
+    myTickets.value.filter(
+      (t) =>
+        t.status === 'Closed' && new Date(t.createdAt).toDateString() === new Date().toDateString(),
+    ).length,
 )
 
 const getStatusColor = (status) => {
   const colors = {
-    'Open': 'warning',
+    Open: 'warning',
     'In Progress': 'info',
-    'Closed': 'success'
+    Closed: 'success',
   }
   return colors[status] || 'secondary'
 }
 
 const getPriorityColor = (priority) => {
   const colors = {
-    'Low': 'secondary',
-    'Medium': 'warning',
-    'High': 'danger'
+    Low: 'secondary',
+    Medium: 'warning',
+    High: 'danger',
   }
   return colors[priority] || 'secondary'
 }
