@@ -6,84 +6,67 @@
           <i class="bi bi-heart-fill text-danger fs-1"></i>
         </div>
         <h1 class="h2 mb-1">Welcome to 2nd Innings</h1>
-        <p class="text-muted">Please select your role to continue</p>
+        <p class="text-muted">Redirecting you to your dashboard...</p>
       </div>
-      
-      <div class="row g-4 justify-content-center">
-        <div class="col-12 col-md-4">
-          <div class="card h-100 shadow-sm role-card" @click="selectRole('admin')">
-            <div class="card-body text-center p-4">
-              <div class="bg-primary bg-opacity-10 rounded-3 p-3 d-inline-block mb-3">
-                <i class="bi bi-shield-check text-primary fs-1"></i>
-              </div>
-              <h5 class="card-title">Admin</h5>
-              <p class="text-muted">Manage system, officials, and platform operations</p>
-            </div>
-          </div>
+
+      <!-- Loading spinner -->
+      <div class="text-center">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem">
+          <span class="visually-hidden">Loading...</span>
         </div>
-        
-        <div class="col-12 col-md-4">
-          <div class="card h-100 shadow-sm role-card" @click="selectRole('support')">
-            <div class="card-body text-center p-4">
-              <div class="bg-info bg-opacity-10 rounded-3 p-3 d-inline-block mb-3">
-                <i class="bi bi-headset text-info fs-1"></i>
-              </div>
-              <h5 class="card-title">Support User</h5>
-              <p class="text-muted">Handle tickets and provide customer support</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-4">
-          <div class="card h-100 shadow-sm role-card" @click="selectRole('iga')">
-            <div class="card-body text-center p-4">
-              <div class="bg-warning bg-opacity-10 rounded-3 p-3 d-inline-block mb-3">
-                <i class="bi bi-people text-warning fs-1"></i>
-              </div>
-              <h5 class="card-title">Interest Group Admin</h5>
-              <p class="text-muted">Manage interest groups and community activities</p>
-            </div>
-          </div>
-        </div>
+        <p class="text-muted mt-3">Setting up your dashboard...</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from 'vue-toast-notification'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
-const selectRole = (role) => {
-  // Store the selected role
-  authStore.user.selectedRole = role
-  
-  // Redirect based on role
-  switch(role) {
+// Check if user is authenticated and has a role on mount
+onMounted(async () => {
+  if (!authStore.isAuthenticated) {
+    router.push('/login')
+    return
+  }
+
+  // If user already has a role, redirect them immediately
+  if (authStore.userRole && authStore.userRole !== '') {
+    router.push(getRedirectRoute(authStore.userRole))
+  } else {
+    // If no role found, redirect to login (shouldn't happen in normal flow)
+    toast.warning('Please complete the sign-in process.')
+    router.push('/login')
+  }
+})
+
+const getRedirectRoute = (role) => {
+  switch (role) {
     case 'admin':
-      router.push('/dashboard')
-      break
+      return '/dashboard'
     case 'support':
-      router.push('/support/dashboard')
-      break
+      return '/support/dashboard'
     case 'iga':
-      router.push('/iga/dashboard')
-      break
+      return '/iga/dashboard'
+    default:
+      return '/role-selection'
   }
 }
+
+// This page now just redirects users to their appropriate dashboards
+// The actual role selection happens during registration
 </script>
 
 <style scoped>
-.role-card {
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.role-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+/* Minimal styling for redirect page */
+.spinner-border {
+  border-width: 0.3rem;
 }
 </style>

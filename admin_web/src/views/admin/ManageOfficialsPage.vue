@@ -20,25 +20,17 @@
                 class="form-control"
                 placeholder="Search by name or email..."
                 @input="updateFilters"
-              >
+              />
             </div>
             <div class="col-12 col-md-3">
-              <select
-                v-model="filters.status"
-                class="form-select"
-                @change="updateFilters"
-              >
+              <select v-model="filters.status" class="form-select" @change="updateFilters">
                 <option value="">All Status</option>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
             <div class="col-12 col-md-3">
-              <select
-                v-model="filters.department"
-                class="form-select"
-                @change="updateFilters"
-              >
+              <select v-model="filters.department" class="form-select" @change="updateFilters">
                 <option value="">All Departments</option>
                 <option value="Support">Support</option>
                 <option value="Admin">Admin</option>
@@ -55,7 +47,7 @@
       </div>
 
       <!---- Officials Table ---->
-       
+
       <div class="card">
         <div class="card-body p-0">
           <DataTable
@@ -70,34 +62,26 @@
                   :src="`https://ui-avatars.com/api/?name=${item.name}`"
                   :alt="item.name"
                   class="avatar me-3"
-                >
+                />
                 <div>
                   <div class="fw-medium">{{ item.name }}</div>
                   <small class="text-muted">{{ item.email }}</small>
                 </div>
               </div>
             </template>
-            
+
             <template #cell-status="{ item }">
               <span :class="`badge bg-${item.status === 'Active' ? 'success' : 'secondary'}`">
                 {{ item.status }}
               </span>
             </template>
-            
+
             <template #cell-actions="{ item }">
               <div class="btn-group btn-group-sm" role="group">
-                <button 
-                  @click="editOfficial(item)" 
-                  class="btn btn-outline-primary"
-                  title="Edit"
-                >
+                <button @click="editOfficial(item)" class="btn btn-outline-primary" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button 
-                  @click="confirmDelete(item)" 
-                  class="btn btn-outline-danger"
-                  title="Delete"
-                >
+                <button @click="confirmDelete(item)" class="btn btn-outline-danger" title="Delete">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -108,9 +92,9 @@
     </div>
 
     <!-- Add/Edit Modal -->
-    <div 
-      class="modal fade" 
-      id="officialModal" 
+    <div
+      class="modal fade"
+      id="officialModal"
       tabindex="-1"
       :class="{ show: showAddModal || showEditModal }"
       :style="{ display: showAddModal || showEditModal ? 'block' : 'none' }"
@@ -121,39 +105,21 @@
             <h5 class="modal-title">
               {{ showEditModal ? 'Edit Official' : 'Add New Official' }}
             </h5>
-            <button 
-              type="button" 
-              class="btn-close" 
-              @click="closeModal"
-            ></button>
+            <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <form @submit.prevent="saveOfficial">
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label">Name</label>
-                <input
-                  v-model="formData.name"
-                  type="text"
-                  class="form-control"
-                  required
-                >
+                <input v-model="formData.name" type="text" class="form-control" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Email</label>
-                <input
-                  v-model="formData.email"
-                  type="email"
-                  class="form-control"
-                  required
-                >
+                <input v-model="formData.email" type="email" class="form-control" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Department</label>
-                <select
-                  v-model="formData.department"
-                  class="form-select"
-                  required
-                >
+                <select v-model="formData.department" class="form-select" required>
                   <option value="">Select Department</option>
                   <option value="Support">Support</option>
                   <option value="Admin">Admin</option>
@@ -162,38 +128,19 @@
               </div>
               <div class="mb-3">
                 <label class="form-label">Role</label>
-                <input
-                  v-model="formData.role"
-                  type="text"
-                  class="form-control"
-                  required
-                >
+                <input v-model="formData.role" type="text" class="form-control" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Status</label>
-                <select
-                  v-model="formData.status"
-                  class="form-select"
-                  required
-                >
+                <select v-model="formData.status" class="form-select" required>
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
               </div>
             </div>
             <div class="modal-footer">
-              <button 
-                type="button" 
-                class="btn btn-secondary" 
-                @click="closeModal"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                class="btn btn-success"
-                :disabled="saving"
-              >
+              <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
+              <button type="submit" class="btn btn-success" :disabled="saving">
                 <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
                 {{ showEditModal ? 'Update' : 'Add' }} Official
               </button>
@@ -202,8 +149,8 @@
         </div>
       </div>
     </div>
-    <div 
-      v-if="showAddModal || showEditModal" 
+    <div
+      v-if="showAddModal || showEditModal"
       class="modal-backdrop fade show"
       @click="closeModal"
     ></div>
@@ -228,7 +175,7 @@ const editingId = ref(null)
 const filters = ref({
   search: '',
   status: '',
-  department: ''
+  department: '',
 })
 
 const formData = ref({
@@ -236,7 +183,7 @@ const formData = ref({
   email: '',
   department: '',
   role: '',
-  status: 'Active'
+  status: 'Active',
 })
 
 const columns = [
@@ -244,7 +191,7 @@ const columns = [
   { key: 'department', label: 'Department' },
   { key: 'status', label: 'Status' },
   { key: 'joinedDate', label: 'Joined Date' },
-  { key: 'actions', label: 'Actions', class: 'text-end' }
+  { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
 const filteredOfficials = computed(() => officialsStore.filteredOfficials)
@@ -257,7 +204,7 @@ const resetFilters = () => {
   filters.value = {
     search: '',
     status: '',
-    department: ''
+    department: '',
   }
   updateFilters()
 }
@@ -277,13 +224,13 @@ const closeModal = () => {
     email: '',
     department: '',
     role: '',
-    status: 'Active'
+    status: 'Active',
   }
 }
 
 const saveOfficial = async () => {
   saving.value = true
-  
+
   try {
     let result
     if (showEditModal.value) {
@@ -291,7 +238,7 @@ const saveOfficial = async () => {
     } else {
       result = await officialsStore.addOfficial(formData.value)
     }
-    
+
     if (result.success) {
       toast.success(`Official ${showEditModal.value ? 'updated' : 'added'} successfully!`)
       closeModal()

@@ -41,6 +41,8 @@ This directory contains comprehensive documentation for the Second Innings Backe
 2. **Alternative setups**: [DOCKER_SETUP.md](DOCKER_SETUP.md) or [LOCAL_SETUP.md](LOCAL_SETUP.md) if preferred
 3. **Learn the API**: [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for endpoint details
 
+**Important**: The system includes a pre-configured admin account (`21f3001600@ds.study.iitm.ac.in`) that's automatically created during database initialization, providing immediate administrative access.
+
 ## 📖 Documentation Features
 
 - **Step-by-step instructions**: Clear, actionable setup guides

@@ -43,6 +43,10 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Insert default admin account
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
+VALUES ('21f3001600@ds.study.iitm.ac.in', 'qEGg9NTOjfgSaw646IhSRCXKtaZ2', 'Ashwin Narayanan S', 'admin', 'active');
+
 CREATE TABLE relations (
     id SERIAL PRIMARY KEY,
     senior_citizen_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -124,3 +128,4 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+

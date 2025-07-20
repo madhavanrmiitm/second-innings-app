@@ -8,55 +8,25 @@ $danger: #dc3545;
 $light: #f8f9fa;
 $dark: #212529;
 
-// Import Bootstrap
-@import 'bootstrap/scss/bootstrap';
+// Bootstrap is imported in main.js as compiled CSS
 
 // Custom styles
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background-color: #f5f5f5;
 }
 
-.sidebar {
-  min-height: calc(100vh - 56px);
-  width: 250px;
-  background-color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  
-  .nav-link {
-    color: #333;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.25rem;
-    border-radius: 0.375rem;
-    
-    &:hover {
-      background-color: #f8f9fa;
-      color: #16a34a;
-    }
-    
-    &.active {
-      background-color: #e6f7ed;
-      color: #16a34a;
-      font-weight: 500;
-    }
-    
-    i {
-      width: 20px;
-      margin-right: 0.5rem;
-    }
-  }
+// Override Bootstrap CSS custom properties with our theme
+:root {
+  --bs-primary: #{$primary};
+  --bs-success: #{$success};
 }
 
-.main-content {
-  flex: 1;
-  padding: 2rem;
-  background-color: #f5f5f5;
-  min-height: calc(100vh - 56px);
-}
-
+// Global utility styles
 .stat-card {
   transition: transform 0.2s;
-  
+
   &:hover {
     transform: translateY(-2px);
   }

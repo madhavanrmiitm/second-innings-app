@@ -8,8 +8,8 @@ export const mockUsers = [
     department: 'Administration',
     phone: '+91 98765 43210',
     bio: 'System administrator with full access',
-    createdAt: '2023-01-01T00:00:00Z'
-  }
+    createdAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 export const mockOfficials = [
@@ -23,7 +23,7 @@ export const mockOfficials = [
     joinedDate: '2023-04-12',
     phone: '+91 98765 43211',
     address: 'Mumbai, Maharashtra',
-    createdAt: '2023-04-12T00:00:00Z'
+    createdAt: '2023-04-12T00:00:00Z',
   },
   {
     id: 2,
@@ -35,7 +35,7 @@ export const mockOfficials = [
     joinedDate: '2023-05-08',
     phone: '+91 98765 43212',
     address: 'Kolkata, West Bengal',
-    createdAt: '2023-05-08T00:00:00Z'
+    createdAt: '2023-05-08T00:00:00Z',
   },
   {
     id: 3,
@@ -47,7 +47,7 @@ export const mockOfficials = [
     joinedDate: '2023-06-10',
     phone: '+91 98765 43213',
     address: 'New Delhi, Delhi',
-    createdAt: '2023-06-10T00:00:00Z'
+    createdAt: '2023-06-10T00:00:00Z',
   },
   {
     id: 4,
@@ -59,7 +59,7 @@ export const mockOfficials = [
     joinedDate: '2023-07-01',
     phone: '+91 98765 43214',
     address: 'Chennai, Tamil Nadu',
-    createdAt: '2023-07-01T00:00:00Z'
+    createdAt: '2023-07-01T00:00:00Z',
   },
   {
     id: 5,
@@ -71,8 +71,8 @@ export const mockOfficials = [
     joinedDate: '2023-08-15',
     phone: '+91 98765 43215',
     address: 'Bengaluru, Karnataka',
-    createdAt: '2023-08-15T00:00:00Z'
-  }
+    createdAt: '2023-08-15T00:00:00Z',
+  },
 ]
 
 export const mockTickets = [
@@ -87,7 +87,7 @@ export const mockTickets = [
     createdAt: '2024-03-01T07:30:00Z',
     updatedAt: '2024-03-01T07:30:00Z',
     category: 'Medication',
-    tags: ['medication', 'reminder']
+    tags: ['medication', 'reminder'],
   },
   {
     id: 'TICK-002',
@@ -100,7 +100,7 @@ export const mockTickets = [
     createdAt: '2024-03-02T10:20:00Z',
     updatedAt: '2024-03-03T09:15:00Z',
     category: 'Appointment',
-    tags: ['appointment', 'scheduling']
+    tags: ['appointment', 'scheduling'],
   },
   {
     id: 'TICK-003',
@@ -113,7 +113,7 @@ export const mockTickets = [
     createdAt: '2024-03-03T16:45:00Z',
     updatedAt: '2024-03-03T16:45:00Z',
     category: 'Activity',
-    tags: ['group', 'creation', 'yoga']
+    tags: ['group', 'creation', 'yoga'],
   },
   {
     id: 'TICK-004',
@@ -126,7 +126,7 @@ export const mockTickets = [
     createdAt: '2024-02-28T11:00:00Z',
     updatedAt: '2024-03-01T15:30:00Z',
     category: 'Events',
-    tags: ['calendar', 'events']
+    tags: ['calendar', 'events'],
   },
   {
     id: 'TICK-005',
@@ -139,8 +139,8 @@ export const mockTickets = [
     createdAt: '2024-03-04T09:20:00Z',
     updatedAt: '2024-03-04T10:00:00Z',
     category: 'Payment',
-    tags: ['payment', 'subscription', 'error']
-  }
+    tags: ['payment', 'subscription', 'error'],
+  },
 ]
 
 export const mockNotifications = [
@@ -151,7 +151,7 @@ export const mockNotifications = [
     read: false,
     timestamp: '2024-03-04T07:00:00Z',
     type: 'reminder',
-    priority: 'high'
+    priority: 'high',
   },
   {
     id: 2,
@@ -160,7 +160,7 @@ export const mockNotifications = [
     read: false,
     timestamp: '2024-03-04T09:15:00Z',
     type: 'user',
-    userId: 1
+    userId: 1,
   },
   {
     id: 3,
@@ -169,7 +169,7 @@ export const mockNotifications = [
     read: true,
     timestamp: '2024-03-03T18:00:00Z',
     type: 'system',
-    priority: 'medium'
+    priority: 'medium',
   },
   {
     id: 4,
@@ -177,7 +177,7 @@ export const mockNotifications = [
     message: 'A doctor appointment has been confirmed for 2024-03-10 at 10:00 AM',
     read: true,
     timestamp: '2024-03-05T10:30:00Z',
-    type: 'appointment'
+    type: 'appointment',
   },
   {
     id: 5,
@@ -185,8 +185,8 @@ export const mockNotifications = [
     message: 'Welcome to the 2nd Innings senior care panel',
     read: true,
     timestamp: '2024-03-01T08:00:00Z',
-    type: 'system'
-  }
+    type: 'system',
+  },
 ]
 
 export const mockGroups = [
@@ -201,7 +201,7 @@ export const mockGroups = [
     adminId: 3,
     active: true,
     createdAt: '2023-06-15T00:00:00Z',
-    location: 'Central Park, New Delhi'
+    location: 'Central Park, New Delhi',
   },
   {
     id: 2,
@@ -214,7 +214,7 @@ export const mockGroups = [
     adminId: 5,
     active: true,
     createdAt: '2023-07-20T00:00:00Z',
-    location: 'Community Hall, Pune'
+    location: 'Community Hall, Pune',
   },
   {
     id: 3,
@@ -227,6 +227,6 @@ export const mockGroups = [
     adminId: 4,
     active: false,
     createdAt: '2023-08-10T00:00:00Z',
-    location: 'Online'
-  }
+    location: 'Online',
+  },
 ]
