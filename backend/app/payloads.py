@@ -20,7 +20,154 @@ class UserStatus(str, Enum):
     BLOCKED = "blocked"
 
 
+class CareRequestStatus(str, Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+
+
+class TaskStatus(str, Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class TicketStatus(str, Enum):
+    OPEN = "open"
+    IN_PROGRESS = "in_progress"
+    RESOLVED = "resolved"
+    CLOSED = "closed"
+
+
+class NotificationType(str, Enum):
+    TASK = "task"
+    CARE_REQUEST = "care_request"
+    RELATION = "relation"
+    INTEREST_GROUP = "interest_group"
+    SUPPORT_TICKET = "support_ticket"
+
+
+class NotificationPriority(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
 class TokenRequest(BaseModel):
+    id_token: str
+
+
+class AddFamilyMemberRequest(BaseModel):
+    id_token: str
+    family_member_firebase_uid: str
+    senior_citizen_relation: str
+    family_member_relation: str
+
+
+class RemoveFamilyMemberRequest(BaseModel):
+    id_token: str
+    family_member_firebase_uid: str
+
+
+class CreateCareRequest(BaseModel):
+    id_token: str
+    caregiver_firebase_uid: str
+    timing_to_visit: datetime
+    location: str
+
+
+class UpdateCareRequest(BaseModel):
+    id_token: str
+    status: Optional[CareRequestStatus] = None
+    timing_to_visit: Optional[datetime] = None
+    location: Optional[str] = None
+
+
+class ApplyCareRequest(BaseModel):
+    id_token: str
+
+
+class AcceptEngagement(BaseModel):
+    id_token: str
+
+
+class DeclineEngagement(BaseModel):
+    id_token: str
+
+
+class CreateTask(BaseModel):
+    id_token: str
+    title: str
+    description: Optional[str] = None
+    time_of_completion: Optional[datetime] = None
+    assigned_to_firebase_uid: Optional[str] = None
+
+
+class UpdateTask(BaseModel):
+    id_token: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+    time_of_completion: Optional[datetime] = None
+    status: Optional[TaskStatus] = None
+    assigned_to_firebase_uid: Optional[str] = None
+
+
+class CreateReminder(BaseModel):
+    id_token: str
+    title: str
+    description: Optional[str] = None
+    time: datetime
+
+
+class UpdateReminder(BaseModel):
+    id_token: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+    time: Optional[datetime] = None
+
+
+class CreateInterestGroup(BaseModel):
+    id_token: str
+    title: str
+    description: Optional[str] = None
+    links: Optional[str] = None
+    timing: Optional[datetime] = None
+
+
+class UpdateInterestGroup(BaseModel):
+    id_token: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+    links: Optional[str] = None
+    status: Optional[str] = None
+    timing: Optional[datetime] = None
+
+
+class CreateTicket(BaseModel):
+    id_token: str
+    subject: str
+    description: Optional[str] = None
+
+
+class UpdateTicket(BaseModel):
+    id_token: str
+    subject: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[TicketStatus] = None
+
+
+class MarkNotificationAsRead(BaseModel):
+    id_token: str
+
+
+class ReviewCaregiver(BaseModel):
+    id_token: str
+    status: UserStatus
+
+
+class ResolveTicket(BaseModel):
     id_token: str
 
 
