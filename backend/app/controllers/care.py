@@ -1,20 +1,26 @@
-from app.utils.response_formatter import format_response
-from app.modules.auth.auth_service import auth_service
 from app.database.db import get_db_connection
 from app.logger import logger
-from app.payloads import UserRole, CareRequestStatus, UserStatus
+from app.modules.auth.auth_service import auth_service
+from app.payloads import CareRequestStatus, UserRole, UserStatus
+from app.utils.response_formatter import format_response
+
 
 async def view_open_requests(request):
     logger.info("Executing view_open_requests controller logic.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
         if not is_registered or user.role != UserRole.CAREGIVER:
-            return format_response(status_code=403, message="Access denied. Only caregivers can view open requests.")
+            return format_response(
+                status_code=403,
+                message="Access denied. Only caregivers can view open requests.",
+            )
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -23,7 +29,7 @@ async def view_open_requests(request):
                        FROM care_requests cr
                        JOIN users sc ON cr.senior_citizen_id = sc.id
                        WHERE cr.status = %s""",
-                    (CareRequestStatus.PENDING.value,)
+                    (CareRequestStatus.PENDING.value,),
                 )
                 open_requests_data = cur.fetchall()
 
@@ -47,17 +53,24 @@ async def view_open_requests(request):
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error retrieving open care requests: {e}")
         return format_response(status_code=500, message="Internal server error.")
 
+
 async def get_care_request(request, requestId):
-    logger.info(f"Executing get_care_request controller logic for request ID: {requestId}.")
+    logger.info(
+        f"Executing get_care_request controller logic for request ID: {requestId}."
+    )
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -73,27 +86,46 @@ async def get_care_request(request, requestId):
                        LEFT JOIN users cg ON cr.caregiver_id = cg.id
                        JOIN users mb ON cr.made_by = mb.id
                        WHERE cr.id = %s""",
-                    (requestId,)
+                    (requestId,),
                 )
                 care_request_data = cur.fetchone()
 
                 if not care_request_data:
-                    return format_response(status_code=404, message="Care request not found.")
+                    return format_response(
+                        status_code=404, message="Care request not found."
+                    )
 
                 # Check permissions
-                if user.role == UserRole.SENIOR_CITIZEN and user.id != care_request_data[1]: # senior_citizen_id
-                    return format_response(status_code=403, message="Access denied. You can only view your own care requests.")
-                if user.role == UserRole.FAMILY_MEMBER and user.id != care_request_data[5]: # made_by
+                if (
+                    user.role == UserRole.SENIOR_CITIZEN
+                    and user.id != care_request_data[1]
+                ):  # senior_citizen_id
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only view your own care requests.",
+                    )
+                if (
+                    user.role == UserRole.FAMILY_MEMBER
+                    and user.id != care_request_data[5]
+                ):  # made_by
                     # A family member can view requests they made, or requests for their senior citizen
                     cur.execute(
                         "SELECT 1 FROM relations WHERE senior_citizen_id = %s AND family_member_id = %s",
-                        (care_request_data[1], user.id)
+                        (care_request_data[1], user.id),
                     )
                     if not cur.fetchone():
-                        return format_response(status_code=403, message="Access denied. You can only view care requests for your associated senior citizen or those you created.")
-                if user.role == UserRole.CAREGIVER and user.id != care_request_data[3]: # caregiver_id
+                        return format_response(
+                            status_code=403,
+                            message="Access denied. You can only view care requests for your associated senior citizen or those you created.",
+                        )
+                if (
+                    user.role == UserRole.CAREGIVER and user.id != care_request_data[3]
+                ):  # caregiver_id
                     # Caregivers can only view requests they are assigned to, or open requests (handled by view_open_requests)
-                    return format_response(status_code=403, message="Access denied. You can only view care requests you are assigned to.")
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only view care requests you are assigned to.",
+                    )
 
                 care_request = {
                     "id": care_request_data[0],
@@ -118,22 +150,33 @@ async def get_care_request(request, requestId):
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error retrieving care request: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def create_care_request(request, validated_data):
     logger.info("Executing create_care_request controller logic.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
-        if not is_registered or user.role not in [UserRole.SENIOR_CITIZEN, UserRole.FAMILY_MEMBER]:
-            return format_response(status_code=403, message="Access denied. Only senior citizens or family members can create care requests.")
+        if not is_registered or user.role not in [
+            UserRole.SENIOR_CITIZEN,
+            UserRole.FAMILY_MEMBER,
+        ]:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only senior citizens or family members can create care requests.",
+            )
 
         caregiver_firebase_uid = validated_data.caregiver_firebase_uid
         timing_to_visit = validated_data.timing_to_visit
@@ -144,14 +187,16 @@ async def create_care_request(request, validated_data):
                 # Get caregiver ID
                 cur.execute(
                     "SELECT id FROM users WHERE firebase_uid = %s AND role = %s",
-                    (caregiver_firebase_uid, UserRole.CAREGIVER.value)
+                    (caregiver_firebase_uid, UserRole.CAREGIVER.value),
                 )
                 caregiver_data = cur.fetchone()
                 if not caregiver_data:
-                    return format_response(status_code=404, message="Caregiver not found.")
+                    return format_response(
+                        status_code=404, message="Caregiver not found."
+                    )
                 caregiver_id = caregiver_data[0]
 
-                senior_citizen_id = user.id # If senior citizen creates it
+                senior_citizen_id = user.id  # If senior citizen creates it
                 if user.role == UserRole.FAMILY_MEMBER:
                     # If family member creates it, they must specify which senior citizen it's for
                     # For simplicity, assuming the family member is creating for themselves or their primary senior citizen
@@ -159,11 +204,14 @@ async def create_care_request(request, validated_data):
                     # For now, let's assume the family member is creating for a senior citizen they are related to.
                     cur.execute(
                         "SELECT senior_citizen_id FROM relations WHERE family_member_id = %s LIMIT 1",
-                        (user.id,)
+                        (user.id,),
                     )
                     sc_data = cur.fetchone()
                     if not sc_data:
-                        return format_response(status_code=400, message="Family member not associated with any senior citizen.")
+                        return format_response(
+                            status_code=400,
+                            message="Family member not associated with any senior citizen.",
+                        )
                     senior_citizen_id = sc_data[0]
 
                 cur.execute(
@@ -188,33 +236,48 @@ async def create_care_request(request, validated_data):
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error creating care request: {e}")
         return format_response(status_code=500, message="Internal server error.")
 
+
 async def update_care_request(request, requestId, validated_data):
-    logger.info(f"Executing update_care_request controller logic for request ID: {requestId}.")
+    logger.info(
+        f"Executing update_care_request controller logic for request ID: {requestId}."
+    )
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
-        if not is_registered or user.role not in [UserRole.SENIOR_CITIZEN, UserRole.FAMILY_MEMBER]:
-            return format_response(status_code=403, message="Access denied. Only senior citizens or family members can update care requests.")
+        if not is_registered or user.role not in [
+            UserRole.SENIOR_CITIZEN,
+            UserRole.FAMILY_MEMBER,
+        ]:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only senior citizens or family members can update care requests.",
+            )
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 # Verify ownership/permission
                 cur.execute(
                     "SELECT senior_citizen_id, made_by FROM care_requests WHERE id = %s",
-                    (requestId,)
+                    (requestId,),
                 )
                 req_owner_data = cur.fetchone()
                 if not req_owner_data:
-                    return format_response(status_code=404, message="Care request not found.")
+                    return format_response(
+                        status_code=404, message="Care request not found."
+                    )
 
                 senior_citizen_id = req_owner_data[0]
                 made_by_id = req_owner_data[1]
@@ -224,12 +287,18 @@ async def update_care_request(request, requestId, validated_data):
                     if user.role == UserRole.FAMILY_MEMBER:
                         cur.execute(
                             "SELECT 1 FROM relations WHERE senior_citizen_id = %s AND family_member_id = %s",
-                            (senior_citizen_id, user.id)
+                            (senior_citizen_id, user.id),
                         )
                         if not cur.fetchone():
-                            return format_response(status_code=403, message="Access denied. You can only update care requests for your associated senior citizen or those you created.")
+                            return format_response(
+                                status_code=403,
+                                message="Access denied. You can only update care requests for your associated senior citizen or those you created.",
+                            )
                     else:
-                        return format_response(status_code=403, message="Access denied. You can only update your own care requests.")
+                        return format_response(
+                            status_code=403,
+                            message="Access denied. You can only update your own care requests.",
+                        )
 
                 update_fields = []
                 update_values = []
@@ -245,46 +314,68 @@ async def update_care_request(request, requestId, validated_data):
                     update_values.append(validated_data.location)
 
                 if not update_fields:
-                    return format_response(status_code=400, message="No fields to update.")
+                    return format_response(
+                        status_code=400, message="No fields to update."
+                    )
 
                 update_values.append(requestId)
                 update_query = f"UPDATE care_requests SET {', '.join(update_fields)}, updated_at = CURRENT_TIMESTAMP WHERE id = %s"
 
                 cur.execute(update_query, tuple(update_values))
                 if cur.rowcount == 0:
-                    return format_response(status_code=404, message="Care request not found or no changes made.")
+                    return format_response(
+                        status_code=404,
+                        message="Care request not found or no changes made.",
+                    )
 
-        return format_response(status_code=200, message="Care request updated successfully.")
+        return format_response(
+            status_code=200, message="Care request updated successfully."
+        )
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error updating care request: {e}")
         return format_response(status_code=500, message="Internal server error.")
 
+
 async def close_care_request(request, requestId):
-    logger.info(f"Executing close_care_request controller logic for request ID: {requestId}.")
+    logger.info(
+        f"Executing close_care_request controller logic for request ID: {requestId}."
+    )
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
-        if not is_registered or user.role not in [UserRole.SENIOR_CITIZEN, UserRole.FAMILY_MEMBER]:
-            return format_response(status_code=403, message="Access denied. Only senior citizens or family members can close care requests.")
+        if not is_registered or user.role not in [
+            UserRole.SENIOR_CITIZEN,
+            UserRole.FAMILY_MEMBER,
+        ]:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only senior citizens or family members can close care requests.",
+            )
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 # Verify ownership/permission and current status
                 cur.execute(
                     "SELECT senior_citizen_id, made_by, status FROM care_requests WHERE id = %s",
-                    (requestId,)
+                    (requestId,),
                 )
                 req_data = cur.fetchone()
                 if not req_data:
-                    return format_response(status_code=404, message="Care request not found.")
+                    return format_response(
+                        status_code=404, message="Care request not found."
+                    )
 
                 senior_citizen_id = req_data[0]
                 made_by_id = req_data[1]
@@ -295,38 +386,56 @@ async def close_care_request(request, requestId):
                     if user.role == UserRole.FAMILY_MEMBER:
                         cur.execute(
                             "SELECT 1 FROM relations WHERE senior_citizen_id = %s AND family_member_id = %s",
-                            (senior_citizen_id, user.id)
+                            (senior_citizen_id, user.id),
                         )
                         if not cur.fetchone():
-                            return format_response(status_code=403, message="Access denied. You can only close care requests for your associated senior citizen or those you created.")
+                            return format_response(
+                                status_code=403,
+                                message="Access denied. You can only close care requests for your associated senior citizen or those you created.",
+                            )
                     else:
-                        return format_response(status_code=403, message="Access denied. You can only close your own care requests.")
+                        return format_response(
+                            status_code=403,
+                            message="Access denied. You can only close your own care requests.",
+                        )
 
                 if current_status == CareRequestStatus.CANCELLED.value:
-                    return format_response(status_code=400, message="Care request is already cancelled.")
+                    return format_response(
+                        status_code=400, message="Care request is already cancelled."
+                    )
 
                 cur.execute(
                     "UPDATE care_requests SET status = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s",
                     (CareRequestStatus.CANCELLED.value, requestId),
                 )
                 if cur.rowcount == 0:
-                    return format_response(status_code=404, message="Care request not found or no changes made.")
+                    return format_response(
+                        status_code=404,
+                        message="Care request not found or no changes made.",
+                    )
 
-        return format_response(status_code=200, message="Care request closed successfully.")
+        return format_response(
+            status_code=200, message="Care request closed successfully."
+        )
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error closing care request: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def get_caregivers(request):
     logger.info("Executing get_caregivers controller logic.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -339,7 +448,10 @@ async def get_caregivers(request):
                     """SELECT id, full_name, description, tags, youtube_url
                        FROM users
                        WHERE role = %s AND status = %s""",
-                    (UserRole.CAREGIVER.value, UserStatus.ACTIVE.value,)
+                    (
+                        UserRole.CAREGIVER.value,
+                        UserStatus.ACTIVE.value,
+                    ),
                 )
                 caregivers_data = cur.fetchall()
 
@@ -362,17 +474,24 @@ async def get_caregivers(request):
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error retrieving caregivers: {e}")
         return format_response(status_code=500, message="Internal server error.")
 
+
 async def get_caregiver_profile(request, caregiverId):
-    logger.info(f"Executing get_caregiver_profile controller logic for caregiver ID: {caregiverId}.")
+    logger.info(
+        f"Executing get_caregiver_profile controller logic for caregiver ID: {caregiverId}."
+    )
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -385,12 +504,18 @@ async def get_caregiver_profile(request, caregiverId):
                     """SELECT id, full_name, description, tags, youtube_url
                        FROM users
                        WHERE id = %s AND role = %s AND status = %s""",
-                    (caregiverId, UserRole.CAREGIVER.value, UserStatus.ACTIVE.value,)
+                    (
+                        caregiverId,
+                        UserRole.CAREGIVER.value,
+                        UserStatus.ACTIVE.value,
+                    ),
                 )
                 caregiver_data = cur.fetchone()
 
                 if not caregiver_data:
-                    return format_response(status_code=404, message="Caregiver not found or not active.")
+                    return format_response(
+                        status_code=404, message="Caregiver not found or not active."
+                    )
 
                 caregiver_profile = {
                     "id": caregiver_data[0],
@@ -408,35 +533,48 @@ async def get_caregiver_profile(request, caregiverId):
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error retrieving caregiver profile: {e}")
         return format_response(status_code=500, message="Internal server error.")
 
+
 async def apply_for_request(request, requestId, validated_data):
-    logger.info(f"Executing apply_for_request controller logic for request ID: {requestId}.")
+    logger.info(
+        f"Executing apply_for_request controller logic for request ID: {requestId}."
+    )
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
         if not is_registered or user.role != UserRole.CAREGIVER:
-            return format_response(status_code=403, message="Access denied. Only caregivers can apply for requests.")
+            return format_response(
+                status_code=403,
+                message="Access denied. Only caregivers can apply for requests.",
+            )
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 # Check if request exists and is pending
                 cur.execute(
-                    "SELECT status FROM care_requests WHERE id = %s",
-                    (requestId,)
+                    "SELECT status FROM care_requests WHERE id = %s", (requestId,)
                 )
                 req_status_data = cur.fetchone()
                 if not req_status_data:
-                    return format_response(status_code=404, message="Care request not found.")
+                    return format_response(
+                        status_code=404, message="Care request not found."
+                    )
                 if req_status_data[0] != CareRequestStatus.PENDING.value:
-                    return format_response(status_code=400, message="Care request is not pending.")
+                    return format_response(
+                        status_code=400, message="Care request is not pending."
+                    )
 
                 # Update care request with caregiver_id and status to accepted
                 cur.execute(
@@ -444,43 +582,65 @@ async def apply_for_request(request, requestId, validated_data):
                     (user.id, CareRequestStatus.ACCEPTED.value, requestId),
                 )
                 if cur.rowcount == 0:
-                    return format_response(status_code=404, message="Care request not found or no changes made.")
+                    return format_response(
+                        status_code=404,
+                        message="Care request not found or no changes made.",
+                    )
 
-        return format_response(status_code=200, message="Successfully applied for care request.")
+        return format_response(
+            status_code=200, message="Successfully applied for care request."
+        )
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error applying for care request: {e}")
         return format_response(status_code=500, message="Internal server error.")
 
+
 async def accept_engagement(request, requestId, validated_data):
-    logger.info(f"Executing accept_engagement controller logic for request ID: {requestId}.")
+    logger.info(
+        f"Executing accept_engagement controller logic for request ID: {requestId}."
+    )
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
         if not is_registered or user.role != UserRole.CAREGIVER:
-            return format_response(status_code=403, message="Access denied. Only caregivers can accept engagements.")
+            return format_response(
+                status_code=403,
+                message="Access denied. Only caregivers can accept engagements.",
+            )
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 # Check if request exists and is assigned to this caregiver and is pending
                 cur.execute(
                     "SELECT status, caregiver_id FROM care_requests WHERE id = %s",
-                    (requestId,)
+                    (requestId,),
                 )
                 req_data = cur.fetchone()
                 if not req_data:
-                    return format_response(status_code=404, message="Care request not found.")
+                    return format_response(
+                        status_code=404, message="Care request not found."
+                    )
                 if req_data[1] != user.id:
-                    return format_response(status_code=403, message="Access denied. This engagement is not offered to you.")
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. This engagement is not offered to you.",
+                    )
                 if req_data[0] != CareRequestStatus.PENDING.value:
-                    return format_response(status_code=400, message="Care request is not pending.")
+                    return format_response(
+                        status_code=400, message="Care request is not pending."
+                    )
 
                 # Update care request status to accepted
                 cur.execute(
@@ -488,43 +648,65 @@ async def accept_engagement(request, requestId, validated_data):
                     (CareRequestStatus.ACCEPTED.value, requestId),
                 )
                 if cur.rowcount == 0:
-                    return format_response(status_code=404, message="Care request not found or no changes made.")
+                    return format_response(
+                        status_code=404,
+                        message="Care request not found or no changes made.",
+                    )
 
-        return format_response(status_code=200, message="Engagement accepted successfully.")
+        return format_response(
+            status_code=200, message="Engagement accepted successfully."
+        )
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error accepting engagement: {e}")
         return format_response(status_code=500, message="Internal server error.")
 
+
 async def decline_engagement(request, requestId, validated_data):
-    logger.info(f"Executing decline_engagement controller logic for request ID: {requestId}.")
+    logger.info(
+        f"Executing decline_engagement controller logic for request ID: {requestId}."
+    )
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
         if not is_registered or user.role != UserRole.CAREGIVER:
-            return format_response(status_code=403, message="Access denied. Only caregivers can decline engagements.")
+            return format_response(
+                status_code=403,
+                message="Access denied. Only caregivers can decline engagements.",
+            )
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 # Check if request exists and is assigned to this caregiver and is pending
                 cur.execute(
                     "SELECT status, caregiver_id FROM care_requests WHERE id = %s",
-                    (requestId,)
+                    (requestId,),
                 )
                 req_data = cur.fetchone()
                 if not req_data:
-                    return format_response(status_code=404, message="Care request not found.")
+                    return format_response(
+                        status_code=404, message="Care request not found."
+                    )
                 if req_data[1] != user.id:
-                    return format_response(status_code=403, message="Access denied. This engagement is not offered to you.")
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. This engagement is not offered to you.",
+                    )
                 if req_data[0] != CareRequestStatus.PENDING.value:
-                    return format_response(status_code=400, message="Care request is not pending.")
+                    return format_response(
+                        status_code=400, message="Care request is not pending."
+                    )
 
                 # Update care request status to declined (or pending again if you want to allow other caregivers to apply)
                 # For now, setting to cancelled, as it's a decline from the assigned caregiver
@@ -533,13 +715,20 @@ async def decline_engagement(request, requestId, validated_data):
                     (CareRequestStatus.CANCELLED.value, requestId),
                 )
                 if cur.rowcount == 0:
-                    return format_response(status_code=404, message="Care request not found or no changes made.")
+                    return format_response(
+                        status_code=404,
+                        message="Care request not found or no changes made.",
+                    )
 
-        return format_response(status_code=200, message="Engagement declined successfully.")
+        return format_response(
+            status_code=200, message="Engagement declined successfully."
+        )
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error declining engagement: {e}")
         return format_response(status_code=500, message="Internal server error.")

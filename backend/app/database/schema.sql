@@ -1,5 +1,11 @@
--- Drop tables if they exist to ensure a clean slate.
-DROP TABLE IF EXISTS users, relations, tasks, care_requests, tags, user_tags, interest_groups, tickets, notifications CASCADE;
+-- Drop tables in reverse dependency order to avoid foreign key conflicts
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS tickets CASCADE;
+DROP TABLE IF EXISTS interest_groups CASCADE;
+DROP TABLE IF EXISTS care_requests CASCADE;
+DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS relations CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
 -- Create ENUM type for user roles
 DROP TYPE IF EXISTS user_role CASCADE;
@@ -39,6 +45,7 @@ CREATE TABLE users (
     youtube_url VARCHAR(500),
     date_of_birth DATE,
     description TEXT,
+    tags VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -64,7 +71,7 @@ CREATE TABLE tasks (
     time_of_completion TIMESTAMP,
     status task_status NOT NULL DEFAULT 'pending',
     created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    assigned_to INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -79,21 +86,6 @@ CREATE TABLE care_requests (
     location VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE tags (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL,
-    slug VARCHAR(255) UNIQUE NOT NULL,
-    status BOOLEAN DEFAULT TRUE,
-    category VARCHAR(255)
-);
-
-CREATE TABLE user_tags (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-    UNIQUE (user_id, tag_id)
 );
 
 CREATE TABLE interest_groups (
@@ -111,7 +103,7 @@ CREATE TABLE interest_groups (
 CREATE TABLE tickets (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    assigned_to INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
     subject VARCHAR(255) NOT NULL,
     description TEXT,
     status ticket_status NOT NULL DEFAULT 'open',
@@ -129,3 +121,31 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create indexes for better query performance and referential integrity
+CREATE INDEX idx_users_gmail_id ON users(gmail_id);
+CREATE INDEX idx_users_firebase_uid ON users(firebase_uid);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_status ON users(status);
+
+CREATE INDEX idx_relations_senior_citizen_id ON relations(senior_citizen_id);
+CREATE INDEX idx_relations_family_member_id ON relations(family_member_id);
+
+CREATE INDEX idx_tasks_created_by ON tasks(created_by);
+CREATE INDEX idx_tasks_assigned_to ON tasks(assigned_to);
+CREATE INDEX idx_tasks_status ON tasks(status);
+
+CREATE INDEX idx_care_requests_senior_citizen_id ON care_requests(senior_citizen_id);
+CREATE INDEX idx_care_requests_caregiver_id ON care_requests(caregiver_id);
+CREATE INDEX idx_care_requests_made_by ON care_requests(made_by);
+CREATE INDEX idx_care_requests_status ON care_requests(status);
+
+CREATE INDEX idx_interest_groups_created_by ON interest_groups(created_by);
+CREATE INDEX idx_interest_groups_status ON interest_groups(status);
+
+CREATE INDEX idx_tickets_user_id ON tickets(user_id);
+CREATE INDEX idx_tickets_assigned_to ON tickets(assigned_to);
+CREATE INDEX idx_tickets_status ON tickets(status);
+
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_type ON notifications(type);
+CREATE INDEX idx_notifications_is_read ON notifications(is_read);

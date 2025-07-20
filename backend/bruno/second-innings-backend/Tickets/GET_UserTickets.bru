@@ -1,0 +1,40 @@
+meta {
+  name: GET_UserTickets
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/tickets
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful tickets retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains tickets data", function() {
+    expect(res.getBody().data).to.have.property('tickets');
+    expect(res.getBody().data.tickets).to.be.an('array');
+  });
+
+  test("Each ticket has required fields", function() {
+    if (res.getBody().data.tickets.length > 0) {
+      const ticket = res.getBody().data.tickets[0];
+      expect(ticket).to.have.property('id');
+      expect(ticket).to.have.property('subject');
+      expect(ticket).to.have.property('status');
+      expect(ticket).to.have.property('created_at');
+    }
+  });
+}

@@ -1,0 +1,50 @@
+meta {
+  name: GET_TicketStats
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/admin/tickets/stats
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful ticket stats retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.equal("Ticket statistics retrieved successfully.");
+  });
+
+  test("Response contains ticket stats data", function() {
+    expect(res.getBody().data).to.have.property('ticket_stats');
+    expect(res.getBody().data.ticket_stats).to.be.an('object');
+  });
+
+  test("Ticket stats have valid status keys", function() {
+    const stats = res.getBody().data.ticket_stats;
+    const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
+
+    Object.keys(stats).forEach(status => {
+      expect(validStatuses).to.include(status);
+      expect(stats[status]).to.be.a('number');
+      expect(stats[status]).to.be.at.least(0);
+    });
+  });
+
+  test("All counts are non-negative integers", function() {
+    const stats = res.getBody().data.ticket_stats;
+    Object.values(stats).forEach(count => {
+      expect(count).to.be.a('number');
+      expect(count).to.be.at.least(0);
+      expect(Number.isInteger(count)).to.be.true;
+    });
+  });
+}

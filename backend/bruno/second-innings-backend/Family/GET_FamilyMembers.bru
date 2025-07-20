@@ -1,0 +1,39 @@
+meta {
+  name: GET_FamilyMembers
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/senior-citizens/me/family-members
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful family members retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains family members data", function() {
+    expect(res.getBody().data).to.have.property('family_members');
+    expect(res.getBody().data.family_members).to.be.an('array');
+  });
+
+  test("Each family member has required fields", function() {
+    if (res.getBody().data.family_members.length > 0) {
+      const member = res.getBody().data.family_members[0];
+      expect(member).to.have.property('id');
+      expect(member).to.have.property('full_name');
+      expect(member).to.have.property('relation');
+    }
+  });
+}

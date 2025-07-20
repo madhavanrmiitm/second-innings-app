@@ -1,0 +1,38 @@
+meta {
+  name: GET_CareRequest
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/care-requests/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 or 404", function() {
+    const status = res.getStatus();
+    expect([200, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 200) {
+      expect(res.getBody().message).to.contain("successfully");
+    } else if (status === 404) {
+      expect(res.getBody().message).to.contain("not found");
+    }
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+    if (res.getStatus() === 200) {
+      expect(res.getBody().data).to.have.property('care_request');
+    }
+  });
+}

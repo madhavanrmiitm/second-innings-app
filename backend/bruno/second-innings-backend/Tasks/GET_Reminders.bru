@@ -1,0 +1,40 @@
+meta {
+  name: GET_Reminders
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/reminders
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful reminders retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains reminders data", function() {
+    expect(res.getBody().data).to.have.property('reminders');
+    expect(res.getBody().data.reminders).to.be.an('array');
+  });
+
+  test("Each reminder has required fields", function() {
+    if (res.getBody().data.reminders.length > 0) {
+      const reminder = res.getBody().data.reminders[0];
+      expect(reminder).to.have.property('id');
+      expect(reminder).to.have.property('title');
+      expect(reminder).to.have.property('time');
+      expect(reminder).to.have.property('created_at');
+    }
+  });
+}

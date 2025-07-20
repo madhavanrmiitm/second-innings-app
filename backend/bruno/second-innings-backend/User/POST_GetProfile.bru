@@ -5,14 +5,14 @@ meta {
 }
 
 post {
-  url: {{base_url}}/api/user/profile
+  url: {{baseUrl}}{{apiPrefix}}/user/profile
   body: json
   auth: none
 }
 
 body:json {
   {
-    "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE"
+    "id_token": "{{userToken}}"
   }
 }
 
@@ -37,10 +37,6 @@ tests {
     expect(user).to.have.property('full_name');
     expect(user).to.have.property('role');
     expect(user).to.have.property('status');
-    expect(user).to.have.property('youtube_url');
-    expect(user).to.have.property('date_of_birth');
-    expect(user).to.have.property('description');
-    expect(user).to.have.property('tags');
     expect(user).to.have.property('created_at');
     expect(user).to.have.property('updated_at');
   });

@@ -1,0 +1,44 @@
+meta {
+  name: POST_ResolveTicket
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/admin/tickets/1/resolve
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "id_token": "{{adminToken}}"
+  }
+}
+
+tests {
+  test("Status code is 200, 400, or 404 for ticket resolution", function() {
+    const status = res.getStatus();
+    expect([200, 400, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 200) {
+      expect(res.getBody().message).to.equal("Ticket resolved successfully.");
+    } else if (status === 400) {
+      expect(res.getBody().message).to.equal("Ticket is already resolved.");
+    } else if (status === 404) {
+      expect(res.getBody().message).to.equal("Ticket not found.");
+    }
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+    expect(res.getBody()).to.have.property('status_code');
+  });
+}

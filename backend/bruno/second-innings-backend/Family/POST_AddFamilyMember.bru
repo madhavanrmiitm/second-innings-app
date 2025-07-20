@@ -1,0 +1,45 @@
+meta {
+  name: POST_AddFamilyMember
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/senior-citizens/me/family-members
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "id_token": "{{adminToken}}",
+    "family_member_firebase_uid": "test_family_member_uid",
+    "senior_citizen_relation": "parent",
+    "family_member_relation": "son"
+  }
+}
+
+tests {
+  test("Status code is 201 or 400", function() {
+    const status = res.getStatus();
+    expect([201, 400, 422]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 201) {
+      expect(res.getBody().message).to.contain("successfully");
+    }
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+    if (res.getStatus() === 201) {
+      expect(res.getBody().data).to.have.property('family_member');
+    }
+  });
+}

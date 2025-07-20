@@ -1,15 +1,18 @@
-from app.utils.response_formatter import format_response
-from app.modules.auth.auth_service import auth_service
 from app.database.db import get_db_connection
 from app.logger import logger
-from app.payloads import UserRole, TaskStatus
+from app.modules.auth.auth_service import auth_service
+from app.payloads import TaskStatus, UserRole
+from app.utils.response_formatter import format_response
+
 
 async def get_tasks(request):
     logger.info("Executing get_tasks controller logic.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -22,7 +25,10 @@ async def get_tasks(request):
                     """SELECT id, title, description, time_of_completion, status, created_by, assigned_to, created_at, updated_at
                        FROM tasks
                        WHERE created_by = %s OR assigned_to = %s""",
-                    (user.id, user.id,)
+                    (
+                        user.id,
+                        user.id,
+                    ),
                 )
                 tasks_data = cur.fetchall()
 
@@ -49,17 +55,22 @@ async def get_tasks(request):
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error retrieving tasks: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def create_task(request, validated_data):
     logger.info("Executing create_task controller logic.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -77,11 +88,13 @@ async def create_task(request, validated_data):
                 with conn.cursor() as cur:
                     cur.execute(
                         "SELECT id FROM users WHERE firebase_uid = %s",
-                        (assigned_to_firebase_uid,)
+                        (assigned_to_firebase_uid,),
                     )
                     assigned_to_data = cur.fetchone()
                     if not assigned_to_data:
-                        return format_response(status_code=404, message="Assigned user not found.")
+                        return format_response(
+                            status_code=404, message="Assigned user not found."
+                        )
                     assigned_to_id = assigned_to_data[0]
 
         with get_db_connection() as conn:
@@ -107,17 +120,22 @@ async def create_task(request, validated_data):
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error creating task: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def get_task(request, taskId):
     logger.info(f"Executing get_task controller logic for task ID: {taskId}.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -130,7 +148,7 @@ async def get_task(request, taskId):
                     """SELECT id, title, description, time_of_completion, status, created_by, assigned_to, created_at, updated_at
                        FROM tasks
                        WHERE id = %s""",
-                    (taskId,)
+                    (taskId,),
                 )
                 task_data = cur.fetchone()
 
@@ -138,8 +156,13 @@ async def get_task(request, taskId):
                     return format_response(status_code=404, message="Task not found.")
 
                 # Check permissions
-                if user.id != task_data[5] and user.id != task_data[6]: # created_by and assigned_to
-                    return format_response(status_code=403, message="Access denied. You can only view tasks you created or are assigned to.")
+                if (
+                    user.id != task_data[5] and user.id != task_data[6]
+                ):  # created_by and assigned_to
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only view tasks you created or are assigned to.",
+                    )
 
                 task = {
                     "id": task_data[0],
@@ -161,17 +184,22 @@ async def get_task(request, taskId):
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error retrieving task: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def update_task(request, taskId, validated_data):
     logger.info(f"Executing update_task controller logic for task ID: {taskId}.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -182,8 +210,7 @@ async def update_task(request, taskId, validated_data):
             with conn.cursor() as cur:
                 # Verify ownership/permission
                 cur.execute(
-                    "SELECT created_by, assigned_to FROM tasks WHERE id = %s",
-                    (taskId,)
+                    "SELECT created_by, assigned_to FROM tasks WHERE id = %s", (taskId,)
                 )
                 task_owner_data = cur.fetchone()
                 if not task_owner_data:
@@ -193,7 +220,10 @@ async def update_task(request, taskId, validated_data):
                 assigned_to_id = task_owner_data[1]
 
                 if user.id != created_by_id and user.id != assigned_to_id:
-                    return format_response(status_code=403, message="Access denied. You can only update tasks you created or are assigned to.")
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only update tasks you created or are assigned to.",
+                    )
 
                 update_fields = []
                 update_values = []
@@ -213,39 +243,50 @@ async def update_task(request, taskId, validated_data):
                 if validated_data.assigned_to_firebase_uid is not None:
                     cur.execute(
                         "SELECT id FROM users WHERE firebase_uid = %s",
-                        (validated_data.assigned_to_firebase_uid,)
+                        (validated_data.assigned_to_firebase_uid,),
                     )
                     new_assigned_to_data = cur.fetchone()
                     if not new_assigned_to_data:
-                        return format_response(status_code=404, message="New assigned user not found.")
+                        return format_response(
+                            status_code=404, message="New assigned user not found."
+                        )
                     update_fields.append("assigned_to = %s")
                     update_values.append(new_assigned_to_data[0])
 
                 if not update_fields:
-                    return format_response(status_code=400, message="No fields to update.")
+                    return format_response(
+                        status_code=400, message="No fields to update."
+                    )
 
                 update_values.append(taskId)
                 update_query = f"UPDATE tasks SET {', '.join(update_fields)}, updated_at = CURRENT_TIMESTAMP WHERE id = %s"
 
                 cur.execute(update_query, tuple(update_values))
                 if cur.rowcount == 0:
-                    return format_response(status_code=404, message="Task not found or no changes made.")
+                    return format_response(
+                        status_code=404, message="Task not found or no changes made."
+                    )
 
         return format_response(status_code=200, message="Task updated successfully.")
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error updating task: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def mark_task_done(request, taskId, validated_data):
     logger.info(f"Executing mark_task_done controller logic for task ID: {taskId}.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -257,7 +298,7 @@ async def mark_task_done(request, taskId, validated_data):
                 # Verify ownership/permission
                 cur.execute(
                     "SELECT created_by, assigned_to, status FROM tasks WHERE id = %s",
-                    (taskId,)
+                    (taskId,),
                 )
                 task_data = cur.fetchone()
                 if not task_data:
@@ -268,33 +309,47 @@ async def mark_task_done(request, taskId, validated_data):
                 current_status = task_data[2]
 
                 if user.id != created_by_id and user.id != assigned_to_id:
-                    return format_response(status_code=403, message="Access denied. You can only mark tasks as done that you created or are assigned to.")
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only mark tasks as done that you created or are assigned to.",
+                    )
 
                 if current_status == TaskStatus.COMPLETED.value:
-                    return format_response(status_code=400, message="Task is already completed.")
+                    return format_response(
+                        status_code=400, message="Task is already completed."
+                    )
 
                 cur.execute(
                     "UPDATE tasks SET status = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s",
                     (TaskStatus.COMPLETED.value, taskId),
                 )
                 if cur.rowcount == 0:
-                    return format_response(status_code=404, message="Task not found or no changes made.")
+                    return format_response(
+                        status_code=404, message="Task not found or no changes made."
+                    )
 
-        return format_response(status_code=200, message="Task marked as done successfully.")
+        return format_response(
+            status_code=200, message="Task marked as done successfully."
+        )
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error marking task as done: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def delete_task(request, taskId, validated_data):
     logger.info(f"Executing delete_task controller logic for task ID: {taskId}.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -305,8 +360,7 @@ async def delete_task(request, taskId, validated_data):
             with conn.cursor() as cur:
                 # Verify ownership/permission
                 cur.execute(
-                    "SELECT created_by, assigned_to FROM tasks WHERE id = %s",
-                    (taskId,)
+                    "SELECT created_by, assigned_to FROM tasks WHERE id = %s", (taskId,)
                 )
                 task_owner_data = cur.fetchone()
                 if not task_owner_data:
@@ -316,30 +370,37 @@ async def delete_task(request, taskId, validated_data):
                 assigned_to_id = task_owner_data[1]
 
                 if user.id != created_by_id and user.id != assigned_to_id:
-                    return format_response(status_code=403, message="Access denied. You can only delete tasks you created or are assigned to.")
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only delete tasks you created or are assigned to.",
+                    )
 
-                cur.execute(
-                    "DELETE FROM tasks WHERE id = %s",
-                    (taskId,)
-                )
+                cur.execute("DELETE FROM tasks WHERE id = %s", (taskId,))
                 if cur.rowcount == 0:
-                    return format_response(status_code=404, message="Task not found or no changes made.")
+                    return format_response(
+                        status_code=404, message="Task not found or no changes made."
+                    )
 
         return format_response(status_code=200, message="Task deleted successfully.")
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error deleting task: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def get_reminders(request):
     logger.info("Executing get_reminders controller logic.")
     try:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(status_code=401, message="Authorization header missing or invalid.")
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
         id_token = auth_header.split(" ")[1]
 
         user, is_registered = auth_service.authenticate_user(id_token)
@@ -350,27 +411,42 @@ async def get_reminders(request):
             with conn.cursor() as cur:
                 # Reminders are not in schema.sql, assuming they are part of tasks for now or a separate mechanism
                 # For now, returning a not implemented, as reminders are not directly mapped to a table.
-                return format_response(status_code=501, message="Reminders functionality not yet implemented in database schema.")
+                return format_response(
+                    status_code=501,
+                    message="Reminders functionality not yet implemented in database schema.",
+                )
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
-        return format_response(status_code=401, message="Authentication failed. Invalid token.")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
     except Exception as e:
         logger.error(f"Error retrieving reminders: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
 
 async def create_reminder(request, validated_data):
     logger.info("Executing create_reminder controller logic.")
     return format_response(status_code=501, message="Not Implemented")
 
+
 async def update_reminder(request, reminderId, validated_data):
-    logger.info(f"Executing update_reminder controller logic for reminder ID: {reminderId}.")
+    logger.info(
+        f"Executing update_reminder controller logic for reminder ID: {reminderId}."
+    )
     return format_response(status_code=501, message="Not Implemented")
+
 
 async def snooze_reminder(request, reminderId, validated_data):
-    logger.info(f"Executing snooze_reminder controller logic for reminder ID: {reminderId}.")
+    logger.info(
+        f"Executing snooze_reminder controller logic for reminder ID: {reminderId}."
+    )
     return format_response(status_code=501, message="Not Implemented")
 
+
 async def cancel_reminder(request, reminderId, validated_data):
-    logger.info(f"Executing cancel_reminder controller logic for reminder ID: {reminderId}.")
+    logger.info(
+        f"Executing cancel_reminder controller logic for reminder ID: {reminderId}."
+    )
     return format_response(status_code=501, message="Not Implemented")

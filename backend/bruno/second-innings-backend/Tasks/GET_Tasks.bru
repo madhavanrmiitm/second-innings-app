@@ -1,0 +1,48 @@
+meta {
+  name: GET_Tasks
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/tasks
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{userToken}}
+}
+
+tests {
+  test("Status code is 200 for successful tasks retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains tasks data", function() {
+    expect(res.getBody().data).to.have.property('tasks');
+    expect(res.getBody().data.tasks).to.be.an('array');
+  });
+
+  test("Each task has required fields", function() {
+    if (res.getBody().data.tasks.length > 0) {
+      const task = res.getBody().data.tasks[0];
+      expect(task).to.have.property('id');
+      expect(task).to.have.property('title');
+      expect(task).to.have.property('description');
+      expect(task).to.have.property('status');
+      expect(task).to.have.property('created_at');
+    }
+  });
+
+  test("Task statuses are valid", function() {
+    const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+    res.getBody().data.tasks.forEach(task => {
+      expect(validStatuses).to.include(task.status);
+    });
+  });
+}

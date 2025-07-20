@@ -11,11 +11,11 @@ class ApiConfig {
   static const String apiVersion = 'v1';
 
   // Environment-specific configurations
-  static const bool isDevelopment = false; // Set to false for production
+  static const bool isDevelopment = true; // Set to false for production
 
   // Development vs Production URLs
   static String get developmentUrl =>
-      'http://localhost:8000'; // Your local development server
+      'http://127.0.0.1:8000'; // Your local development server
   static String get productionUrl =>
       'https://second-innings-iitm-249726620429.asia-south1.run.app'; // Your production server
 
