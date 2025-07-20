@@ -1,0 +1,49 @@
+meta {
+  name: GET_CareRequests
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/care-requests
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{userToken}}
+}
+
+tests {
+  test("Status code is 200 for successful care requests retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains care requests data", function() {
+    expect(res.getBody().data).to.have.property('care_requests');
+    expect(res.getBody().data.care_requests).to.be.an('array');
+  });
+
+  test("Each care request has required fields", function() {
+    if (res.getBody().data.care_requests.length > 0) {
+      const request = res.getBody().data.care_requests[0];
+      expect(request).to.have.property('id');
+      expect(request).to.have.property('caregiver_firebase_uid');
+      expect(request).to.have.property('timing_to_visit');
+      expect(request).to.have.property('location');
+      expect(request).to.have.property('status');
+      expect(request).to.have.property('created_at');
+    }
+  });
+
+  test("Care request statuses are valid", function() {
+    const validStatuses = ['pending', 'accepted', 'completed', 'cancelled'];
+    res.getBody().data.care_requests.forEach(request => {
+      expect(validStatuses).to.include(request.status);
+    });
+  });
+}

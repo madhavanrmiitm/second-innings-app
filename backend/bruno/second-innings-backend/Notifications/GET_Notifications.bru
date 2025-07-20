@@ -1,0 +1,42 @@
+meta {
+  name: GET_Notifications
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/notifications
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful notifications retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains notifications data", function() {
+    expect(res.getBody().data).to.have.property('notifications');
+    expect(res.getBody().data.notifications).to.be.an('array');
+  });
+
+  test("Each notification has required fields", function() {
+    if (res.getBody().data.notifications.length > 0) {
+      const notification = res.getBody().data.notifications[0];
+      expect(notification).to.have.property('id');
+      expect(notification).to.have.property('message');
+      expect(notification).to.have.property('type');
+      expect(notification).to.have.property('priority');
+      expect(notification).to.have.property('is_read');
+      expect(notification).to.have.property('created_at');
+    }
+  });
+}

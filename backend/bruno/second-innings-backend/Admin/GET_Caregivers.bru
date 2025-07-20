@@ -1,0 +1,61 @@
+meta {
+  name: GET_Caregivers
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/admin/caregivers
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful caregiver retrieval or 403 for insufficient permissions", function() {
+    expect([200, 403]).to.include(res.getStatus());
+  });
+
+  test("Response has appropriate message", function() {
+    if (res.getStatus() === 200) {
+      expect(res.getBody().message).to.equal("Caregivers for review retrieved successfully.");
+    } else if (res.getStatus() === 403) {
+      expect(res.getBody().message).to.contain("Access denied");
+    }
+  });
+
+  test("Response contains caregivers data when successful", function() {
+    if (res.getStatus() === 200) {
+      expect(res.getBody().data).to.have.property('caregivers');
+      expect(res.getBody().data.caregivers).to.be.an('array');
+    } else {
+      expect(res.getBody().data).to.be.null;
+    }
+  });
+
+  test("Each caregiver has required fields when successful", function() {
+    if (res.getStatus() === 200 && res.getBody().data.caregivers.length > 0) {
+      const caregiver = res.getBody().data.caregivers[0];
+      expect(caregiver).to.have.property('id');
+      expect(caregiver).to.have.property('full_name');
+      expect(caregiver).to.have.property('gmail_id');
+      expect(caregiver).to.have.property('youtube_url');
+      expect(caregiver).to.have.property('description');
+      expect(caregiver).to.have.property('tags');
+      expect(caregiver).to.have.property('created_at');
+    }
+  });
+
+  test("Caregivers are pending approval when successful", function() {
+    if (res.getStatus() === 200 && res.getBody().data.caregivers.length > 0) {
+      res.getBody().data.caregivers.forEach(caregiver => {
+        expect(caregiver.youtube_url).to.not.be.null;
+        expect(caregiver.description).to.not.be.null;
+        expect(caregiver.tags).to.not.be.null;
+      });
+    }
+  });
+}

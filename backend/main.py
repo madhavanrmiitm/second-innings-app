@@ -4,7 +4,14 @@ from contextlib import asynccontextmanager
 
 from app.database.init_db import initialize_schema
 from app.logger import logger
+from app.routes import admin as admin_routes
 from app.routes import auth as auth_routes
+from app.routes import care as care_routes
+from app.routes import family as family_routes
+from app.routes import interest_groups as interest_groups_routes
+from app.routes import notifications as notifications_routes
+from app.routes import tasks as tasks_routes
+from app.routes import tickets as tickets_routes
 from app.routes import user as user_routes
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,6 +49,13 @@ app.add_middleware(
 
 app.include_router(auth_routes.router, prefix="/api")
 app.include_router(user_routes.router, prefix="/api")
+app.include_router(family_routes.router, prefix="/api")
+app.include_router(care_routes.router, prefix="/api")
+app.include_router(tasks_routes.router, prefix="/api")
+app.include_router(interest_groups_routes.router, prefix="/api")
+app.include_router(tickets_routes.router, prefix="/api")
+app.include_router(notifications_routes.router, prefix="/api")
+app.include_router(admin_routes.router, prefix="/api")
 
 
 @app.get("/")

@@ -1,0 +1,39 @@
+meta {
+  name: GET_InterestGroups
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/interest-groups
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful interest groups retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains interest groups data", function() {
+    expect(res.getBody().data).to.have.property('interest_groups');
+    expect(res.getBody().data.interest_groups).to.be.an('array');
+  });
+
+  test("Each interest group has required fields", function() {
+    if (res.getBody().data.interest_groups.length > 0) {
+      const group = res.getBody().data.interest_groups[0];
+      expect(group).to.have.property('id');
+      expect(group).to.have.property('title');
+      expect(group).to.have.property('created_at');
+    }
+  });
+}

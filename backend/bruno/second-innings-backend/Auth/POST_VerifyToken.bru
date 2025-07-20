@@ -5,14 +5,14 @@ meta {
 }
 
 post {
-  url: {{base_url}}/api/auth/verify-token
+  url: {{baseUrl}}{{apiPrefix}}/auth/verify-token
   body: json
   auth: none
 }
 
 body:json {
   {
-    "id_token": "YOUR_FIREBASE_ID_TOKEN_HERE"
+    "id_token": "{{userToken}}"
   }
 }
 
@@ -46,7 +46,6 @@ tests {
       expect(userInfo).to.have.property('gmail_id');
       expect(userInfo).to.have.property('firebase_uid');
       expect(userInfo).to.have.property('full_name');
-      // Should NOT have id, created_at, updated_at for unregistered users
       expect(userInfo).to.not.have.property('id');
     }
   });

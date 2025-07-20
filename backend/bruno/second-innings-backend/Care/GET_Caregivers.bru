@@ -1,0 +1,40 @@
+meta {
+  name: GET_Caregivers
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/caregivers
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{userToken}}
+}
+
+tests {
+  test("Status code is 200 for successful caregivers retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains caregivers data", function() {
+    expect(res.getBody().data).to.have.property('caregivers');
+    expect(res.getBody().data.caregivers).to.be.an('array');
+  });
+
+  test("Each caregiver has required fields", function() {
+    if (res.getBody().data.caregivers.length > 0) {
+      const caregiver = res.getBody().data.caregivers[0];
+      expect(caregiver).to.have.property('id');
+      expect(caregiver).to.have.property('full_name');
+      expect(caregiver).to.have.property('description');
+      expect(caregiver).to.have.property('tags');
+    }
+  });
+}

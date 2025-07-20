@@ -1,0 +1,62 @@
+meta {
+  name: GET_Tickets
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/admin/tickets
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful ticket retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.equal("All support tickets retrieved successfully.");
+  });
+
+  test("Response contains tickets data", function() {
+    expect(res.getBody().data).to.have.property('tickets');
+    expect(res.getBody().data.tickets).to.be.an('array');
+  });
+
+  test("Each ticket has required fields", function() {
+    if (res.getBody().data.tickets.length > 0) {
+      const ticket = res.getBody().data.tickets[0];
+      expect(ticket).to.have.property('id');
+      expect(ticket).to.have.property('user_id');
+      expect(ticket).to.have.property('assigned_to');
+      expect(ticket).to.have.property('subject');
+      expect(ticket).to.have.property('description');
+      expect(ticket).to.have.property('status');
+      expect(ticket).to.have.property('created_at');
+      expect(ticket).to.have.property('resolved_at');
+    }
+  });
+
+  test("Ticket statuses are valid", function() {
+    const validStatuses = ['open', 'in_progress', 'resolved', 'closed'];
+    res.getBody().data.tickets.forEach(ticket => {
+      expect(validStatuses).to.include(ticket.status);
+    });
+  });
+
+  test("Tickets are sorted by creation date (newest first)", function() {
+    if (res.getBody().data.tickets.length > 1) {
+      const tickets = res.getBody().data.tickets;
+      for (let i = 0; i < tickets.length - 1; i++) {
+        const currentDate = new Date(tickets[i].created_at);
+        const nextDate = new Date(tickets[i + 1].created_at);
+        expect(currentDate.getTime()).to.be.at.least(nextDate.getTime());
+      }
+    }
+  });
+}

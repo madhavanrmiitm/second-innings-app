@@ -1,0 +1,36 @@
+meta {
+  name: POST_ApplyForRequest
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/caregivers/requests/1/apply
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "id_token": "{{adminToken}}"
+  }
+}
+
+tests {
+  test("Status code is 200, 400, or 404", function() {
+    const status = res.getStatus();
+    expect([200, 400, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+  });
+}

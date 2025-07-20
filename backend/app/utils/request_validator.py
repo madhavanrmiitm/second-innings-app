@@ -16,8 +16,10 @@ def validate_body(model: Type[BaseModel]):
                 validated_data = model(**body_data)
                 # Pass validated data to the decorated function
                 logger.info(f"Validated data: {validated_data}")
-                # Call the original function with request and validated_data, ignoring other args
-                return await func(request, validated_data)
+                # Call the original function with request, path parameters, and validated_data
+                # Add validated_data to kwargs to pass it as a keyword argument
+                kwargs["validated_data"] = validated_data
+                return await func(request, *args, **kwargs)
             except ValidationError as e:
                 return format_response(
                     status_code=422, message="Validation Error", data=e.errors()

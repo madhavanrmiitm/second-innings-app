@@ -1,0 +1,56 @@
+meta {
+  name: GET_Users
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/admin/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Status code is 200 for successful user retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.equal("System users retrieved successfully.");
+  });
+
+  test("Response contains users data", function() {
+    expect(res.getBody().data).to.have.property('users');
+    expect(res.getBody().data.users).to.be.an('array');
+  });
+
+  test("Each user has required fields", function() {
+    if (res.getBody().data.users.length > 0) {
+      const user = res.getBody().data.users[0];
+      expect(user).to.have.property('id');
+      expect(user).to.have.property('gmail_id');
+      expect(user).to.have.property('full_name');
+      expect(user).to.have.property('role');
+      expect(user).to.have.property('status');
+      expect(user).to.have.property('created_at');
+    }
+  });
+
+  test("User roles are valid", function() {
+    const validRoles = ['admin', 'caregiver', 'family_member', 'senior_citizen', 'interest_group_admin', 'support_user'];
+    res.getBody().data.users.forEach(user => {
+      expect(validRoles).to.include(user.role);
+    });
+  });
+
+  test("User statuses are valid", function() {
+    const validStatuses = ['pending_approval', 'active', 'blocked'];
+    res.getBody().data.users.forEach(user => {
+      expect(validStatuses).to.include(user.status);
+    });
+  });
+}
