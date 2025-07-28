@@ -6,10 +6,15 @@ A FastAPI-based backend with Firebase authentication, PostgreSQL database, and m
 
 ### Recommended Setup (Python + Docker for DB)
 
-1. **Start PostgreSQL:**
-   ```bash
-   docker-compose up db -d
-   ```
+### 🚀 Start PostgreSQL
+
+Run **one** of the following:
+
+```bash
+docker-compose up db -d   # or
+docker compose up db -d
+
+
 
 2. **Setup Python environment:**
    ```bash
