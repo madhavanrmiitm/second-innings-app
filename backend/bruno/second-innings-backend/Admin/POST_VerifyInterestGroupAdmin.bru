@@ -1,11 +1,11 @@
 meta {
-  name: POST_VerifyCaregiver
+  name: POST_VerifyInterestGroupAdmin
   type: http
-  seq: 4
+  seq: 6
 }
 
 post {
-  url: {{baseUrl}}{{apiPrefix}}/admin/caregivers/1/verify
+  url: {{baseUrl}}{{apiPrefix}}/admin/interest-group-admins/1/verify
   body: json
   auth: bearer
 }
@@ -30,9 +30,9 @@ tests {
   test("Response has appropriate message", function() {
     const status = res.getStatus();
     if (status === 200) {
-      expect(res.getBody().message).to.contain("Caregiver status updated to");
+      expect(res.getBody().message).to.contain("Interest group admin status updated to");
     } else if (status === 404) {
-      expect(res.getBody().message).to.equal("Caregiver not found or not in pending approval status.");
+      expect(res.getBody().message).to.equal("Interest group admin not found or not in pending approval status.");
     }
   });
 

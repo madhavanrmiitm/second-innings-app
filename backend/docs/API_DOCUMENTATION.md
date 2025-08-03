@@ -297,6 +297,80 @@ Get caregivers pending approval (admin only).
 
 Approve or reject a caregiver (admin only).
 
+### GET /api/admin/interest-group-admins
+**✅ Tested**: `Admin/GET_InterestGroupAdmins.bru` | **Token**: `{{adminToken}}`
+
+Get interest group admins pending approval (admin only).
+
+**Headers:**
+```
+Authorization: Bearer {{adminToken}}
+```
+
+**Success Response (200):**
+```json
+{
+  "status_code": 200,
+  "message": "Interest group admins for review retrieved successfully.",
+  "data": {
+    "interest_group_admins": [
+      {
+        "id": 12,
+        "full_name": "Test Group Admin Two",
+        "gmail_id": "groupadmin2@test.com",
+        "youtube_url": "https://www.youtube.com/watch?v=testgroup2",
+        "description": "Art therapist creating engaging programs for elderly",
+        "tags": "group-admin,art-therapy,programs",
+        "created_at": "2025-08-03T17:58:21.592097"
+      }
+    ]
+  }
+}
+```
+
+**Response (403) - Insufficient Privileges:**
+```json
+{
+  "message": "Access denied. Only admins can view interest group admins for review.",
+  "data": null
+}
+```
+
+### POST /api/admin/interest-group-admins/{interestGroupAdminId}/verify
+**✅ Tested**: `Admin/POST_VerifyInterestGroupAdmin.bru` | **Token**: `{{adminToken}}`
+
+Approve or reject an interest group admin (admin only).
+
+**Headers:**
+```
+Authorization: Bearer {{adminToken}}
+```
+
+**Request Body:**
+```json
+{
+  "id_token": "{{adminToken}}",
+  "status": "active"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "status_code": 200,
+  "message": "Interest group admin status updated to active successfully.",
+  "data": null
+}
+```
+
+**Response (404) - Not Found:**
+```json
+{
+  "message": "Interest group admin not found or not in pending approval status.",
+  "data": null
+}
+```
+
 ### GET /api/admin/tickets
 **✅ Tested**: `Admin/GET_Tickets.bru` | **Token**: `{{adminToken}}`
 

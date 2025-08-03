@@ -11,12 +11,12 @@ put {
 }
 
 auth:bearer {
-  token: {{adminToken}}
+  token: {{seniorToken}}
 }
 
 body:json {
   {
-    "id_token": "{{adminToken}}",
+    "id_token": "{{seniorToken}}",
     "status": "accepted",
     "timing_to_visit": "2024-12-31T14:00:00",
     "location": "Updated Location, City"

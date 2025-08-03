@@ -11,16 +11,16 @@ post {
 }
 
 auth:bearer {
-  token: {{adminToken}}
+  token: {{userToken}}
 }
 
 body:json {
   {
-    "id_token": "{{adminToken}}",
+    "id_token": "{{userToken}}",
     "title": "Test Task",
     "description": "This is a test task description",
     "time_of_completion": "2024-12-31T15:00:00",
-    "assigned_to_firebase_uid": "test_user_uid"
+    "assigned_to_firebase_uid": "test_senior_uid_002"
   }
 }
 
@@ -40,7 +40,7 @@ tests {
   test("Response structure is correct", function() {
     expect(res.getBody()).to.have.property('message');
     if (res.getStatus() === 201) {
-      expect(res.getBody().data).to.have.property('task');
+      expect(res.getBody().data).to.have.property('task_id');
     }
   });
 }

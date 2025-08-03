@@ -11,12 +11,12 @@ post {
 }
 
 auth:bearer {
-  token: {{adminToken}}
+  token: {{caregiverToken}}
 }
 
 body:json {
   {
-    "id_token": "{{adminToken}}"
+    "id_token": "{{caregiverToken}}"
   }
 }
 
@@ -27,7 +27,12 @@ tests {
   });
 
   test("Response has appropriate message", function() {
-    expect(res.getBody().message).to.contain("successfully");
+    const status = res.getStatus();
+    if (status === 200) {
+      expect(res.getBody().message).to.contain("successfully");
+    } else if (status === 400) {
+      expect(res.getBody().message).to.contain("not pending");
+    }
   });
 
   test("Response structure is correct", function() {

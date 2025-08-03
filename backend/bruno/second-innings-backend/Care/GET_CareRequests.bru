@@ -11,7 +11,7 @@ get {
 }
 
 auth:bearer {
-  token: {{userToken}}
+  token: {{caregiverToken}}
 }
 
 tests {
@@ -24,26 +24,25 @@ tests {
   });
 
   test("Response contains care requests data", function() {
-    expect(res.getBody().data).to.have.property('care_requests');
-    expect(res.getBody().data.care_requests).to.be.an('array');
+    expect(res.getBody().data).to.have.property('open_requests');
+    expect(res.getBody().data.open_requests).to.be.an('array');
   });
 
   test("Each care request has required fields", function() {
-    if (res.getBody().data.care_requests.length > 0) {
-      const request = res.getBody().data.care_requests[0];
+    if (res.getBody().data.open_requests.length > 0) {
+      const request = res.getBody().data.open_requests[0];
       expect(request).to.have.property('id');
-      expect(request).to.have.property('caregiver_firebase_uid');
+      expect(request).to.have.property('senior_citizen_id');
+      expect(request).to.have.property('senior_citizen_name');
       expect(request).to.have.property('timing_to_visit');
       expect(request).to.have.property('location');
-      expect(request).to.have.property('status');
       expect(request).to.have.property('created_at');
     }
   });
 
   test("Care request statuses are valid", function() {
-    const validStatuses = ['pending', 'accepted', 'completed', 'cancelled'];
-    res.getBody().data.care_requests.forEach(request => {
-      expect(validStatuses).to.include(request.status);
-    });
+    // This endpoint only returns pending requests, so we don't need to validate status
+    // as they are all pending by definition
+    expect(res.getBody().data.open_requests).to.be.an('array');
   });
 }

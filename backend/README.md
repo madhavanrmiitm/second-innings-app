@@ -218,6 +218,7 @@ docker-compose logs -f backend
 ### Admin Management
 - **User Management**: `GET /api/admin/users`, `DELETE /api/admin/users/{userId}`
 - **Caregiver Approval**: `GET /api/admin/caregivers`, `POST /api/admin/caregivers/{caregiverId}/verify`
+- **Interest Group Admin Approval**: `GET /api/admin/interest-group-admins`, `POST /api/admin/interest-group-admins/{interestGroupAdminId}/verify`
 - **Ticket Management**: `GET /api/admin/tickets`, `POST /api/admin/tickets/{ticketId}/resolve`
 - **Statistics**: `GET /api/admin/tickets/stats`
 

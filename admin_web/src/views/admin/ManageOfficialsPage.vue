@@ -3,10 +3,8 @@
     <div class="container-fluid">
       <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3">Manage Officials</h1>
-        <button @click="showAddModal = true" class="btn btn-success">
-          <i class="bi bi-plus-circle me-2"></i>Add Official
-        </button>
+        <h1 class="h3">Manage Users</h1>
+        <!-- Note: User creation is handled through registration flow -->
       </div>
 
       <!-- Filters -->
@@ -25,16 +23,20 @@
             <div class="col-12 col-md-3">
               <select v-model="filters.status" class="form-select" @change="updateFilters">
                 <option value="">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
+                <option value="active">Active</option>
+                <option value="pending_approval">Pending Approval</option>
+                <option value="blocked">Blocked</option>
               </select>
             </div>
             <div class="col-12 col-md-3">
-              <select v-model="filters.department" class="form-select" @change="updateFilters">
-                <option value="">All Departments</option>
-                <option value="Support">Support</option>
-                <option value="Admin">Admin</option>
-                <option value="IGA">IGA</option>
+              <select v-model="filters.role" class="form-select" @change="updateFilters">
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="support_user">Support User</option>
+                <option value="interest_group_admin">IGA</option>
+                <option value="caregiver">Caregiver</option>
+                <option value="family_member">Family Member</option>
+                <option value="senior_citizen">Senior Citizen</option>
               </select>
             </div>
             <div class="col-12 col-md-3">
@@ -46,42 +48,52 @@
         </div>
       </div>
 
-      <!---- Officials Table ---->
+      <!---- Users Table ---->
 
       <div class="card">
         <div class="card-body p-0">
           <DataTable
             :columns="columns"
-            :data="filteredOfficials"
-            :loading="officialsStore.loading"
-            empty-message="No officials found"
+            :data="filteredUsers"
+            :loading="adminStore.loading.users"
+            empty-message="No users found"
           >
-            <template #cell-official="{ item }">
+            <template #cell-user="{ item }">
               <div class="d-flex align-items-center">
                 <img
-                  :src="`https://ui-avatars.com/api/?name=${item.name}`"
-                  :alt="item.name"
+                  :src="`https://ui-avatars.com/api/?name=${item.full_name || 'User'}`"
+                  :alt="item.full_name"
                   class="avatar me-3"
                 />
                 <div>
-                  <div class="fw-medium">{{ item.name }}</div>
-                  <small class="text-muted">{{ item.email }}</small>
+                  <div class="fw-medium">{{ item.full_name }}</div>
+                  <small class="text-muted">{{ item.gmail_id }}</small>
                 </div>
               </div>
             </template>
 
+            <template #cell-role="{ item }">
+              <span class="badge bg-primary">{{ formatRole(item.role) }}</span>
+            </template>
+
             <template #cell-status="{ item }">
-              <span :class="`badge bg-${item.status === 'Active' ? 'success' : 'secondary'}`">
-                {{ item.status }}
+              <span :class="`badge bg-${getStatusColor(item.status)}`">
+                {{ formatStatus(item.status) }}
               </span>
+            </template>
+
+            <template #cell-created_at="{ item }">
+              <span>{{ formatDate(item.created_at) }}</span>
             </template>
 
             <template #cell-actions="{ item }">
               <div class="btn-group btn-group-sm" role="group">
-                <button @click="editOfficial(item)" class="btn btn-outline-primary" title="Edit">
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button @click="confirmDelete(item)" class="btn btn-outline-danger" title="Delete">
+                <button
+                  @click="confirmDelete(item)"
+                  class="btn btn-outline-danger"
+                  title="Delete"
+                  :disabled="adminStore.loading.deleteUser || item.role === 'admin'"
+                >
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -91,69 +103,7 @@
       </div>
     </div>
 
-    <!-- Add/Edit Modal -->
-    <div
-      class="modal fade"
-      id="officialModal"
-      tabindex="-1"
-      :class="{ show: showAddModal || showEditModal }"
-      :style="{ display: showAddModal || showEditModal ? 'block' : 'none' }"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              {{ showEditModal ? 'Edit Official' : 'Add New Official' }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
-          </div>
-          <form @submit.prevent="saveOfficial">
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input v-model="formData.name" type="text" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input v-model="formData.email" type="email" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Department</label>
-                <select v-model="formData.department" class="form-select" required>
-                  <option value="">Select Department</option>
-                  <option value="Support">Support</option>
-                  <option value="Admin">Admin</option>
-                  <option value="IGA">IGA</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Role</label>
-                <input v-model="formData.role" type="text" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Status</label>
-                <select v-model="formData.status" class="form-select" required>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
-              <button type="submit" class="btn btn-success" :disabled="saving">
-                <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
-                {{ showEditModal ? 'Update' : 'Add' }} Official
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-    <div
-      v-if="showAddModal || showEditModal"
-      class="modal-backdrop fade show"
-      @click="closeModal"
-    ></div>
+
   </AppLayout>
 </template>
 
@@ -161,113 +111,111 @@
 import { ref, computed, onMounted } from 'vue'
 import AppLayout from '@/components/common/AppLayout.vue'
 import DataTable from '@/components/ui/DataTable.vue'
-import { useOfficialsStore } from '@/stores/officials'
+import { useAdminStore } from '@/stores/admin'
 import { useToast } from 'vue-toast-notification'
 
-const officialsStore = useOfficialsStore()
+const adminStore = useAdminStore()
 const toast = useToast()
-
-const showAddModal = ref(false)
-const showEditModal = ref(false)
-const saving = ref(false)
-const editingId = ref(null)
 
 const filters = ref({
   search: '',
   status: '',
-  department: '',
-})
-
-const formData = ref({
-  name: '',
-  email: '',
-  department: '',
   role: '',
-  status: 'Active',
 })
 
 const columns = [
-  { key: 'official', label: 'Official' },
-  { key: 'department', label: 'Department' },
+  { key: 'user', label: 'User' },
+  { key: 'role', label: 'Role' },
   { key: 'status', label: 'Status' },
-  { key: 'joinedDate', label: 'Joined Date' },
+  { key: 'created_at', label: 'Created Date' },
   { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
-const filteredOfficials = computed(() => officialsStore.filteredOfficials)
+const filteredUsers = computed(() => adminStore.filteredUsers)
 
 const updateFilters = () => {
-  officialsStore.updateFilters(filters.value)
+  adminStore.updateFilters(filters.value)
 }
 
 const resetFilters = () => {
   filters.value = {
     search: '',
     status: '',
-    department: '',
+    role: '',
   }
   updateFilters()
 }
 
-const editOfficial = (official) => {
-  editingId.value = official.id
-  formData.value = { ...official }
-  showEditModal.value = true
+const getStatusColor = (status) => {
+  const colors = {
+    active: 'success',
+    pending_approval: 'warning',
+    blocked: 'danger',
+  }
+  return colors[status] || 'secondary'
 }
 
-const closeModal = () => {
-  showAddModal.value = false
-  showEditModal.value = false
-  editingId.value = null
-  formData.value = {
-    name: '',
-    email: '',
-    department: '',
-    role: '',
-    status: 'Active',
+const formatStatus = (status) => {
+  const statusMap = {
+    active: 'Active',
+    pending_approval: 'Pending Approval',
+    blocked: 'Blocked',
+  }
+  return statusMap[status] || status
+}
+
+const formatRole = (role) => {
+  const roleMap = {
+    admin: 'Admin',
+    support_user: 'Support User',
+    interest_group_admin: 'IGA',
+    caregiver: 'Caregiver',
+    family_member: 'Family Member',
+    senior_citizen: 'Senior Citizen',
+  }
+  return roleMap[role] || role
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString()
+}
+
+const confirmDelete = (user) => {
+  if (user.role === 'admin') {
+    toast.error('Cannot delete admin users')
+    return
+  }
+
+  const userId = user.id || user.user_id || user._id
+
+  if (confirm(`Are you sure you want to delete ${user.full_name}?`)) {
+    deleteUser(userId)
   }
 }
 
-const saveOfficial = async () => {
-  saving.value = true
-
-  try {
-    let result
-    if (showEditModal.value) {
-      result = await officialsStore.updateOfficial(editingId.value, formData.value)
-    } else {
-      result = await officialsStore.addOfficial(formData.value)
-    }
-
-    if (result.success) {
-      toast.success(`Official ${showEditModal.value ? 'updated' : 'added'} successfully!`)
-      closeModal()
-    } else {
-      toast.error(result.error || 'Operation failed')
-    }
-  } catch (error) {
-    toast.error('An error occurred')
-  } finally {
-    saving.value = false
+const deleteUser = async (id) => {
+  if (!id) {
+    toast.error('Invalid user ID')
+    return
   }
-}
 
-const confirmDelete = (official) => {
-  if (confirm(`Are you sure you want to delete ${official.name}?`)) {
-    deleteOfficial(official.id)
-  }
-}
+  const result = await adminStore.deleteUser(id)
 
-const deleteOfficial = async (id) => {
-  const result = await officialsStore.deleteOfficial(id)
   if (result.success) {
-    toast.success('Official deleted successfully!')
+    toast.success('User deleted successfully!')
   } else {
     toast.error(result.error || 'Delete failed')
   }
 }
 
 onMounted(() => {
-  officialsStore.fetchOfficials()
+  // Check if user is authenticated for admin operations
+  if (!adminStore.isAuthenticatedForAdmin()) {
+    console.warn('User not authenticated for admin operations')
+    return
+  }
+
+  adminStore.fetchUsers()
 })
 </script>

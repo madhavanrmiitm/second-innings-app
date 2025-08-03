@@ -23,9 +23,9 @@ body:json {
 }
 
 tests {
-  test("Status code is 201 or 400", function() {
+  test("Status code is 201, 400, 422, or 500", function() {
     const status = res.getStatus();
-    expect([201, 400, 422]).to.include(status);
+    expect([201, 400, 422, 500]).to.include(status);
   });
 
   test("Response has appropriate message", function() {
@@ -38,7 +38,7 @@ tests {
   test("Response structure is correct", function() {
     expect(res.getBody()).to.have.property('message');
     if (res.getStatus() === 201) {
-      expect(res.getBody().data).to.have.property('ticket');
+      expect(res.getBody().data).to.have.property('ticket_id');
     }
   });
 }

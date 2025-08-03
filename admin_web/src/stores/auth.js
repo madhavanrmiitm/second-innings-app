@@ -111,6 +111,9 @@ export const useAuthStore = defineStore('auth', {
 
         this.firebaseUser = testResult.user
 
+        // Store test token for API calls
+        localStorage.setItem('testToken', testToken)
+
         // Step 2: Verify token with backend (using test token)
         const authFlowResult = await UserService.handleAuthFlow(testResult.idToken)
 
@@ -179,6 +182,12 @@ export const useAuthStore = defineStore('auth', {
       this.isAuthenticated = false
       this.error = null
       await UserService.clearUserData()
+
+      // Clear test token if in test mode
+      if (TestAuthService.isTestModeEnabled()) {
+        localStorage.removeItem('testToken')
+        sessionStorage.removeItem('testToken')
+      }
     },
 
     async initializeAuth() {

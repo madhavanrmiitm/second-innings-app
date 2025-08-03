@@ -39,6 +39,6 @@ tests {
 
   test("Response structure is correct", function() {
     expect(res.getBody()).to.have.property('message');
-    expect(res.getBody()).to.have.property('status_code');
+    expect(res.getBody()).to.have.property('data');
   });
 }

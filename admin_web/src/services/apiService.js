@@ -71,12 +71,19 @@ export class ApiService {
   }
 
   // DELETE Request
-  static async delete(endpoint, { headers = {} } = {}) {
+  static async delete(endpoint, { headers = {}, body = null } = {}) {
     try {
-      const response = await axios.delete(`${this.baseUrl}${endpoint}`, {
+      const config = {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
-      })
+      }
+
+      // Add data if body is provided
+      if (body) {
+        config.data = body
+      }
+
+      const response = await axios.delete(`${this.baseUrl}${endpoint}`, config)
 
       return this._handleResponse(response)
     } catch (error) {

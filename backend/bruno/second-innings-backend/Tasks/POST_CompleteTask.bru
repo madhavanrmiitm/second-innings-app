@@ -21,9 +21,9 @@ body:json {
 }
 
 tests {
-  test("Status code is 200, 400, or 404", function() {
+  test("Status code is 200, 400, 403, or 404", function() {
     const status = res.getStatus();
-    expect([200, 400, 404]).to.include(status);
+    expect([200, 400, 403, 404]).to.include(status);
   });
 
   test("Response has appropriate message", function() {

@@ -3,16 +3,16 @@
     <div class="container-fluid">
       <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3">Approve Caregivers</h1>
+        <h1 class="h3">Approve Interest Group Admins</h1>
       </div>
 
-      <!-- Caregivers Table -->
+      <!-- Interest Group Admins Table -->
       <div class="card">
         <div class="card-body p-0">
           <DataTable
             :columns="columns"
-            :data="pendingCaregivers"
-            :loading="adminStore.loading.caregivers"
+            :data="pendingInterestGroupAdmins"
+            :loading="adminStore.loading.interestGroupAdmins"
             empty-message="No pending approvals"
           >
             <template #cell-name="{ item }">
@@ -42,7 +42,7 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Caregiver Details</h5>
+            <h5 class="modal-title">Interest Group Admin Details</h5>
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body">
@@ -60,16 +60,16 @@
             <button
               class="btn btn-danger"
               @click="reject()"
-              :disabled="adminStore.loading.verifyCaregiver"
+              :disabled="adminStore.loading.verifyInterestGroupAdmin"
             >
               Reject
             </button>
             <button
               class="btn btn-success"
               @click="approve()"
-              :disabled="adminStore.loading.verifyCaregiver"
+              :disabled="adminStore.loading.verifyInterestGroupAdmin"
             >
-              <span v-if="adminStore.loading.verifyCaregiver" class="spinner-border spinner-border-sm me-2"></span>
+              <span v-if="adminStore.loading.verifyInterestGroupAdmin" class="spinner-border spinner-border-sm me-2"></span>
               Approve
             </button>
           </div>
@@ -99,7 +99,7 @@ const columns = [
   { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
-const pendingCaregivers = computed(() => adminStore.pendingCaregivers)
+const pendingInterestGroupAdmins = computed(() => adminStore.pendingInterestGroupAdmins)
 
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A'
@@ -117,26 +117,26 @@ const closeModal = () => {
 }
 
 const approve = async () => {
-  const result = await adminStore.verifyCaregiver(selected.value.id, 'active')
+  const result = await adminStore.verifyInterestGroupAdmin(selected.value.id, 'active')
   if (result.success) {
     toast.success(`${selected.value.full_name} approved successfully`)
     closeModal()
-    // Refresh the caregivers list
-    adminStore.fetchCaregivers()
+    // Refresh the interest group admins list
+    adminStore.fetchInterestGroupAdmins()
   } else {
-    toast.error(result.error || 'Failed to approve caregiver')
+    toast.error(result.error || 'Failed to approve interest group admin')
   }
 }
 
 const reject = async () => {
-  const result = await adminStore.verifyCaregiver(selected.value.id, 'blocked')
+  const result = await adminStore.verifyInterestGroupAdmin(selected.value.id, 'blocked')
   if (result.success) {
     toast.success(`${selected.value.full_name} rejected`)
     closeModal()
-    // Refresh the caregivers list
-    adminStore.fetchCaregivers()
+    // Refresh the interest group admins list
+    adminStore.fetchInterestGroupAdmins()
   } else {
-    toast.error(result.error || 'Failed to reject caregiver')
+    toast.error(result.error || 'Failed to reject interest group admin')
   }
 }
 
@@ -149,10 +149,10 @@ onMounted(async () => {
   }
 
   try {
-    await adminStore.fetchCaregivers()
+    await adminStore.fetchInterestGroupAdmins()
   } catch (error) {
-    console.error('Failed to fetch caregivers:', error)
-    toast.error('Failed to load caregivers')
+    console.error('Failed to fetch interest group admins:', error)
+    toast.error('Failed to load interest group admins')
   }
 })
 </script>

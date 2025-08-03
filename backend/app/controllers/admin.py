@@ -357,3 +357,116 @@ async def get_ticket_stats(request):
     except Exception as e:
         logger.error(f"Error retrieving ticket statistics: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
+
+async def get_interest_group_admins_for_review(request):
+    logger.info("Executing get_interest_group_admins_for_review controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered or user.role != UserRole.ADMIN:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only admins can view interest group admins for review.",
+            )
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """SELECT id, full_name, gmail_id, youtube_url, description, tags, created_at
+                       FROM users
+                       WHERE role = %s AND status = %s""",
+                    (
+                        UserRole.INTEREST_GROUP_ADMIN.value,
+                        UserStatus.PENDING_APPROVAL.value,
+                    ),
+                )
+                interest_group_admins_data = cur.fetchall()
+
+                interest_group_admins = [
+                    {
+                        "id": iga[0],
+                        "full_name": iga[1],
+                        "gmail_id": iga[2],
+                        "youtube_url": iga[3],
+                        "description": iga[4],
+                        "tags": iga[5],
+                        "created_at": iga[6],
+                    }
+                    for iga in interest_group_admins_data
+                ]
+
+        return format_response(
+            status_code=200,
+            message="Interest group admins for review retrieved successfully.",
+            data={"interest_group_admins": interest_group_admins},
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving interest group admins for review: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+
+
+async def review_interest_group_admin(request, interestGroupAdminId, validated_data):
+    logger.info(
+        f"Executing review_interest_group_admin controller logic for interest group admin ID: {interestGroupAdminId}."
+    )
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered or user.role != UserRole.ADMIN:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only admins can review interest group admins.",
+            )
+
+        new_status = validated_data.status
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """UPDATE users SET status = %s, updated_at = CURRENT_TIMESTAMP
+                       WHERE id = %s AND role = %s AND status = %s""",
+                    (
+                        new_status.value,
+                        interestGroupAdminId,
+                        UserRole.INTEREST_GROUP_ADMIN.value,
+                        UserStatus.PENDING_APPROVAL.value,
+                    ),
+                )
+                if cur.rowcount == 0:
+                    return format_response(
+                        status_code=404,
+                        message="Interest group admin not found or not in pending approval status.",
+                    )
+
+        return format_response(
+            status_code=200,
+            message=f"Interest group admin status updated to {new_status.value} successfully.",
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error reviewing interest group admin: {e}")
+        return format_response(status_code=500, message="Internal server error.")

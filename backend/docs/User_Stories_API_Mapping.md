@@ -14,7 +14,17 @@ This document maps the user stories to the implemented APIs and external integra
 - `POST /admin/caregivers/{id}/verify` - Verify and activate caregiver accounts after document verification
 - `GET /admin/caregivers` - List all caregivers for admin review
 
-### 2. CRUD Operations on Support User Accounts
+### 2. Approve Interest Group Admin Profiles
+**User Story:** As an admin, I want to approve interest group admin profiles only after verifying their background and community involvement, so that the platform ensures quality community leadership and engaging activities for senior citizens.
+
+**External APIs Integrated:**
+- Firebase Authentication (ID token verification)
+
+**APIs Created:**
+- `POST /admin/interest-group-admins/{id}/verify` - Verify and activate interest group admin accounts after background verification
+- `GET /admin/interest-group-admins` - List all interest group admins for admin review
+
+### 3. CRUD Operations on Support User Accounts
 **User Story:** As an admin, I want to perform create, read, update and delete (CRUD) operations on support user accounts, so that I can efficiently manage the support team and ensure timely assistance for all users.
 
 **External APIs Integrated:**
@@ -24,7 +34,7 @@ This document maps the user stories to the implemented APIs and external integra
 - `GET /admin/users` - Read all user accounts for management
 - `DELETE /admin/users/{id}` - Delete user accounts when needed
 
-### 3. View and Respond to Support Tickets
+### 4. View and Respond to Support Tickets
 **User Story:** As a support user, I want to view and respond to all raised tickets, so that I can provide timely resolutions and maintain user satisfaction across the platform.
 
 **External APIs Integrated:**

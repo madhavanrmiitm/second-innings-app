@@ -3,10 +3,10 @@
     <div class="container-fluid">
       <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3">Manage Caregivers</h1>
+        <h1 class="h3">Manage Interest Group Admins</h1>
         <div>
           <button @click="goToApprovals" class="btn btn-primary">
-            <i class="bi bi-person-check me-2"></i>Approve Caregivers
+            <i class="bi bi-person-check me-2"></i>Approve Interest Group Admins
           </button>
         </div>
       </div>
@@ -35,9 +35,11 @@
             <div class="col-12 col-md-3">
               <select v-model="filters.specialization" class="form-select" @change="updateFilters">
                 <option value="">All Specializations</option>
-                <option value="Medical Assistance">Medical Assistance</option>
-                <option value="Mobility Support">Mobility Support</option>
-                <option value="Daily Living">Daily Living</option>
+                <option value="Technology">Technology</option>
+                <option value="Health">Health</option>
+                <option value="Education">Education</option>
+                <option value="Sports">Sports</option>
+                <option value="Arts">Arts</option>
               </select>
             </div>
             <div class="col-12 col-md-3">
@@ -49,16 +51,16 @@
         </div>
       </div>
 
-      <!-- Caregivers Table -->
+      <!-- Interest Group Admins Table -->
       <div class="card">
         <div class="card-body p-0">
           <DataTable
             :columns="columns"
-            :data="filteredCaregivers"
-            :loading="adminStore.loading.caregivers"
-            empty-message="No caregivers found"
+            :data="filteredInterestGroupAdmins"
+            :loading="adminStore.loading.interestGroupAdmins"
+            empty-message="No interest group admins found"
           >
-            <template #cell-caregiver="{ item }">
+            <template #cell-admin="{ item }">
               <div class="d-flex align-items-center">
                 <img
                   :src="`https://ui-avatars.com/api/?name=${item.full_name || 'User'}`"
@@ -94,7 +96,7 @@
                 </button>
                 <button
                   v-if="item.status === 'pending_approval'"
-                  @click="approveCaregiver(item)"
+                  @click="approveInterestGroupAdmin(item)"
                   class="btn btn-outline-success"
                   title="Approve"
                 >
@@ -102,7 +104,7 @@
                 </button>
                 <button
                   v-if="item.status === 'pending_approval'"
-                  @click="rejectCaregiver(item)"
+                  @click="rejectInterestGroupAdmin(item)"
                   class="btn btn-outline-warning"
                   title="Reject"
                 >
@@ -118,8 +120,6 @@
       </div>
     </div>
 
-
-
     <!-- Details Modal -->
     <div
       class="modal fade"
@@ -130,7 +130,7 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Caregiver Details</h5>
+            <h5 class="modal-title">Interest Group Admin Details</h5>
             <button type="button" class="btn-close" @click="closeDetailsModal"></button>
           </div>
           <div class="modal-body">
@@ -178,22 +178,22 @@ const selected = ref({})
 const filters = ref({ search: '', status: '', specialization: '' })
 
 const columns = [
-  { key: 'caregiver', label: 'Caregiver' },
+  { key: 'admin', label: 'Interest Group Admin' },
   { key: 'specialization', label: 'Specialization' },
   { key: 'status', label: 'Status' },
   { key: 'created_at', label: 'Joined Date' },
   { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
-const filteredCaregivers = computed(() => {
-  const caregivers = adminStore.caregivers || []
-  return caregivers.filter((c) => {
-    const matchesSearch = [c.full_name, c.gmail_id].some((field) =>
+const filteredInterestGroupAdmins = computed(() => {
+  const interestGroupAdmins = adminStore.interestGroupAdmins || []
+  return interestGroupAdmins.filter((iga) => {
+    const matchesSearch = [iga.full_name, iga.gmail_id].some((field) =>
       field?.toLowerCase().includes(filters.value.search.toLowerCase()),
     )
-    const matchesStatus = filters.value.status ? c.status === filters.value.status : true
+    const matchesStatus = filters.value.status ? iga.status === filters.value.status : true
     const matchesSpec = filters.value.specialization
-      ? c.tags?.includes(filters.value.specialization)
+      ? iga.tags?.includes(filters.value.specialization)
       : true
     return matchesSearch && matchesStatus && matchesSpec
   })
@@ -212,38 +212,38 @@ const viewDetails = (item) => {
   showDetailsModal.value = true
 }
 
-const approveCaregiver = async (item) => {
+const approveInterestGroupAdmin = async (item) => {
   if (confirm(`Approve ${item.full_name}?`)) {
     try {
-      const result = await adminStore.verifyCaregiver(item.id, 'active')
+      const result = await adminStore.verifyInterestGroupAdmin(item.id, 'active')
       if (result.success) {
         toast.success(`${item.full_name} approved successfully`)
-        // Refresh the caregivers list
-        await adminStore.fetchCaregivers()
+        // Refresh the interest group admins list
+        await adminStore.fetchInterestGroupAdmins()
       } else {
-        toast.error(result.error || 'Failed to approve caregiver')
+        toast.error(result.error || 'Failed to approve interest group admin')
       }
     } catch (error) {
-      console.error('Failed to approve caregiver:', error)
-      toast.error('Failed to approve caregiver')
+      console.error('Failed to approve interest group admin:', error)
+      toast.error('Failed to approve interest group admin')
     }
   }
 }
 
-const rejectCaregiver = async (item) => {
+const rejectInterestGroupAdmin = async (item) => {
   if (confirm(`Reject ${item.full_name}?`)) {
     try {
-      const result = await adminStore.verifyCaregiver(item.id, 'blocked')
+      const result = await adminStore.verifyInterestGroupAdmin(item.id, 'blocked')
       if (result.success) {
         toast.success(`${item.full_name} rejected`)
-        // Refresh the caregivers list
-        await adminStore.fetchCaregivers()
+        // Refresh the interest group admins list
+        await adminStore.fetchInterestGroupAdmins()
       } else {
-        toast.error(result.error || 'Failed to reject caregiver')
+        toast.error(result.error || 'Failed to reject interest group admin')
       }
     } catch (error) {
-      console.error('Failed to reject caregiver:', error)
-      toast.error('Failed to reject caregiver')
+      console.error('Failed to reject interest group admin:', error)
+      toast.error('Failed to reject interest group admin')
     }
   }
 }
@@ -261,7 +261,7 @@ const closeDetailsModal = () => {
 }
 
 const goToApprovals = () => {
-  router.push('/caregivers/approvals')
+  router.push('/admin/interest-group-admins/approvals')
 }
 
 const formatDate = (dateString) => {
@@ -287,10 +287,10 @@ onMounted(async () => {
   }
 
   try {
-    await adminStore.fetchCaregivers()
+    await adminStore.fetchInterestGroupAdmins()
   } catch (error) {
-    console.error('Failed to fetch caregivers:', error)
-    toast.error('Failed to load caregivers')
+    console.error('Failed to fetch interest group admins:', error)
+    toast.error('Failed to load interest group admins')
   }
 })
 </script>

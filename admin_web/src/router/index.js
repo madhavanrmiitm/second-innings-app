@@ -58,6 +58,18 @@ const routes = [
     component: () => import('@/views/caregivers/CaregiverListPage.vue'),
     meta: { requiresAuth: true, role: 'admin' },
   },
+  {
+    path: '/admin/interest-group-admins/approvals',
+    name: 'InterestGroupAdminApprovals',
+    component: () => import('@/views/admin/InterestGroupAdminApprovalsPage.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/interest-group-admins',
+    name: 'InterestGroupAdminList',
+    component: () => import('@/views/admin/InterestGroupAdminListPage.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
 
   // Shared Routes (accessible to admin and support)
   {

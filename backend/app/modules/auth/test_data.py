@@ -7,9 +7,9 @@ from app.payloads import UnregisteredUser, User, UserRole, UserStatus
 # These users will be used in test mode to bypass Firebase authentication
 
 TEST_USERS: List[User] = [
-    # ADMIN users
+    # ADMIN users (IDs 3-4 to match database)
     User(
-        id=1,
+        id=3,
         gmail_id="admin1@test.com",
         firebase_uid="test_admin_uid_001",
         full_name="Test Admin One",
@@ -23,7 +23,7 @@ TEST_USERS: List[User] = [
         updated_at=datetime.now(),
     ),
     User(
-        id=2,
+        id=4,
         gmail_id="admin2@test.com",
         firebase_uid="test_admin_uid_002",
         full_name="Test Admin Two",
@@ -36,9 +36,9 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # CAREGIVER users
+    # CAREGIVER users (IDs 5-6 to match database)
     User(
-        id=3,
+        id=5,
         gmail_id="caregiver1@test.com",
         firebase_uid="test_caregiver_uid_001",
         full_name="Test Caregiver One",
@@ -52,7 +52,7 @@ TEST_USERS: List[User] = [
         updated_at=datetime.now(),
     ),
     User(
-        id=4,
+        id=6,
         gmail_id="caregiver2@test.com",
         firebase_uid="test_caregiver_uid_002",
         full_name="Test Caregiver Two",
@@ -65,9 +65,9 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # FAMILY_MEMBER users
+    # FAMILY_MEMBER users (IDs 7-8 to match database)
     User(
-        id=5,
+        id=7,
         gmail_id="family1@test.com",
         firebase_uid="test_family_uid_001",
         full_name="Test Family Member One",
@@ -81,7 +81,7 @@ TEST_USERS: List[User] = [
         updated_at=datetime.now(),
     ),
     User(
-        id=6,
+        id=8,
         gmail_id="family2@test.com",
         firebase_uid="test_family_uid_002",
         full_name="Test Family Member Two",
@@ -94,9 +94,9 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # SENIOR_CITIZEN users
+    # SENIOR_CITIZEN users (IDs 9-10 to match database)
     User(
-        id=7,
+        id=9,
         gmail_id="senior1@test.com",
         firebase_uid="test_senior_uid_001",
         full_name="Test Senior Citizen One",
@@ -110,7 +110,7 @@ TEST_USERS: List[User] = [
         updated_at=datetime.now(),
     ),
     User(
-        id=8,
+        id=10,
         gmail_id="senior2@test.com",
         firebase_uid="test_senior_uid_002",
         full_name="Test Senior Citizen Two",
@@ -123,9 +123,9 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # INTEREST_GROUP_ADMIN users
+    # INTEREST_GROUP_ADMIN users (IDs 11-12 to match database)
     User(
-        id=9,
+        id=11,
         gmail_id="groupadmin1@test.com",
         firebase_uid="test_groupadmin_uid_001",
         full_name="Test Group Admin One",
@@ -139,7 +139,7 @@ TEST_USERS: List[User] = [
         updated_at=datetime.now(),
     ),
     User(
-        id=10,
+        id=12,
         gmail_id="groupadmin2@test.com",
         firebase_uid="test_groupadmin_uid_002",
         full_name="Test Group Admin Two",
@@ -152,9 +152,9 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # SUPPORT_USER users
+    # SUPPORT_USER users (IDs 13-14 to match database)
     User(
-        id=11,
+        id=13,
         gmail_id="support1@test.com",
         firebase_uid="test_support_uid_001",
         full_name="Test Support User One",
@@ -168,7 +168,7 @@ TEST_USERS: List[User] = [
         updated_at=datetime.now(),
     ),
     User(
-        id=12,
+        id=14,
         gmail_id="support2@test.com",
         firebase_uid="test_support_uid_002",
         full_name="Test Support User Two",

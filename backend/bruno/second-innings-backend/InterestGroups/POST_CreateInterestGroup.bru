@@ -11,12 +11,12 @@ post {
 }
 
 auth:bearer {
-  token: {{adminToken}}
+  token: {{groupAdminToken}}
 }
 
 body:json {
   {
-    "id_token": "{{adminToken}}",
+    "id_token": "{{groupAdminToken}}",
     "title": "Test Interest Group",
     "description": "This is a test interest group",
     "links": "https://example.com",
@@ -40,7 +40,7 @@ tests {
   test("Response structure is correct", function() {
     expect(res.getBody()).to.have.property('message');
     if (res.getStatus() === 201) {
-      expect(res.getBody().data).to.have.property('interest_group');
+      expect(res.getBody().data).to.have.property('group_id');
     }
   });
 }

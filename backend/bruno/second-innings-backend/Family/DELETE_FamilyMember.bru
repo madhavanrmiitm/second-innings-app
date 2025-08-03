@@ -11,13 +11,13 @@ delete {
 }
 
 auth:bearer {
-  token: {{adminToken}}
+  token: {{seniorToken}}
 }
 
 body:json {
   {
-    "id_token": "{{adminToken}}",
-    "family_member_firebase_uid": "test_family_member_uid"
+    "id_token": "{{seniorToken}}",
+    "family_member_firebase_uid": "test_family_uid_001"
   }
 }
 

@@ -50,12 +50,55 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert default admin account
+-- Insert default admin accounts
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
 VALUES ('21f3001600@ds.study.iitm.ac.in', 'qEGg9NTOjfgSaw646IhSRCXKtaZ2', 'Ashwin Narayanan S', 'admin', 'active');
 
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
 VALUES ('nakshatra.nsb@gmail.com', '4N2P7ZAWGPgXXoQmp2YAKXJTw253', ' Nakshatra Gupta', 'admin', 'active');
+
+-- Insert test mode users (2 per role)
+-- Admin users
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('admin1@test.com', 'test_admin_uid_001', 'Test Admin One', 'admin', 'active', '1970-01-15', 'Test admin user for development', 'admin,test');
+
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('admin2@test.com', 'test_admin_uid_002', 'Test Admin Two', 'admin', 'active', '1975-03-20', 'Second test admin user for development', 'admin,test');
+
+-- Caregiver users
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
+VALUES ('caregiver1@test.com', 'test_caregiver_uid_001', 'Test Caregiver One', 'caregiver', 'active', 'https://www.youtube.com/watch?v=test1', '1985-06-10', 'Experienced caregiver specializing in elderly care', 'caregiver,elderly,compassionate');
+
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
+VALUES ('caregiver2@test.com', 'test_caregiver_uid_002', 'Test Caregiver Two', 'caregiver', 'pending_approval', 'https://www.youtube.com/watch?v=test2', '1990-08-25', 'Certified nurse with 5 years of experience in home care', 'caregiver,nurse,home-care');
+
+-- Family member users
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('family1@test.com', 'test_family_uid_001', 'Test Family Member One', 'family_member', 'active', '1980-12-05', 'Caring family member looking after elderly parent', 'family,caring');
+
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('family2@test.com', 'test_family_uid_002', 'Test Family Member Two', 'family_member', 'active', '1988-04-18', 'Devoted child managing care for senior citizen', 'family,devoted');
+
+-- Senior citizen users
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('senior1@test.com', 'test_senior_uid_001', 'Test Senior Citizen One', 'senior_citizen', 'active', '1945-02-14', 'Retired teacher enjoying second innings of life', 'senior,retired,teacher');
+
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('senior2@test.com', 'test_senior_uid_002', 'Test Senior Citizen Two', 'senior_citizen', 'active', '1950-09-30', 'Former engineer with passion for gardening', 'senior,engineer,gardening');
+
+-- Interest group admin users
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
+VALUES ('groupadmin1@test.com', 'test_groupadmin_uid_001', 'Test Group Admin One', 'interest_group_admin', 'active', 'https://www.youtube.com/watch?v=testgroup1', '1965-07-22', 'Community leader organizing activities for seniors', 'group-admin,community,activities');
+
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
+VALUES ('groupadmin2@test.com', 'test_groupadmin_uid_002', 'Test Group Admin Two', 'interest_group_admin', 'pending_approval', 'https://www.youtube.com/watch?v=testgroup2', '1972-11-08', 'Art therapist creating engaging programs for elderly', 'group-admin,art-therapy,programs');
+
+-- Support user users
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('support1@test.com', 'test_support_uid_001', 'Test Support User One', 'support_user', 'active', '1992-01-12', 'Support specialist helping users with platform issues', 'support,specialist');
+
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('support2@test.com', 'test_support_uid_002', 'Test Support User Two', 'support_user', 'active', '1987-05-07', 'Customer service representative for platform support', 'support,customer-service');
 
 CREATE TABLE relations (
     id SERIAL PRIMARY KEY,

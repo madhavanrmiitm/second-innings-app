@@ -30,6 +30,21 @@ async def review_caregiver(
     return await admin_controller.review_caregiver(request, caregiverId, validated_data)
 
 
+@router.get("/admin/interest-group-admins")
+async def get_interest_group_admins_for_review(request: Request):
+    return await admin_controller.get_interest_group_admins_for_review(request)
+
+
+@router.post("/admin/interest-group-admins/{interestGroupAdminId}/verify")
+@validate_body(ReviewCaregiver)
+async def review_interest_group_admin(
+    request: Request, interestGroupAdminId: int, validated_data: ReviewCaregiver
+):
+    return await admin_controller.review_interest_group_admin(
+        request, interestGroupAdminId, validated_data
+    )
+
+
 @router.get("/admin/tickets")
 async def get_tickets_for_support(request: Request):
     return await admin_controller.get_tickets_for_support(request)

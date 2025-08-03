@@ -11,12 +11,12 @@ post {
 }
 
 auth:bearer {
-  token: {{adminToken}}
+  token: {{seniorToken}}
 }
 
 body:json {
   {
-    "id_token": "{{adminToken}}"
+    "id_token": "{{seniorToken}}"
   }
 }
 
@@ -29,7 +29,7 @@ tests {
   test("Response has appropriate message", function() {
     const status = res.getStatus();
     if (status === 200) {
-      expect(res.getBody().message).to.contain("successfully");
+      expect(res.getBody().message).to.contain("Successfully joined");
     } else if (status === 404) {
       expect(res.getBody().message).to.contain("not found");
     }
