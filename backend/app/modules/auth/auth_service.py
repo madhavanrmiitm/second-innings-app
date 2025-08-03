@@ -17,15 +17,19 @@ from firebase_admin import auth, credentials
 
 class AuthService:
     def __init__(self):
-        """Initialize Firebase Admin SDK."""
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(settings.FIREBASE_ADMIN_SDK_PATH)
-            firebase_admin.initialize_app(cred)
-        logger.info("Firebase Admin SDK initialized")
+        """Initialize Firebase Admin SDK (if not in test mode)."""
+        if not settings.TEST_MODE:
+            if not firebase_admin._apps:
+                cred = credentials.Certificate(settings.FIREBASE_ADMIN_SDK_PATH)
+                firebase_admin.initialize_app(cred)
+            logger.info("Firebase Admin SDK initialized")
+        else:
+            logger.info("Test mode enabled - Firebase Admin SDK initialization skipped")
 
     def verify_id_token(self, id_token: str) -> dict:
         """
         Verify Firebase ID token and return decoded token.
+        In test mode, delegates to test auth service.
 
         Args:
             id_token: The Firebase ID token to verify
@@ -36,6 +40,11 @@ class AuthService:
         Raises:
             ValueError: If token is invalid
         """
+        if settings.TEST_MODE:
+            from .test_auth_service import test_auth_service
+
+            return test_auth_service.verify_id_token(id_token)
+
         try:
             decoded_token = auth.verify_id_token(id_token)
             logger.info(f"Token verified for user: {decoded_token.get('uid')}")
@@ -47,6 +56,7 @@ class AuthService:
     def get_user_by_firebase_uid(self, firebase_uid: str) -> Optional[User]:
         """
         Retrieve user from database by Firebase UID.
+        In test mode, delegates to test auth service.
 
         Args:
             firebase_uid: The Firebase UID to search for
@@ -54,6 +64,11 @@ class AuthService:
         Returns:
             User object if found, None otherwise
         """
+        if settings.TEST_MODE:
+            from .test_auth_service import test_auth_service
+
+            return test_auth_service.get_user_by_firebase_uid(firebase_uid)
+
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cur:
@@ -89,6 +104,7 @@ class AuthService:
     ) -> Tuple[Union[User, UnregisteredUser], bool]:
         """
         Authenticate user using Firebase ID token.
+        In test mode, delegates to test auth service.
 
         Args:
             id_token: The Firebase ID token
@@ -96,6 +112,11 @@ class AuthService:
         Returns:
             Tuple of (User object if registered or UnregisteredUser if not, is_registered boolean)
         """
+        if settings.TEST_MODE:
+            from .test_auth_service import test_auth_service
+
+            return test_auth_service.authenticate_user(id_token)
+
         # Verify the token
         decoded_token = self.verify_id_token(id_token)
 
@@ -124,6 +145,7 @@ class AuthService:
         """
         Register a new user with complete profile information.
         For caregivers with YouTube URLs, automatically processes the video to extract tags and description.
+        In test mode, delegates to test auth service.
 
         Args:
             registration_data: The registration data containing ID token and user details
@@ -134,6 +156,11 @@ class AuthService:
         Raises:
             ValueError: If token is invalid or user already exists
         """
+        if settings.TEST_MODE:
+            from .test_auth_service import test_auth_service
+
+            return test_auth_service.register_user(registration_data)
+
         # Verify the token
         decoded_token = self.verify_id_token(registration_data.id_token)
 

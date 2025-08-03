@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { FirebaseAuthService } from '@/services/firebaseAuth'
+import { TestAuthService } from '@/services/testAuthService'
 import { UserService } from '@/services/userService'
 import { SessionManager } from '@/utils/sessionManager'
 
@@ -36,6 +37,7 @@ export const useAuthStore = defineStore('auth', {
     canAccess: (state) => state.user?.status === 'active',
     isBlocked: (state) => state.user?.status === 'blocked',
     isPendingApproval: (state) => state.user?.status === 'pending_approval',
+    isTestModeEnabled: () => TestAuthService.isTestModeEnabled(),
   },
 
   actions: {
@@ -87,6 +89,62 @@ export const useAuthStore = defineStore('auth', {
         }
       } catch (error) {
         console.error('Google Sign-In failed:', error)
+        this.error = error.message
+        await this.clearSession()
+        return { success: false, error: error.message }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async signInWithTestUser(testToken) {
+      this.loading = true
+      this.error = null
+
+      try {
+        // Step 1: Sign in with test user
+        const testResult = await TestAuthService.signInWithTestUser(testToken)
+
+        if (!testResult.success) {
+          throw new Error(testResult.error)
+        }
+
+        this.firebaseUser = testResult.user
+
+        // Step 2: Verify token with backend (using test token)
+        const authFlowResult = await UserService.handleAuthFlow(testResult.idToken)
+
+        if (authFlowResult.hasError) {
+          throw new Error(authFlowResult.error)
+        }
+
+        if (authFlowResult.isExistingUser) {
+          // Existing user - set user data and authenticate
+          this.user = authFlowResult.userData
+          this.isAuthenticated = true
+
+          return {
+            success: true,
+            type: 'existing_user',
+            redirectTo: await SessionManager.getRedirectRouteForRole(),
+          }
+        } else if (authFlowResult.isNewUser) {
+          // New user - they need to complete registration
+          this.isAuthenticated = false // Not fully authenticated until registered
+
+          return {
+            success: true,
+            type: 'new_user',
+            userInfo: {
+              gmailId: authFlowResult.gmailId,
+              firebaseUid: authFlowResult.firebaseUid,
+              fullName: authFlowResult.fullName,
+            },
+            redirectTo: '/register', // Direct to registration page for IGA self-registration
+          }
+        }
+      } catch (error) {
+        console.error('Test Sign-In failed:', error)
         this.error = error.message
         await this.clearSession()
         return { success: false, error: error.message }

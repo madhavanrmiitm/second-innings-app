@@ -7,6 +7,7 @@ class Settings(BaseSettings):
         "second-innings-iitm-firebase-adminsdk-fbsvc-3521fdd41b.json"
     )
     GEMINI_API_KEY: str
+    TEST_MODE: bool = False  # Flag to enable test mode (bypasses Firebase auth)
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
