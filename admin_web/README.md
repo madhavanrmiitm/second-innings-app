@@ -196,13 +196,6 @@ src/
    ```bash
    # Create .env file
    cp .env.example .env
-
-   # Configure environment variables
-   VITE_API_BASE_URL=http://localhost:8000  # Development API URL
-   VITE_FIREBASE_API_KEY=your_firebase_api_key
-   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_TEST_MODE=false  # Set to true for test mode
    ```
 
 ### **Development**
