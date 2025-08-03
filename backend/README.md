@@ -4,17 +4,54 @@ A FastAPI-based backend with Firebase authentication, PostgreSQL database, and m
 
 ## ⚡ Quick Start
 
-### Recommended Setup (Python + Docker for DB)
+### 🐳 **PREFERRED: Docker Setup (Recommended for Testing)**
 
-### 🚀 Start PostgreSQL
+**Docker is the preferred method for running the backend for testing** as it provides a consistent, isolated environment with all dependencies pre-configured.
 
-Run **one** of the following:
+#### Quick Docker Start
 
-```bash
-docker-compose up db -d   # or
-docker compose up db -d
+1. **Set up environment:**
+   ```bash
+   # Create .env file with required variables
+   echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
+   ```
 
+2. **Start all services:**
+   ```bash
+   docker-compose up --build
+   ```
 
+   Or use the convenient script:
+   ```bash
+   chmod +x docker-start.sh
+   ./docker-start.sh
+   ```
+
+3. **Access the application:**
+   - API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+   - PostgreSQL: localhost:5433
+
+4. **Stop services:**
+   ```bash
+   docker-compose down
+   ```
+
+#### Docker Benefits for Testing
+- ✅ **Consistent Environment**: Same setup across all machines
+- ✅ **No Local Dependencies**: No need to install Python, PostgreSQL locally
+- ✅ **Isolated Testing**: Clean environment for each test run
+- ✅ **Quick Setup**: One command to get everything running
+- ✅ **Easy Reset**: Simple commands to reset database and start fresh
+
+### Alternative: Python + Docker for DB
+
+If you prefer Python locally with Docker for database only:
+
+1. **Start PostgreSQL:**
+   ```bash
+   docker-compose up db -d
+   ```
 
 2. **Setup Python environment:**
    ```bash
@@ -27,7 +64,7 @@ docker compose up db -d
    ```bash
    cp .env.example .env
    # Update the following in .env file:
-   # - DATABASE_URL: PostgreSQL connection string
+   # - DATABASE_URL: postgresql://fastapi_user:fastapi_password@localhost:5433/fastapi_db
    # - GEMINI_API_KEY: Google Gemini AI API key for YouTube processing
    ```
 
@@ -96,8 +133,8 @@ This account is automatically created when the database is initialized and can b
 
 ## 📚 Documentation
 
-- **[Development Setup](docs/DEVELOPMENT_SETUP.md)** - Recommended development environment
-- **[Docker Setup](docs/DOCKER_SETUP.md)** - Full Docker containerization
+- **[Docker Setup](docs/DOCKER_SETUP.md)** - **PREFERRED: Complete Docker setup for testing**
+- **[Development Setup](docs/DEVELOPMENT_SETUP.md)** - Python + Docker DB setup
 - **[Local Setup](docs/LOCAL_SETUP.md)** - Local setup without Docker
 - **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference with all endpoints
 
@@ -188,8 +225,11 @@ backend/
 ## 🔧 Quick Commands
 
 ```bash
-# Development with auto-reload
-python main.py --init-db --reload
+# 🐳 PREFERRED: Docker for testing
+docker-compose up --build                    # Start all services
+docker-compose down                          # Stop all services
+docker-compose logs -f backend              # View backend logs
+docker-compose restart backend               # Restart backend only
 
 # Run all API tests
 bru run bruno/second-innings-backend --env Local
@@ -197,14 +237,12 @@ bru run bruno/second-innings-backend --env Local
 # Run specific test module
 bru run bruno/second-innings-backend/Admin --env Local
 
-# Docker development (ensure GEMINI_API_KEY is set in .env file)
-docker-compose up --build
-
 # Production deployment
 POSTGRES_PASSWORD=secure_pass GEMINI_API_KEY=your_api_key docker-compose -f docker-compose.prod.yml up -d
 
-# View logs
-docker-compose logs -f backend
+# Alternative: Python + Docker DB
+docker-compose up db -d                     # Start only database
+python main.py --init-db --reload          # Run Python app
 ```
 
 ## 🔗 Key API Endpoints
@@ -265,7 +303,7 @@ Created a complete Bruno test suite covering all 44 API endpoints across 9 funct
 
 ## 🤝 Contributing
 
-1. Follow the [Development Setup](docs/DEVELOPMENT_SETUP.md) guide
+1. Follow the **[Docker Setup](docs/DOCKER_SETUP.md)** guide (recommended for testing)
 2. Create feature branches from `main`
 3. Write tests for new endpoints in Bruno collection
 4. Run the full test suite: `bru run bruno/second-innings-backend --env Local`

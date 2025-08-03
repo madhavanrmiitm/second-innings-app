@@ -6,23 +6,24 @@ This directory contains comprehensive documentation for the Second Innings Backe
 
 ### 🚀 Setup Guides
 
-- **[DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md)** - **Recommended for most developers**
-  - Python + Docker for PostgreSQL approach
+- **[DOCKER_SETUP.md](DOCKER_SETUP.md)** - **PREFERRED: Complete Docker setup for testing**
+  - **Recommended approach for testing**
+  - Consistent, isolated environment
+  - No local dependencies required
+  - Quick setup with one command
+  - Best for reproducible testing
+
+- **[DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md)** - Python + Docker for DB
+  - Python locally with Docker for PostgreSQL
   - Code quality tools and pre-commit hooks
   - Command-line options and troubleshooting
   - Best for IDE integration and debugging
 
-- **[DOCKER_SETUP.md](DOCKER_SETUP.md)** - Full containerization
-  - Complete Docker environment
-  - Production deployment with Docker
-  - Docker troubleshooting and commands
-  - Best for consistent environments
-
-- **[LOCAL_SETUP.md](LOCAL_SETUP.md)** - No Docker dependencies
+- **[LOCAL_SETUP.md](LOCAL_SETUP.md)** - **LEAST PREFERRED: No Docker dependencies**
   - Native PostgreSQL installation
   - Platform-specific instructions (macOS, Linux, Windows)
   - Database setup and configuration
-  - Best for developers who prefer local tools
+  - Most complex setup, not recommended for testing
 
 ### 📚 API & Testing
 
@@ -64,8 +65,8 @@ The project features a **complete Bruno API testing suite** with:
 
 **New to the project?** Follow this path:
 
-1. **Start here**: [DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md) for the recommended setup
-2. **Alternative setups**: [DOCKER_SETUP.md](DOCKER_SETUP.md) or [LOCAL_SETUP.md](LOCAL_SETUP.md) if preferred
+1. **Start here**: **[DOCKER_SETUP.md](DOCKER_SETUP.md)** for the **preferred testing setup**
+2. **Alternative setups**: [DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md) or [LOCAL_SETUP.md](LOCAL_SETUP.md) if needed
 3. **Learn the API**: [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for endpoint details
 4. **Run tests**: Use the Bruno test suite to validate your setup
 
@@ -111,6 +112,14 @@ Created a complete Bruno API testing suite providing:
 - Environment-based configuration for different testing scenarios
 - Detailed test documentation and usage examples
 
+### Docker-First Testing Approach
+Updated documentation to emphasize Docker as the preferred testing method:
+- **Consistent Environment**: Same setup across all machines
+- **No Local Dependencies**: No need to install Python, PostgreSQL locally
+- **Isolated Testing**: Clean environment for each test run
+- **Quick Setup**: One command to get everything running
+- **Easy Reset**: Simple commands to reset database and start fresh
+
 ## 🔄 Updates
 
 Documentation is maintained alongside code changes and includes:
@@ -128,6 +137,7 @@ If you notice outdated information or missing details, please:
 
 ## 💡 Tips
 
+- **Use Docker for testing**: It's the preferred and most reliable approach
 - **Bookmark the setup guide** you're using for quick reference
 - **Run the test suite** after setup to validate your environment
 - **Check the API documentation** when implementing new features
@@ -138,6 +148,10 @@ If you notice outdated information or missing details, please:
 ## 🚀 Quick Testing Commands
 
 ```bash
+# 🐳 PREFERRED: Start with Docker
+echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
+docker-compose up --build
+
 # Test everything
 bru run --env Local
 

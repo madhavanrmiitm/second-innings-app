@@ -1,6 +1,19 @@
-# Local Setup Guide (No Docker)
+# Local Setup Guide (No Docker) - **LEAST PREFERRED**
+
+**⚠️ Note: This setup is the least preferred option. For testing, we strongly recommend using the [Docker Setup](DOCKER_SETUP.md) instead.**
 
 This document provides instructions for setting up the application completely locally without any Docker dependencies.
+
+## 🐳 **PREFERRED: Docker Setup**
+
+Before proceeding with this local setup, consider using Docker which is the **recommended approach for testing**:
+
+- ✅ **Consistent Environment**: Same setup across all machines
+- ✅ **No Local Dependencies**: No need to install Python, PostgreSQL locally
+- ✅ **Isolated Testing**: Clean environment for each test run
+- ✅ **Quick Setup**: One command to get everything running
+
+**See [Docker Setup Guide](DOCKER_SETUP.md) for the preferred testing approach.**
 
 ## 🔧 Local Setup Prerequisites
 
@@ -179,6 +192,23 @@ The system includes a pre-configured admin account that's automatically created 
 
 This account provides immediate administrative access for managing user approvals and system settings.
 
+## 🧪 Testing with Local Setup
+
+### Running API Tests
+
+1. **Start the backend:**
+   ```bash
+   python main.py --init-db --reload
+   ```
+
+2. **Run Bruno API tests:**
+   ```bash
+   cd bruno/second-innings-backend
+   bru run --env Local
+   ```
+
+**Note**: For consistent testing results, we recommend using the **[Docker Setup](DOCKER_SETUP.md)** instead.
+
 ## Troubleshooting Local Setup
 
 ### Common Issues
@@ -228,3 +258,15 @@ psql -U postgres -l
 psql -U postgres -c "DROP DATABASE fastapi_db;"
 psql -U postgres -c "CREATE DATABASE fastapi_db OWNER fastapi_user;"
 ```
+
+## 🐳 **Still Prefer Docker?**
+
+If you're having issues with this local setup, we strongly recommend switching to Docker:
+
+```bash
+# Quick Docker start
+echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
+docker-compose up --build
+```
+
+See the **[Docker Setup Guide](DOCKER_SETUP.md)** for the complete recommended approach.

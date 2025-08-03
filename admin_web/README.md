@@ -9,6 +9,7 @@ A comprehensive Vue.js 3 admin web application for the Second Innings project, f
 ### 🔐 Authentication & Security
 
 - **Firebase Google Sign-In**: Secure authentication using Google OAuth
+- **Test Mode Support**: Development/testing mode with predefined users
 - **JWT Token Verification**: Backend token validation with `/api/auth/verify-token`
 - **Automatic Session Management**: Persistent login state with local storage
 - **Role-Based Access Control**: Dynamic navigation and feature access based on user roles
@@ -22,6 +23,8 @@ A comprehensive Vue.js 3 admin web application for the Second Innings project, f
 - 🎫 **Ticket System**: View and manage all support tickets
 - 📝 **Interest Group Oversight**: Review and approve IGA applications
 - 👨‍⚕️ **Caregiver Management**: Approve/reject caregiver applications
+- 👨‍👩‍👧‍👦 **Family Member Management**: Manage family member accounts
+- 👴 **Senior Citizen Management**: Oversee senior citizen accounts
 - 🔔 **Notifications**: System-wide notification management
 - 👤 **Profile Management**: Admin profile settings
 
@@ -38,6 +41,31 @@ A comprehensive Vue.js 3 admin web application for the Second Innings project, f
 - 🎬 **YouTube Integration**: Video URL submission for verification
 - 🏷️ **Tags & Description**: Categorization and description management
 - 👤 **Enhanced Profile**: Role-specific profile with YouTube content extraction
+
+#### **Caregivers**
+- 👨‍⚕️ **Caregiver Dashboard**: Care service management and metrics
+- 👥 **Client Management**: Manage senior citizen clients
+- 📋 **Service Records**: Track care services and schedules
+- 👤 **Profile Management**: Caregiver profile and verification status
+
+#### **Family Members**
+- 👨‍👩‍👧‍👦 **Family Dashboard**: Senior citizen family management
+- 👴 **Senior Management**: Monitor and support senior family members
+- 📞 **Communication Tools**: Connect with caregivers and support
+- 👤 **Profile Management**: Family member profile settings
+
+#### **Senior Citizens**
+- 👴 **Senior Dashboard**: Personal care and community engagement
+- 👥 **Care Services**: Access to caregiver services
+- 🏘️ **Community Groups**: Join interest groups and activities
+- 👤 **Profile Management**: Senior citizen profile settings
+
+### 🧪 Testing & Development
+
+- **Test Mode**: Bypass Firebase authentication with predefined test users
+- **14 Predefined Test Users**: Covering all roles and statuses
+- **Development Workflow**: Easy testing of different user scenarios
+- **Environment Configuration**: Simple test mode activation
 
 ### 🎨 User Interface & Experience
 
@@ -56,6 +84,8 @@ A comprehensive Vue.js 3 admin web application for the Second Innings project, f
 - **Vue Router**: Client-side routing with navigation guards
 - **Bootstrap 5**: UI components and responsive grid system
 - **SCSS**: Advanced styling with modern Sass API
+- **Axios**: HTTP client for API communication
+- **Vue Toast Notifications**: User feedback system
 
 ### **Authentication Flow**
 ```mermaid
@@ -83,6 +113,22 @@ sequenceDiagram
     end
 ```
 
+### **Test Mode Flow**
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant TestService
+    participant Backend
+
+    User->>Frontend: Select test user from dropdown
+    Frontend->>TestService: Get test user data
+    TestService-->>Frontend: Predefined user info
+    Frontend->>Backend: POST /api/auth/verify-token with test token
+    Backend-->>Frontend: 200 + User data
+    Frontend->>Frontend: Set auth state + Redirect to dashboard
+```
+
 ### **Project Structure**
 ```
 src/
@@ -104,6 +150,8 @@ src/
 ├── services/
 │   ├── apiService.js    # HTTP client wrapper
 │   ├── firebaseAuth.js  # Firebase authentication service
+│   ├── testAuthService.js # Test mode authentication service
+│   ├── adminService.js  # Admin-specific API services
 │   ├── userService.js   # User management and profile service
 │   └── mockData.js      # Development mock data
 ├── stores/
@@ -154,6 +202,7 @@ src/
    VITE_FIREBASE_API_KEY=your_firebase_api_key
    VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
    VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_TEST_MODE=false  # Set to true for test mode
    ```
 
 ### **Development**
@@ -164,6 +213,26 @@ npm run dev
 
 # Server will start at http://localhost:3000
 ```
+
+### **Test Mode Setup**
+
+For development and testing:
+
+1. **Enable test mode**
+   ```bash
+   # In .env file
+   VITE_TEST_MODE=true
+   ```
+
+2. **Backend test mode**
+   ```bash
+   # Ensure backend also has TEST_MODE=true
+   ```
+
+3. **Use predefined test users**
+   - 14 test users across all roles
+   - Different statuses (ACTIVE, PENDING_APPROVAL)
+   - No Firebase authentication required
 
 ### **Production Build**
 
@@ -188,8 +257,17 @@ npm run lint:fix
 ## 🔑 API Endpoints
 
 ### **Authentication**
-- `POST /api/auth/verify-token` - Verify Firebase ID token
-- `POST /api/auth/register` - Register new IGA user
+- `POST /api/auth/verify-token` - Verify Firebase ID token or test token
+- `POST /api/auth/register` - Register new user
+
+### **Admin Management**
+- `GET /api/admin/users` - Get all users
+- `DELETE /api/admin/users/:id` - Delete user
+- `GET /api/admin/caregivers` - Get caregiver applications
+- `POST /api/admin/caregivers/:id/verify` - Verify caregiver
+- `GET /api/admin/interest-group-admins` - Get IGA applications
+- `POST /api/admin/interest-group-admins/:id/verify` - Verify IGA
+- `GET /api/admin/stats` - Get admin statistics
 
 ### **User Management**
 - `POST /api/user/profile` - Get user profile with status
@@ -200,27 +278,58 @@ npm run lint:fix
 
 ## 🎯 User Status Management
 
-### **Interest Group Admin Statuses**
+### **User Statuses**
 
 | Status | Description | Access Level |
 |--------|-------------|--------------|
-| `pending_approval` | Application under review | Dashboard view only, no group management |
-| `active` | Approved and operational | Full access to all features |
-| `blocked` | Access restricted | No access, contact support |
+| `ACTIVE` | Fully operational | Full access to all features |
+| `PENDING_APPROVAL` | Application under review | Limited access, dashboard view only |
+| `BLOCKED` | Access restricted | No access, contact support |
+
+### **Role-Specific Features**
+
+#### **Interest Group Admin Statuses**
+- **Pending Approval**: Dashboard view only, no group management
+- **Active**: Full access to all features
+- **Blocked**: No access, contact support
+
+#### **Caregiver Statuses**
+- **Pending Approval**: Application review required
+- **Active**: Full caregiver service access
+- **Blocked**: Access restricted
 
 ### **Status-Based Features**
 
 - **Pending Approval**:
   - ⚠️ Dashboard shows review information
   - ⚠️ Profile editing disabled
-  - ⚠️ Group management hidden from navigation
+  - ⚠️ Management features hidden from navigation
   - ⚠️ Helpful guidance on approval process
 
 - **Active**:
   - ✅ Full dashboard with statistics
-  - ✅ Complete group management capabilities
+  - ✅ Complete management capabilities
   - ✅ Profile editing enabled
   - ✅ All navigation items visible
+
+## 🧪 Test Mode Features
+
+### **Available Test Users**
+
+- **Admin Users**: 2 active admins
+- **Support Users**: 2 active support users
+- **Interest Group Admins**: 1 active, 1 pending
+- **Caregivers**: 1 active, 1 pending
+- **Family Members**: 2 active family members
+- **Senior Citizens**: 2 active senior citizens
+- **Unregistered Users**: 2 users for testing registration
+
+### **Test Mode Benefits**
+
+- **No Firebase Setup Required**: Bypass authentication for development
+- **Quick Role Testing**: Test all user roles instantly
+- **Status Testing**: Test different user statuses
+- **Development Workflow**: Faster development and testing cycles
 
 ## 🎨 UI/UX Features
 
@@ -230,6 +339,7 @@ npm run lint:fix
 - **Interactive Elements**: Tag management, status toggles, data tables
 - **Loading States**: Smooth loading indicators and skeleton screens
 - **Error Handling**: User-friendly error messages and fallbacks
+- **Toast Notifications**: Real-time user feedback
 
 ## 🛠️ Development Tools
 
@@ -237,6 +347,7 @@ npm run lint:fix
 - **ESLint**: Code linting with Vue.js specific rules
 - **Prettier**: Code formatting (integrated with ESLint)
 - **Vite HMR**: Hot module replacement for fast development
+- **Test Mode**: Development testing without Firebase setup
 
 ## 📝 Contributing
 

@@ -2,7 +2,7 @@
 
 ## 🔥 Authentication Flow Implementation
 
-This document describes the Firebase Google Sign-In authentication flow implemented for the Vue.js admin web application.
+This document describes the Firebase Google Sign-In authentication flow implemented for the Vue.js admin web application, including the new Test Mode feature for development and testing.
 
 ## 📋 Flow Overview
 
@@ -20,7 +20,21 @@ Send ID token to backend /api/auth/verify-token
 Backend responds with 200 (existing user) or 201 (new user)
 ```
 
-### 2. Response Handling
+### 2. Test Mode Flow
+
+```
+User selects test user from dropdown
+    ↓
+Get predefined test user data
+    ↓
+Send test token to backend /api/auth/verify-token
+    ↓
+Backend responds with 200 (existing user)
+    ↓
+User logged in and redirected to dashboard
+```
+
+### 3. Response Handling
 
 #### **200 Response - Existing User**
 
@@ -30,6 +44,9 @@ Backend responds with 200 (existing user) or 201 (new user)
   - `admin` → `/dashboard`
   - `support_user` → `/support/dashboard`
   - `interest_group_admin` → `/iga/dashboard`
+  - `caregiver` → `/caregiver/dashboard`
+  - `family_member` → `/family/dashboard`
+  - `senior_citizen` → `/senior/dashboard`
 
 #### **201 Response - New User**
 
@@ -42,7 +59,7 @@ Backend responds with 200 (existing user) or 201 (new user)
   - Role selection
   - YouTube URL (for Interest Group Admin only)
 
-### 3. Registration Flow
+### 4. Registration Flow
 
 ```
 New user fills registration form
@@ -56,18 +73,68 @@ Backend creates user account
 User logged in and redirected to dashboard
 ```
 
+## 🧪 Test Mode Implementation
+
+### **Test Mode Features**
+
+- **Bypass Firebase Authentication**: No Google sign-in required
+- **14 Predefined Test Users**: Covering all roles and statuses
+- **Environment-Based Activation**: Controlled by `VITE_TEST_MODE` environment variable
+- **Development Workflow**: Faster testing and development cycles
+
+### **Available Test Users**
+
+| Role | Email | Status | Description |
+|------|-------|--------|-------------|
+| Admin | admin1@test.com | ACTIVE | Test Admin One |
+| Admin | admin2@test.com | ACTIVE | Test Admin Two |
+| Support | support1@test.com | ACTIVE | Test Support User One |
+| Support | support2@test.com | ACTIVE | Test Support User Two |
+| IGA | groupadmin1@test.com | ACTIVE | Test Group Admin One |
+| IGA | groupadmin2@test.com | PENDING_APPROVAL | Test Group Admin Two |
+| Caregiver | caregiver1@test.com | ACTIVE | Test Caregiver One |
+| Caregiver | caregiver2@test.com | PENDING_APPROVAL | Test Caregiver Two |
+| Family | family1@test.com | ACTIVE | Test Family Member One |
+| Family | family2@test.com | ACTIVE | Test Family Member Two |
+| Senior | senior1@test.com | ACTIVE | Test Senior Citizen One |
+| Senior | senior2@test.com | ACTIVE | Test Senior Citizen Two |
+| Unregistered | unregistered1@test.com | - | For testing registration |
+| Unregistered | unregistered2@test.com | - | For testing registration |
+
+### **Test Mode Setup**
+
+1. **Enable Test Mode**
+   ```bash
+   # In .env file
+   VITE_TEST_MODE=true
+   ```
+
+2. **Backend Configuration**
+   ```bash
+   # Ensure backend also has TEST_MODE=true
+   TEST_MODE=true
+   ```
+
+3. **Test Token Format**
+   ```javascript
+   // Test tokens follow the pattern:
+   test_{role}_token_{number}
+   // Example: test_admin_token_001
+   ```
+
 ## 🛠️ Files Structure
 
 ### **Authentication Services**
 
 - `src/config/firebase.js` - Firebase configuration
 - `src/services/firebaseAuth.js` - Firebase auth operations
+- `src/services/testAuthService.js` - Test mode authentication service
 - `src/services/userService.js` - User data management & API calls
 - `src/services/apiService.js` - HTTP client for backend communication
 
 ### **UI Components**
 
-- `src/views/auth/LoginPage.vue` - Google Sign-In button
+- `src/views/auth/LoginPage.vue` - Google Sign-In button and test mode UI
 - `src/views/auth/RegistrationPage.vue` - New user registration form
 - `src/views/auth/RoleSelectionPage.vue` - Redirect page (dummy)
 
@@ -90,12 +157,16 @@ Create `.env` file:
 ```bash
 # API Configuration
 VITE_API_BASE_URL=http://localhost:8000
+
+# Test Mode (optional)
+VITE_TEST_MODE=false
 ```
 
 For production:
 
 ```bash
 VITE_API_BASE_URL=https://second-innings-iitm-249726620429.asia-south1.run.app
+VITE_TEST_MODE=false  # Always false in production
 ```
 
 ### 2. Backend API Requirements
@@ -108,7 +179,7 @@ Your backend must implement these endpoints:
 
 ```json
 {
-  "id_token": "firebase_id_token_here"
+  "id_token": "firebase_id_token_here" // or test token
 }
 ```
 
@@ -121,8 +192,8 @@ Your backend must implement these endpoints:
       "id": "user_id",
       "email": "user@example.com",
       "full_name": "User Name",
-      "role": "admin|support_user|interest_group_admin",
-      "status": "active|blocked|pending_approval"
+      "role": "admin|support_user|interest_group_admin|caregiver|family_member|senior_citizen",
+      "status": "ACTIVE|PENDING_APPROVAL|BLOCKED"
     }
   }
 }
@@ -150,7 +221,7 @@ Your backend must implement these endpoints:
 {
   "id_token": "firebase_id_token_here",
   "full_name": "User Full Name",
-  "role": "admin|support_user|interest_group_admin",
+  "role": "admin|support_user|interest_group_admin|caregiver|family_member|senior_citizen",
   "date_of_birth": "1990-01-15",
   "youtube_url": "https://youtube.com/watch?v=example" // Required for interest_group_admin
 }
@@ -166,7 +237,7 @@ Your backend must implement these endpoints:
       "email": "user@example.com",
       "full_name": "User Name",
       "role": "selected_role",
-      "status": "active|pending_approval"
+      "status": "ACTIVE|PENDING_APPROVAL"
     },
     "message": "Registration successful"
   }
@@ -177,9 +248,12 @@ Your backend must implement these endpoints:
 
 ### **Admin App Roles**
 
-- `admin` - Full system access
+- `admin` - Full system access and user management
 - `support_user` - Ticket management access
 - `interest_group_admin` - Interest group management access
+- `caregiver` - Care service management
+- `family_member` - Senior citizen family management
+- `senior_citizen` - Personal care and community access
 
 ### **Role-Based Routing**
 
@@ -187,13 +261,21 @@ Your backend must implement these endpoints:
 - Route guards prevent unauthorized access
 - Invalid/blocked users are signed out automatically
 
+### **Status-Based Access**
+
+- **ACTIVE**: Full access to role-specific features
+- **PENDING_APPROVAL**: Limited access, dashboard view only
+- **BLOCKED**: No access, contact support required
+
 ## 🔒 Security Features
 
 1. **Firebase ID Token Verification** - All tokens verified with backend
-2. **Role-Based Access Control** - Routes protected by user roles
-3. **Session Validation** - Invalid sessions automatically cleared
-4. **Status Checking** - Blocked/pending users handled appropriately
-5. **HTTPS Required** - Production uses HTTPS endpoints
+2. **Test Token Validation** - Test tokens validated against predefined list
+3. **Role-Based Access Control** - Routes protected by user roles
+4. **Session Validation** - Invalid sessions automatically cleared
+5. **Status Checking** - Blocked/pending users handled appropriately
+6. **HTTPS Required** - Production uses HTTPS endpoints
+7. **Environment Protection** - Test mode disabled in production
 
 ## 🧪 Testing the Flow
 
@@ -214,6 +296,15 @@ Your backend must implement these endpoints:
 3. Complete Google sign-in
 4. Should redirect directly to dashboard
 
+### Test Mode Testing:
+
+1. Enable test mode in `.env` file
+2. Visit login page - should show test mode warning
+3. Select a test user from dropdown
+4. Click "Sign in as Test User"
+5. Should redirect to appropriate dashboard
+6. Test different roles and statuses
+
 ## 📝 Notes
 
 - YouTube URL validation for Interest Group Admin role
@@ -221,12 +312,34 @@ Your backend must implement these endpoints:
 - Form field validation and error handling
 - Loading states and user feedback
 - Session persistence across browser restarts
+- Test mode should never be enabled in production
+- Test tokens are publicly known and only safe for development
 
 ## 🚀 Deployment
 
 Ensure these are configured for production:
 
 1. Update `VITE_API_BASE_URL` environment variable
-2. Configure Firebase project settings
-3. Verify backend CORS settings
-4. Test with production API endpoints
+2. Set `VITE_TEST_MODE=false` (or remove entirely)
+3. Configure Firebase project settings
+4. Verify backend CORS settings
+5. Test with production API endpoints
+6. Ensure test mode is disabled
+
+## 🔧 Development Workflow
+
+### **With Test Mode**
+
+1. Set `VITE_TEST_MODE=true` in `.env`
+2. Start development server
+3. Use predefined test users for quick testing
+4. Test all roles and statuses instantly
+5. No Firebase setup required
+
+### **With Firebase Authentication**
+
+1. Set `VITE_TEST_MODE=false` in `.env`
+2. Configure Firebase project
+3. Set up Google Authentication
+4. Test with real Google accounts
+5. Full authentication flow testing

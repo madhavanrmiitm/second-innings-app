@@ -1,16 +1,29 @@
-# Docker Setup Guide
+# Docker Setup Guide - **PREFERRED FOR TESTING**
+
+**🐳 Docker is the preferred method for running the backend for testing** as it provides a consistent, isolated environment with all dependencies pre-configured.
 
 This document covers setting up the application using Docker containers.
 
-## 🐳 Full Docker Setup
+## 🚀 Quick Start (Recommended for Testing)
+
+### Why Docker is Preferred for Testing
+
+- ✅ **Consistent Environment**: Same setup across all machines
+- ✅ **No Local Dependencies**: No need to install Python, PostgreSQL locally
+- ✅ **Isolated Testing**: Clean environment for each test run
+- ✅ **Quick Setup**: One command to get everything running
+- ✅ **Easy Reset**: Simple commands to reset database and start fresh
+- ✅ **Reproducible**: Exact same environment every time
+
+### 🐳 Full Docker Setup
 
 If you prefer to run everything in Docker containers, this section provides the complete Docker setup.
 
-### Docker Prerequisites
+#### Docker Prerequisites
 - Docker and Docker Compose installed on your system
 - No need for Python virtual environment when using full Docker
 
-### Quick Start with Full Docker
+#### Quick Start with Full Docker
 
 1. **Set up environment variables:**
    ```bash
@@ -29,12 +42,12 @@ If you prefer to run everything in Docker containers, this section provides the 
    ./docker-start.sh
    ```
 
-2. **Access the application:**
+3. **Access the application:**
    - API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
    - PostgreSQL: localhost:5433 (development) / localhost:5432 (production)
 
-3. **Default Admin Account:**
+4. **Default Admin Account:**
 
    A pre-configured admin account is automatically available:
    - **Email**: `21f3001600@ds.study.iitm.ac.in`
@@ -43,7 +56,7 @@ If you prefer to run everything in Docker containers, this section provides the 
    - **Role**: `admin`
    - **Status**: `active`
 
-4. **Stop the services:**
+5. **Stop the services:**
    ```bash
    docker-compose down
    ```
@@ -84,10 +97,12 @@ POSTGRES_PASSWORD=your_secure_password GEMINI_API_KEY=your_gemini_api_key docker
 - **Environment-based password**: Uses `POSTGRES_PASSWORD` environment variable
 - **No volume mounting**: Uses built Docker image for code
 
-### Docker Commands Reference
+## 🔧 Docker Commands Reference
+
+### Essential Commands for Testing
 
 ```bash
-# Start services (development)
+# Start services (development) - PREFERRED FOR TESTING
 docker-compose up --build
 
 # Start in background
@@ -110,6 +125,22 @@ docker-compose down -v
 
 # Production deployment
 POSTGRES_PASSWORD=secure_password GEMINI_API_KEY=your_api_key docker-compose -f docker-compose.prod.yml up --build -d
+```
+
+### Testing-Specific Commands
+
+```bash
+# Quick reset for fresh testing
+docker-compose down -v && docker-compose up --build
+
+# View backend logs during testing
+docker-compose logs -f backend
+
+# Restart backend for code changes
+docker-compose restart backend
+
+# Check service status
+docker-compose ps
 ```
 
 ## Docker Troubleshooting
@@ -159,3 +190,39 @@ Health status can be viewed with:
 ```bash
 docker-compose ps
 ```
+
+## 🧪 Testing with Docker
+
+### Running API Tests with Docker
+
+1. **Start the backend with Docker:**
+   ```bash
+   docker-compose up --build
+   ```
+
+2. **Run Bruno API tests:**
+   ```bash
+   cd bruno/second-innings-backend
+   bru run --env Local
+   ```
+
+3. **Test specific modules:**
+   ```bash
+   bru run Admin --env Local           # Admin functionality
+   bru run Care --env Local            # Care management
+   bru run Family --env Local          # Family member management
+   bru run Tasks --env Local           # Task and reminder system
+   bru run InterestGroups --env Local  # Interest group management
+   bru run Tickets --env Local         # Support ticket system
+   bru run Notifications --env Local   # Notification system
+   bru run Auth --env Local            # Authentication system
+   bru run User --env Local            # User profile management
+   ```
+
+### Benefits of Docker for Testing
+
+- **Isolated Environment**: Each test run starts with a clean state
+- **Consistent Setup**: Same environment across different machines
+- **Easy Reset**: Simple commands to reset database and start fresh
+- **No Conflicts**: No local Python/PostgreSQL version conflicts
+- **Reproducible**: Exact same environment every time

@@ -2,17 +2,25 @@
 
 This document provides detailed instructions for setting up the development environment.
 
-## 💻 Recommended Development Setup
+## 💻 Development Setup Options
 
-The recommended setup uses Python locally with Docker for PostgreSQL only. This provides the best development experience with excellent IDE integration and debugging capabilities.
+### 🐳 **PREFERRED: Docker Setup (Recommended for Testing)**
 
-### Prerequisites
+**Docker is the preferred method for running the backend for testing** as it provides a consistent, isolated environment with all dependencies pre-configured.
+
+For the recommended Docker setup, see **[Docker Setup Guide](DOCKER_SETUP.md)**.
+
+### Alternative: Python + Docker for DB
+
+The setup below uses Python locally with Docker for PostgreSQL only. This provides good IDE integration and debugging capabilities, but requires more local setup.
+
+#### Prerequisites
 
 - Python 3.8+ installed locally
 - Docker and Docker Compose for PostgreSQL
 - Git for version control
 
-### Quick Start
+#### Quick Start
 
 1. **Start PostgreSQL with Docker:**
    ```bash
@@ -220,3 +228,21 @@ docker-compose restart
 # Clean restart
 docker-compose down && docker-compose up -d
 ```
+
+## 🧪 Testing
+
+### Running Tests with This Setup
+
+1. **Start the backend:**
+   ```bash
+   docker-compose up db -d
+   python main.py --init-db --reload
+   ```
+
+2. **Run Bruno API tests:**
+   ```bash
+   cd bruno/second-innings-backend
+   bru run --env Local
+   ```
+
+**Note**: For testing, the **[Docker Setup](DOCKER_SETUP.md)** is preferred as it provides a more isolated and consistent environment.
