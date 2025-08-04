@@ -1,14 +1,16 @@
 import axios from 'axios'
-import { mockUsers, mockOfficials, mockTickets, mockNotifications } from './mockData'
+import { mockUsers, mockOfficials, mockNotifications } from './mockData'
 
 // Create axios instance
+const rawBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: `${rawBaseURL}/api`,  // ✅ always append /api
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 })
+
 
 // Request interceptor
 apiClient.interceptors.request.use(
@@ -38,7 +40,47 @@ apiClient.interceptors.response.use(
 // Simulate API delay
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-// Mock API implementations
+// Field mapping helpers for tickets
+const mapTicketToFrontend = (ticket) => {
+  if (!ticket) return null
+  return {
+    ...ticket,
+    title: ticket.subject, // Map subject to title
+    createdBy: ticket.created_by_name || ticket.user_id,
+    assignedTo: ticket.assigned_to_name || ticket.assigned_to,
+    // Capitalize status for frontend display
+    status: ticket.status ? ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace('_', ' ') : '',
+    // Capitalize priority
+    priority: ticket.priority ? ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1) : 'Medium',
+  }
+}
+
+const mapTicketToBackend = (ticket) => {
+  const mapped = {
+    subject: ticket.title || ticket.subject,
+    description: ticket.description,
+  }
+  
+  if (ticket.priority) {
+    mapped.priority = ticket.priority.toLowerCase()
+  }
+  
+  if (ticket.category) {
+    mapped.category = ticket.category
+  }
+  
+  if (ticket.status) {
+    mapped.status = ticket.status.toLowerCase().replace(' ', '_')
+  }
+  
+  if (ticket.assigned_to !== undefined) {
+    mapped.assigned_to = ticket.assigned_to
+  }
+  
+  return mapped
+}
+
+// Mock API implementations (keeping existing ones)
 export const authAPI = {
   async login(credentials) {
     await delay(1000)
@@ -92,58 +134,73 @@ export const officialsAPI = {
   },
 }
 
+// Updated ticketsAPI to use real API
 export const ticketsAPI = {
   async getAll(filters = {}) {
-    await delay(800)
-    let tickets = [...mockTickets]
-
-    // Apply filters
-    if (filters.status) {
-      tickets = tickets.filter((t) => t.status === filters.status)
+    try {
+      // Build query params
+      const params = new URLSearchParams()
+      if (filters.status) params.append('status', filters.status.toLowerCase().replace(' ', '_'))
+      if (filters.priority) params.append('priority', filters.priority.toLowerCase())
+      if (filters.assignedTo) params.append('assigned_to', filters.assignedTo)
+      
+      const response = await apiClient.get('/tickets', { params })
+      
+      // Map response tickets to frontend format
+      const tickets = response.data.data?.tickets || []
+      return tickets.map(mapTicketToFrontend)
+    } catch (error) {
+      console.error('Error fetching tickets:', error)
+      throw error
     }
-    if (filters.priority) {
-      tickets = tickets.filter((t) => t.priority === filters.priority)
-    }
-    if (filters.assignedTo) {
-      tickets = tickets.filter((t) => t.assignedTo === filters.assignedTo)
-    }
-
-    return tickets
   },
 
   async getById(id) {
-    await delay(600)
-    return mockTickets.find((t) => t.id === id) || null
+    try {
+      const response = await apiClient.get(`/tickets/${id}`)
+      const ticket = response.data.data?.ticket
+      return mapTicketToFrontend(ticket)
+    } catch (error) {
+      console.error('Error fetching ticket:', error)
+      throw error
+    }
   },
 
   async create(ticketData) {
-    await delay(1000)
-    return {
-      ...ticketData,
-      id: 'TICK-' + Date.now(),
-      status: 'Open',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    try {
+      const mappedData = mapTicketToBackend(ticketData)
+      const response = await apiClient.post('/tickets', mappedData)
+      
+      // Fetch the created ticket to get full details
+      if (response.data.data?.ticket_id) {
+        return await this.getById(response.data.data.ticket_id)
+      }
+      
+      throw new Error('Failed to create ticket')
+    } catch (error) {
+      console.error('Error creating ticket:', error)
+      throw error
     }
   },
 
   async updateStatus(id, status) {
-    await delay(800)
-    return { id, status, updatedAt: new Date().toISOString() }
+    try {
+      const mappedStatus = status.toLowerCase().replace(' ', '_')
+      const response = await apiClient.put(`/tickets/${id}`, { status: mappedStatus })
+      return response.data
+    } catch (error) {
+      console.error('Error updating ticket status:', error)
+      throw error
+    }
   },
 
   async assign(id, assignedTo) {
-    await delay(700)
-    return { id, assignedTo, updatedAt: new Date().toISOString() }
-  },
-
-  async addComment(ticketId, comment) {
-    await delay(600)
-    return {
-      id: Date.now(),
-      ticketId,
-      ...comment,
-      createdAt: new Date().toISOString(),
+    try {
+      const response = await apiClient.put(`/tickets/${id}`, { assigned_to: assignedTo })
+      return response.data
+    } catch (error) {
+      console.error('Error assigning ticket:', error)
+      throw error
     }
   },
 }
