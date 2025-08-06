@@ -11,20 +11,46 @@ get {
 }
 
 auth:bearer {
-  token: {{adminToken}}
+  token: {{seniorToken}}
 }
 
 tests {
-  test("Status code is 501 for not implemented", function() {
-    expect(res.getStatus()).to.equal(501);
+  test("Status code is 200 for successful reminders retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
   });
 
-  test("Response has not implemented message", function() {
-    expect(res.getBody().message).to.contain("not yet implemented");
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
   });
 
-  test("Response structure is correct for not implemented", function() {
-    expect(res.getBody()).to.have.property('message');
-    expect(res.getBody()).to.have.property('data');
+  test("Response contains reminders data", function() {
+    expect(res.getBody().data).to.have.property('reminders');
+    expect(res.getBody().data.reminders).to.be.an('array');
+  });
+
+  test("Each reminder has required fields", function() {
+    if (res.getBody().data.reminders.length > 0) {
+      const reminder = res.getBody().data.reminders[0];
+      expect(reminder).to.have.property('id');
+      expect(reminder).to.have.property('title');
+      expect(reminder).to.have.property('description');
+      expect(reminder).to.have.property('reminder_time');
+      expect(reminder).to.have.property('status');
+      expect(reminder).to.have.property('snooze_count');
+      expect(reminder).to.have.property('created_at');
+      expect(reminder).to.have.property('updated_at');
+    }
+  });
+
+  test("Test data includes reminders with valid statuses", function() {
+    const reminders = res.getBody().data.reminders;
+    if (reminders.length > 0) {
+      const statuses = reminders.map(reminder => reminder.status);
+      // Check that all statuses are valid (active, snoozed, cancelled, completed)
+      const validStatuses = ['active', 'snoozed', 'cancelled', 'completed'];
+      statuses.forEach(status => {
+        expect(validStatuses).to.include(status);
+      });
+    }
   });
 }

@@ -1,4 +1,5 @@
 -- Drop tables in reverse dependency order to avoid foreign key conflicts
+DROP TABLE IF EXISTS reminders CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS tickets CASCADE;
 DROP TABLE IF EXISTS interest_groups CASCADE;
@@ -100,6 +101,16 @@ VALUES ('support1@test.com', 'test_support_uid_001', 'Test Support User One', 's
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
 VALUES ('support2@test.com', 'test_support_uid_002', 'Test Support User Two', 'support_user', 'active', '1987-05-07', 'Customer service representative for platform support', 'support,customer-service');
 
+-- Additional test users for comprehensive testing
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
+VALUES ('caregiver3@test.com', 'test_caregiver_uid_003', 'Test Caregiver Three', 'caregiver', 'blocked', 'https://www.youtube.com/watch?v=test3', '1982-03-15', 'Blocked caregiver for testing', 'caregiver,blocked');
+
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('family3@test.com', 'test_family_uid_003', 'Test Family Member Three', 'family_member', 'blocked', '1985-07-22', 'Blocked family member for testing', 'family,blocked');
+
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
+VALUES ('senior3@test.com', 'test_senior_uid_003', 'Test Senior Citizen Three', 'senior_citizen', 'pending_approval', '1948-11-08', 'Senior citizen pending approval', 'senior,pending');
+
 CREATE TABLE relations (
     id SERIAL PRIMARY KEY,
     senior_citizen_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -109,6 +120,23 @@ CREATE TABLE relations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (senior_citizen_id, family_member_id)
 );
+
+-- Insert test relations data
+-- Relation between senior1 and family1
+INSERT INTO relations (senior_citizen_id, family_member_id, senior_citizen_relation, family_member_relation)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com'),
+    'Father',
+    'Son';
+
+-- Relation between senior2 and family2
+INSERT INTO relations (senior_citizen_id, family_member_id, senior_citizen_relation, family_member_relation)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'family2@test.com'),
+    'Mother',
+    'Daughter';
 
 CREATE TABLE tasks (
     id SERIAL PRIMARY KEY,
@@ -122,9 +150,55 @@ CREATE TABLE tasks (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Insert test tasks data with different statuses
+-- Pending task
+INSERT INTO tasks (title, description, status, created_by, assigned_to)
+SELECT
+    'Morning Medication Reminder',
+    'Remind senior citizen to take morning medications at 8:00 AM',
+    'pending',
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'caregiver1@test.com');
+
+-- In progress task
+INSERT INTO tasks (title, description, status, created_by, assigned_to)
+SELECT
+    'Physical Therapy Session',
+    'Assist with daily physical therapy exercises',
+    'in_progress',
+    (SELECT id FROM users WHERE gmail_id = 'family2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'caregiver2@test.com');
+
+-- Completed task
+INSERT INTO tasks (title, description, status, created_by, assigned_to, time_of_completion)
+SELECT
+    'Evening Walk',
+    'Accompany senior citizen for evening walk in the park',
+    'completed',
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'caregiver1@test.com'),
+    CURRENT_TIMESTAMP - INTERVAL '2 hours';
+
+-- Cancelled task
+INSERT INTO tasks (title, description, status, created_by, assigned_to)
+SELECT
+    'Doctor Appointment',
+    'Accompany to doctor appointment (cancelled due to weather)',
+    'cancelled',
+    (SELECT id FROM users WHERE gmail_id = 'family2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'caregiver2@test.com');
+
+-- Task without assignment
+INSERT INTO tasks (title, description, status, created_by)
+SELECT
+    'Grocery Shopping',
+    'Help with grocery shopping for the week',
+    'pending',
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com');
+
 CREATE TABLE care_requests (
     id SERIAL PRIMARY KEY,
-    senior_citizen_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    senior_citizen_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     caregiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     made_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     status care_request_status NOT NULL DEFAULT 'pending',
@@ -133,6 +207,47 @@ CREATE TABLE care_requests (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Insert test care requests data with different statuses
+-- Pending care request
+INSERT INTO care_requests (senior_citizen_id, caregiver_id, made_by, status, timing_to_visit, location)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'caregiver1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com'),
+    'pending',
+    CURRENT_TIMESTAMP + INTERVAL '2 days',
+    '123 Main Street, Apartment 4B, Chennai';
+
+-- Accepted care request
+INSERT INTO care_requests (senior_citizen_id, caregiver_id, made_by, status, timing_to_visit, location)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'caregiver2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'family2@test.com'),
+    'accepted',
+    CURRENT_TIMESTAMP + INTERVAL '1 day',
+    '456 Oak Avenue, House 12, Chennai';
+
+-- Rejected care request
+INSERT INTO care_requests (senior_citizen_id, caregiver_id, made_by, status, timing_to_visit, location)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'caregiver2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com'),
+    'rejected',
+    CURRENT_TIMESTAMP + INTERVAL '3 days',
+    '789 Pine Road, Flat 8, Chennai';
+
+-- Cancelled care request
+INSERT INTO care_requests (senior_citizen_id, caregiver_id, made_by, status, timing_to_visit, location)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'caregiver1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'family2@test.com'),
+    'cancelled',
+    CURRENT_TIMESTAMP + INTERVAL '5 days',
+    '321 Elm Street, Unit 15, Chennai';
 
 CREATE TABLE interest_groups (
     id SERIAL PRIMARY KEY,
@@ -146,6 +261,46 @@ CREATE TABLE interest_groups (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Insert test interest groups data
+-- Active interest group
+INSERT INTO interest_groups (title, description, links, status, timing, created_by)
+SELECT
+    'Senior Yoga & Meditation',
+    'Weekly yoga and meditation sessions for senior citizens to improve flexibility and mental well-being',
+    'https://zoom.us/j/123456789, https://www.youtube.com/watch?v=yoga_seniors',
+    'active',
+    CURRENT_TIMESTAMP + INTERVAL '3 days',
+    (SELECT id FROM users WHERE gmail_id = 'groupadmin1@test.com');
+
+-- Active interest group with different timing
+INSERT INTO interest_groups (title, description, links, status, timing, created_by)
+SELECT
+    'Gardening Club for Seniors',
+    'Monthly gardening sessions where seniors can share tips and grow plants together',
+    'https://meet.google.com/garden-seniors, https://www.youtube.com/watch?v=senior_gardening',
+    'active',
+    CURRENT_TIMESTAMP + INTERVAL '1 week',
+    (SELECT id FROM users WHERE gmail_id = 'groupadmin2@test.com');
+
+-- Inactive interest group
+INSERT INTO interest_groups (title, description, links, status, timing, created_by)
+SELECT
+    'Book Reading Club',
+    'Monthly book discussions for senior citizens (currently inactive)',
+    'https://discord.gg/bookclub, https://www.youtube.com/watch?v=book_reviews',
+    'inactive',
+    CURRENT_TIMESTAMP + INTERVAL '2 weeks',
+    (SELECT id FROM users WHERE gmail_id = 'groupadmin1@test.com');
+
+-- Interest group without timing
+INSERT INTO interest_groups (title, description, links, status, created_by)
+SELECT
+    'Technology Support Group',
+    'Helping seniors learn and use modern technology devices and applications',
+    'https://teams.microsoft.com/tech-support, https://www.youtube.com/watch?v=tech_tutorials',
+    'active',
+    (SELECT id FROM users WHERE gmail_id = 'groupadmin2@test.com');
+
 CREATE TABLE tickets (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -154,8 +309,56 @@ CREATE TABLE tickets (
     description TEXT,
     status ticket_status NOT NULL DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP
 );
+
+-- Insert test tickets data with different statuses
+-- Open ticket without assignment
+INSERT INTO tickets (user_id, subject, description, status)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior1@test.com'),
+    'App Login Issue',
+    'Unable to login to the application. Getting error message when trying to access my profile.',
+    'open';
+
+-- Open ticket with assignment
+INSERT INTO tickets (user_id, assigned_to, subject, description, status)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'support1@test.com'),
+    'Care Request Not Working',
+    'When trying to create a care request, the form keeps showing validation errors.',
+    'open';
+
+-- In progress ticket
+INSERT INTO tickets (user_id, assigned_to, subject, description, status)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'caregiver1@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'support2@test.com'),
+    'Profile Update Problem',
+    'Cannot update my profile information. The save button is not working properly.',
+    'in_progress';
+
+-- Resolved ticket
+INSERT INTO tickets (user_id, assigned_to, subject, description, status, resolved_at)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'support1@test.com'),
+    'Notification Settings',
+    'Need help configuring notification preferences for the application.',
+    'resolved',
+    CURRENT_TIMESTAMP - INTERVAL '1 day';
+
+-- Closed ticket
+INSERT INTO tickets (user_id, assigned_to, subject, description, status, resolved_at)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'family2@test.com'),
+    (SELECT id FROM users WHERE gmail_id = 'support2@test.com'),
+    'Payment Issue Resolved',
+    'Payment gateway integration was not working properly. Issue has been resolved.',
+    'closed',
+    CURRENT_TIMESTAMP - INTERVAL '3 days';
 
 CREATE TABLE notifications (
     id SERIAL PRIMARY KEY,
@@ -166,6 +369,123 @@ CREATE TABLE notifications (
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE reminders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    reminder_time TIMESTAMP NOT NULL,
+    status VARCHAR(50) DEFAULT 'active',
+    snooze_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert test notifications data with different types and priorities
+-- Unread high priority task notification
+INSERT INTO notifications (user_id, type, priority, body, is_read)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'caregiver1@test.com'),
+    'task',
+    'high',
+    'New task assigned: Morning medication reminder for Senior Citizen One',
+    FALSE;
+
+-- Read medium priority care request notification
+INSERT INTO notifications (user_id, type, priority, body, is_read, created_at)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com'),
+    'care_request',
+    'medium',
+    'Care request for Senior Citizen One has been accepted by Test Caregiver One',
+    TRUE,
+    CURRENT_TIMESTAMP - INTERVAL '1 hour';
+
+-- Unread low priority interest group notification
+INSERT INTO notifications (user_id, type, priority, body, is_read)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior1@test.com'),
+    'interest_group',
+    'low',
+    'New interest group created: Senior Yoga & Meditation. Join now!',
+    FALSE;
+
+-- Unread high priority support ticket notification
+INSERT INTO notifications (user_id, type, priority, body, is_read)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'support1@test.com'),
+    'support_ticket',
+    'high',
+    'New support ticket assigned: App Login Issue from Senior Citizen One',
+    FALSE;
+
+-- Read medium priority relation notification
+INSERT INTO notifications (user_id, type, priority, body, is_read, created_at)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'family2@test.com'),
+    'relation',
+    'medium',
+    'Family member relation request approved for Senior Citizen Two',
+    TRUE,
+    CURRENT_TIMESTAMP - INTERVAL '2 hours';
+
+-- Unread medium priority task notification
+INSERT INTO notifications (user_id, type, priority, body, is_read)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'caregiver2@test.com'),
+    'task',
+    'medium',
+    'Task completed: Physical Therapy Session for Senior Citizen Two',
+    FALSE;
+
+-- Read low priority interest group notification
+INSERT INTO notifications (user_id, type, priority, body, is_read, created_at)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior2@test.com'),
+    'interest_group',
+    'low',
+    'Reminder: Gardening Club meeting tomorrow at 3 PM',
+    TRUE,
+    CURRENT_TIMESTAMP - INTERVAL '6 hours';
+
+-- Unread high priority care request notification
+INSERT INTO notifications (user_id, type, priority, body, is_read)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'caregiver1@test.com'),
+    'care_request',
+    'high',
+    'New care request from Family Member One for Senior Citizen One',
+    FALSE;
+
+-- Insert test reminders data
+-- Active reminder
+INSERT INTO reminders (user_id, title, description, reminder_time, status)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior1@test.com'),
+    'Morning Medication',
+    'Take blood pressure medication at 8:00 AM',
+    CURRENT_TIMESTAMP + INTERVAL '2 hours',
+    'active';
+
+-- Snoozed reminder
+INSERT INTO reminders (user_id, title, description, reminder_time, status, snooze_count)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'senior2@test.com'),
+    'Evening Walk',
+    'Go for evening walk in the park',
+    CURRENT_TIMESTAMP + INTERVAL '30 minutes',
+    'snoozed',
+    2;
+
+-- Completed reminder
+INSERT INTO reminders (user_id, title, description, reminder_time, status)
+SELECT
+    (SELECT id FROM users WHERE gmail_id = 'family1@test.com'),
+    'Doctor Appointment',
+    'Accompany senior to doctor appointment',
+    CURRENT_TIMESTAMP - INTERVAL '1 day',
+    'completed';
 
 -- Create indexes for better query performance and referential integrity
 CREATE INDEX idx_users_gmail_id ON users(gmail_id);
@@ -195,3 +515,7 @@ CREATE INDEX idx_tickets_status ON tickets(status);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_notifications_type ON notifications(type);
 CREATE INDEX idx_notifications_is_read ON notifications(is_read);
+
+CREATE INDEX idx_reminders_user_id ON reminders(user_id);
+CREATE INDEX idx_reminders_status ON reminders(status);
+CREATE INDEX idx_reminders_reminder_time ON reminders(reminder_time);

@@ -1,0 +1,86 @@
+meta {
+  name: GET_ComprehensiveTestData
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/admin/users
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+tests {
+  test("Comprehensive test data validation - Users", function() {
+    const users = res.getBody().data.users;
+
+    // Test that we have users with all roles
+    const roles = users.map(user => user.role);
+    expect(roles).to.include('admin');
+    expect(roles).to.include('caregiver');
+    expect(roles).to.include('family_member');
+    expect(roles).to.include('senior_citizen');
+    expect(roles).to.include('interest_group_admin');
+    expect(roles).to.include('support_user');
+
+    // Test that we have users with all statuses
+    const statuses = users.map(user => user.status);
+    expect(statuses).to.include('active');
+    expect(statuses).to.include('pending_approval');
+    expect(statuses).to.include('blocked');
+
+    // Test that we have users with all required fields
+    const firstUser = users[0];
+    expect(firstUser).to.have.property('id');
+    expect(firstUser).to.have.property('gmail_id');
+    expect(firstUser).to.have.property('full_name');
+    expect(firstUser).to.have.property('role');
+    expect(firstUser).to.have.property('status');
+    expect(firstUser).to.have.property('created_at');
+  });
+
+  test("Test data includes specific test users", function() {
+    const users = res.getBody().data.users;
+    const testUserEmails = users.map(user => user.gmail_id);
+
+    // Check for specific test users
+    expect(testUserEmails).to.include('admin1@test.com');
+    expect(testUserEmails).to.include('admin2@test.com');
+    expect(testUserEmails).to.include('caregiver1@test.com');
+    expect(testUserEmails).to.include('caregiver2@test.com');
+    expect(testUserEmails).to.include('caregiver3@test.com');
+    expect(testUserEmails).to.include('family1@test.com');
+    expect(testUserEmails).to.include('family2@test.com');
+    expect(testUserEmails).to.include('family3@test.com');
+    expect(testUserEmails).to.include('senior1@test.com');
+    expect(testUserEmails).to.include('senior2@test.com');
+    expect(testUserEmails).to.include('senior3@test.com');
+    expect(testUserEmails).to.include('groupadmin1@test.com');
+    expect(testUserEmails).to.include('groupadmin2@test.com');
+    expect(testUserEmails).to.include('support1@test.com');
+    expect(testUserEmails).to.include('support2@test.com');
+  });
+
+  test("Test data includes users with different statuses", function() {
+    const users = res.getBody().data.users;
+
+    // Find specific test users and verify their statuses
+    const caregiver1 = users.find(user => user.gmail_id === 'caregiver1@test.com');
+    const caregiver2 = users.find(user => user.gmail_id === 'caregiver2@test.com');
+    const caregiver3 = users.find(user => user.gmail_id === 'caregiver3@test.com');
+    const senior3 = users.find(user => user.gmail_id === 'senior3@test.com');
+    const family3 = users.find(user => user.gmail_id === 'family3@test.com');
+    const groupadmin2 = users.find(user => user.gmail_id === 'groupadmin2@test.com');
+
+    expect(caregiver1.status).to.equal('active');
+    expect(caregiver2.status).to.equal('pending_approval');
+    expect(caregiver3.status).to.equal('blocked');
+    expect(senior3.status).to.equal('pending_approval');
+    expect(family3.status).to.equal('blocked');
+    expect(groupadmin2.status).to.equal('pending_approval');
+  });
+}

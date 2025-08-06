@@ -1,22 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/services/care_service.dart';
 
-class CaregiverRequestsView extends StatelessWidget {
+class CaregiverRequestsView extends StatefulWidget {
   const CaregiverRequestsView({super.key});
+
+  @override
+  State<CaregiverRequestsView> createState() => _CaregiverRequestsViewState();
+}
+
+class _CaregiverRequestsViewState extends State<CaregiverRequestsView> {
+  List<Map<String, dynamic>> _sentRequests = [];
+  List<Map<String, dynamic>> _receivedRequests = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCaregiverRequests();
+  }
+
+  Future<void> _loadCaregiverRequests() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await CareService.getCaregiverRequests();
+
+      if (response.statusCode == 200) {
+        final sentRequestsData =
+            response.data?['data']?['sent_requests'] as List?;
+        final receivedRequestsData =
+            response.data?['data']?['received_requests'] as List?;
+
+        setState(() {
+          _sentRequests = sentRequestsData?.cast<Map<String, dynamic>>() ?? [];
+          _receivedRequests =
+              receivedRequestsData?.cast<Map<String, dynamic>>() ?? [];
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = response.error ?? 'Failed to load caregiver requests';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error loading caregiver requests: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _acceptRequest(int requestId) async {
+    try {
+      final response = await CareService.acceptCaregiverRequest(
+        requestId: requestId,
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request accepted successfully')),
+        );
+        _loadCaregiverRequests(); // Reload data
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to accept request')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error accepting request: $e')));
+    }
+  }
+
+  Future<void> _rejectRequest(int requestId) async {
+    try {
+      final response = await CareService.rejectCaregiverRequest(
+        requestId: requestId,
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request rejected successfully')),
+        );
+        _loadCaregiverRequests(); // Reload data
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to reject request')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error rejecting request: $e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
-    // Sample data for sent and received requests
-    final sentRequests = [
-      {'name': 'Ashwin', 'status': 'Pending'},
-      {'name': 'Priya', 'status': 'Pending'},
-    ];
-
-    final receivedRequests = [
-      {'name': 'Madhavan', 'status': 'Awaiting your response'},
-    ];
 
     return Scaffold(
       body: CustomScrollView(
@@ -36,15 +124,47 @@ class CaregiverRequestsView extends StatelessWidget {
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
             ),
           ),
-          _buildSectionHeader(context, 'Received Requests'),
-          _buildReceivedRequestsList(
-            context,
-            colorScheme,
-            textTheme,
-            receivedRequests,
-          ),
-          _buildSectionHeader(context, 'Sent Requests'),
-          _buildSentRequestsList(context, colorScheme, textTheme, sentRequests),
+          if (_isLoading)
+            const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_error != null)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(_error!, style: textTheme.bodyLarge),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadCaregiverRequests,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else ...[
+            _buildSectionHeader(context, 'Received Requests'),
+            _buildReceivedRequestsList(
+              context,
+              colorScheme,
+              textTheme,
+              _receivedRequests,
+            ),
+            _buildSectionHeader(context, 'Sent Requests'),
+            _buildSentRequestsList(
+              context,
+              colorScheme,
+              textTheme,
+              _sentRequests,
+            ),
+          ],
         ],
       ),
     );
@@ -68,7 +188,7 @@ class CaregiverRequestsView extends StatelessWidget {
     BuildContext context,
     ColorScheme colorScheme,
     TextTheme textTheme,
-    List<Map<String, String>> requests,
+    List<Map<String, dynamic>> requests,
   ) {
     return SliverList.builder(
       itemCount: requests.length,
@@ -86,10 +206,13 @@ class CaregiverRequestsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(request['name']!, style: textTheme.titleMedium),
+                Text(
+                  request['caregiver_name'] ?? 'Unknown',
+                  style: textTheme.titleMedium,
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  'Status: ${request['status']!}',
+                  'Status: ${request['status'] ?? 'Unknown'}',
                   style: textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
@@ -98,14 +221,14 @@ class CaregiverRequestsView extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () {
-                        // Handle reject
+                        _rejectRequest(request['id']);
                       },
                       child: const Text('Reject'),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () {
-                        // Handle accept
+                        _acceptRequest(request['id']);
                       },
                       child: const Text('Accept'),
                     ),
@@ -123,7 +246,7 @@ class CaregiverRequestsView extends StatelessWidget {
     BuildContext context,
     ColorScheme colorScheme,
     TextTheme textTheme,
-    List<Map<String, String>> requests,
+    List<Map<String, dynamic>> requests,
   ) {
     return SliverList.builder(
       itemCount: requests.length,
@@ -141,10 +264,13 @@ class CaregiverRequestsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(request['name']!, style: textTheme.titleMedium),
+                Text(
+                  request['caregiver_name'] ?? 'Unknown',
+                  style: textTheme.titleMedium,
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  'Status: ${request['status']!}',
+                  'Status: ${request['status'] ?? 'Unknown'}',
                   style: textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
@@ -153,7 +279,14 @@ class CaregiverRequestsView extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () {
-                        // Handle withdraw
+                        // TODO: Implement withdraw functionality
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Withdraw functionality not implemented yet',
+                            ),
+                          ),
+                        );
                       },
                       child: const Text('Withdraw'),
                     ),

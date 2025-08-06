@@ -53,4 +53,34 @@ tests {
       expect(validStatuses).to.include(user.status);
     });
   });
+
+  test("Test data includes users with different statuses", function() {
+    const users = res.getBody().data.users;
+    const statuses = users.map(user => user.status);
+    expect(statuses).to.include('active');
+    expect(statuses).to.include('pending_approval');
+    expect(statuses).to.include('blocked');
+  });
+
+  test("Test data includes all user roles", function() {
+    const users = res.getBody().data.users;
+    const roles = users.map(user => user.role);
+    expect(roles).to.include('admin');
+    expect(roles).to.include('caregiver');
+    expect(roles).to.include('family_member');
+    expect(roles).to.include('senior_citizen');
+    expect(roles).to.include('interest_group_admin');
+    expect(roles).to.include('support_user');
+  });
+
+  test("Test data includes users with all required fields", function() {
+    const users = res.getBody().data.users;
+    const firstUser = users[0];
+    expect(firstUser).to.have.property('id');
+    expect(firstUser).to.have.property('gmail_id');
+    expect(firstUser).to.have.property('full_name');
+    expect(firstUser).to.have.property('role');
+    expect(firstUser).to.have.property('status');
+    expect(firstUser).to.have.property('created_at');
+  });
 }

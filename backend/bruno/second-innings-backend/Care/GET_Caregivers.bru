@@ -35,6 +35,37 @@ tests {
       expect(caregiver).to.have.property('full_name');
       expect(caregiver).to.have.property('description');
       expect(caregiver).to.have.property('tags');
+      expect(caregiver).to.have.property('youtube_url');
     }
+  });
+
+  test("Test data includes caregivers with required fields", function() {
+    const caregivers = res.getBody().data.caregivers;
+    if (caregivers.length > 0) {
+      const caregiver = caregivers[0];
+      expect(caregiver).to.have.property('id');
+      expect(caregiver).to.have.property('full_name');
+      expect(caregiver).to.have.property('description');
+      expect(caregiver).to.have.property('tags');
+      expect(caregiver).to.have.property('youtube_url');
+    }
+  });
+
+  test("Test data includes caregivers with YouTube URLs", function() {
+    const caregivers = res.getBody().data.caregivers;
+    const caregiversWithYoutube = caregivers.filter(caregiver => caregiver.youtube_url);
+    expect(caregiversWithYoutube.length).to.be.greaterThan(0);
+  });
+
+  test("Test data includes caregivers with descriptions", function() {
+    const caregivers = res.getBody().data.caregivers;
+    const caregiversWithDescription = caregivers.filter(caregiver => caregiver.description);
+    expect(caregiversWithDescription.length).to.be.greaterThan(0);
+  });
+
+  test("Test data includes caregivers with tags", function() {
+    const caregivers = res.getBody().data.caregivers;
+    const caregiversWithTags = caregivers.filter(caregiver => caregiver.tags);
+    expect(caregiversWithTags.length).to.be.greaterThan(0);
   });
 }

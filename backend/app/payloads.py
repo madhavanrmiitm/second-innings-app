@@ -71,6 +71,12 @@ class RemoveFamilyMemberRequest(BaseModel):
     family_member_firebase_uid: str
 
 
+class LinkSeniorCitizenRequest(BaseModel):
+    id_token: str
+    senior_citizen_email: str
+    relation: str
+
+
 class CreateCareRequest(BaseModel):
     id_token: str
     caregiver_firebase_uid: str
@@ -97,6 +103,19 @@ class DeclineEngagement(BaseModel):
     id_token: str
 
 
+class RequestCaregiver(BaseModel):
+    caregiver_id: int
+    message: Optional[str] = None
+
+
+class AcceptCaregiverRequest(BaseModel):
+    request_id: int
+
+
+class RejectCaregiverRequest(BaseModel):
+    request_id: int
+
+
 class CreateTask(BaseModel):
     id_token: str
     title: str
@@ -118,14 +137,14 @@ class CreateReminder(BaseModel):
     id_token: str
     title: str
     description: Optional[str] = None
-    time: datetime
+    reminder_time: datetime
 
 
 class UpdateReminder(BaseModel):
     id_token: str
     title: Optional[str] = None
     description: Optional[str] = None
-    time: Optional[datetime] = None
+    reminder_time: Optional[datetime] = None
 
 
 class CreateInterestGroup(BaseModel):

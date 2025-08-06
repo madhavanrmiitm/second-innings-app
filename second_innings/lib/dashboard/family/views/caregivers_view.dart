@@ -5,6 +5,7 @@ import 'package:second_innings/dashboard/family/views/view_current_hired_caregiv
 import 'package:second_innings/dashboard/family/views/caregiver_requests_view.dart';
 import 'package:second_innings/widgets/feature_card.dart';
 import 'package:second_innings/widgets/user_app_bar.dart';
+import 'package:second_innings/services/care_service.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -22,6 +23,52 @@ class _CaregiversViewState extends State<CaregiversView> {
     'Half Day',
   ];
   final Set<String> _selectedFilters = {'Madras'};
+
+  List<Map<String, dynamic>> _caregivers = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCaregivers();
+  }
+
+  Future<void> _loadCaregivers() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await CareService.getCaregivers();
+
+      if (response.statusCode == 200) {
+        final caregiversData = response.data?['data']?['caregivers'] as List?;
+        if (caregiversData != null) {
+          setState(() {
+            _caregivers = caregiversData.cast<Map<String, dynamic>>();
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _caregivers = [];
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _error = response.error ?? 'Failed to load caregivers';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error loading caregivers: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +134,33 @@ class _CaregiversViewState extends State<CaregiversView> {
               ),
             ),
           ),
-          _buildCaregiverList(colorScheme, textTheme),
+          if (_isLoading)
+            const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_error != null)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(_error!, style: textTheme.bodyLarge),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadCaregivers,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            _buildCaregiverList(colorScheme, textTheme),
         ],
       ),
     );
@@ -138,29 +211,10 @@ class _CaregiversViewState extends State<CaregiversView> {
   }
 
   Widget _buildCaregiverList(ColorScheme colorScheme, TextTheme textTheme) {
-    final caregivers = [
-      {
-        'name': 'Ashwin',
-        'age': '24 yrs',
-        'gender': 'Male',
-        'desc':
-            'With over seven years of dedicated experience in elderly care, I offer compassionate and reliable support tailored to your loved one\'s unique needs.',
-        'tags': ['Physio', 'Car Drives', 'Checkups'],
-      },
-      {
-        'name': 'Madhavan',
-        'age': '31 yrs',
-        'gender': 'Male',
-        'desc':
-            'I\'m proficient in medication management, mobility assistance, and creating engaging daily routines, all while fostering a warm and respectful environment.',
-        'tags': ['Half Day', 'Checkups'],
-      },
-    ];
-
     return SliverList.builder(
-      itemCount: caregivers.length,
+      itemCount: _caregivers.length,
       itemBuilder: (context, index) {
-        final caregiver = caregivers[index] as Map<String, dynamic>;
+        final caregiver = _caregivers[index];
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -175,11 +229,14 @@ class _CaregiversViewState extends State<CaregiversView> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => CaregiverDetailsView(
-                      name: caregiver['name'] as String,
-                      age: caregiver['age'] as String,
-                      gender: caregiver['gender'] as String,
-                      desc: caregiver['desc'] as String,
-                      tags: List<String>.from(caregiver['tags'] as List),
+                      name: caregiver['full_name'] ?? 'Unknown',
+                      age: '${caregiver['age'] ?? 'N/A'} yrs',
+                      gender: caregiver['gender'] ?? 'N/A',
+                      desc:
+                          caregiver['description'] ??
+                          'No description available',
+                      tags: _parseTags(caregiver['tags']),
+                      caregiverId: caregiver['id'],
                     ),
                   ),
                 );
@@ -190,28 +247,29 @@ class _CaregiversViewState extends State<CaregiversView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      caregiver['name'] as String,
+                      caregiver['name']?.toString() ?? 'Unknown',
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${caregiver['age']} . ${caregiver['gender']}',
+                      '${caregiver['age']?.toString() ?? 'N/A'} . ${caregiver['gender']?.toString() ?? 'N/A'}',
                       style: textTheme.titleSmall,
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      caregiver['desc'] as String,
+                      caregiver['desc']?.toString() ??
+                          'No description available',
                       style: textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 16),
                     Wrap(
                       spacing: 8.0,
-                      children: (caregiver['tags'] as List<dynamic>)
+                      children: _parseTags(caregiver['tags'])
                           .map<Widget>(
                             (tag) => Chip(
-                              label: Text(tag as String),
+                              label: Text(tag),
                               backgroundColor: colorScheme.surface.withAlpha(
                                 128,
                               ),
@@ -227,5 +285,20 @@ class _CaregiversViewState extends State<CaregiversView> {
         );
       },
     );
+  }
+
+  // Parse tags - handle both string and list formats
+  List<String> _parseTags(dynamic tagsData) {
+    List<String> tags = [];
+    if (tagsData != null) {
+      if (tagsData is String) {
+        // Parse comma-separated string
+        tags = tagsData.split(',').map((tag) => tag.trim()).toList();
+      } else if (tagsData is List) {
+        // Already a list
+        tags = tagsData.cast<String>();
+      }
+    }
+    return tags;
   }
 }

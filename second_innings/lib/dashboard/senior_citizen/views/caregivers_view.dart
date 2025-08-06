@@ -4,6 +4,7 @@ import 'package:second_innings/dashboard/senior_citizen/views/caregiver_requests
 import 'package:second_innings/dashboard/senior_citizen/views/view_current_hired_caregiver_view.dart';
 import 'package:second_innings/widgets/feature_card.dart';
 import 'package:second_innings/widgets/user_app_bar.dart';
+import 'package:second_innings/services/care_service.dart';
 
 class CaregiversView extends StatefulWidget {
   const CaregiversView({super.key});
@@ -21,6 +22,52 @@ class _CaregiversViewState extends State<CaregiversView> {
     'Half Day',
   ];
   final Set<String> _selectedFilters = {'Madras'};
+
+  List<Map<String, dynamic>> _caregivers = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCaregivers();
+  }
+
+  Future<void> _loadCaregivers() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await CareService.getCaregivers();
+
+      if (response.statusCode == 200) {
+        final caregiversData = response.data?['data']?['caregivers'] as List?;
+        if (caregiversData != null) {
+          setState(() {
+            _caregivers = caregiversData.cast<Map<String, dynamic>>();
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _caregivers = [];
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _error = response.error ?? 'Failed to load caregivers';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error loading caregivers: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +94,29 @@ class _CaregiversViewState extends State<CaregiversView> {
             ),
           ),
         ),
-        _buildCaregiverList(colorScheme, textTheme),
+        if (_isLoading)
+          const SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_error != null)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text(_error!, style: textTheme.bodyLarge),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadCaregivers,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          _buildCaregiverList(colorScheme, textTheme),
       ],
     );
   }
@@ -143,40 +212,61 @@ class _CaregiversViewState extends State<CaregiversView> {
   }
 
   Widget _buildCaregiverList(ColorScheme colorScheme, TextTheme textTheme) {
-    final caregivers = [
-      {
-        'name': 'Ashwin',
-        'age': '24 yrs',
-        'gender': 'Male',
-        'desc':
-            'With over seven years of dedicated experience in elderly care, I offer compassionate and reliable support tailored to your loved one\'s unique needs.',
-        'tags': ['Physio', 'Car Drives', 'Checkups'],
-      },
-      {
-        'name': 'Madhavan',
-        'age': '31 yrs',
-        'gender': 'Male',
-        'desc':
-            'I\'m proficient in medication management, mobility assistance, and creating engaging daily routines, all while fostering a warm and respectful environment.',
-        'tags': ['Half Day', 'Checkups'],
-      },
-    ];
+    if (_caregivers.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.people_outline, size: 64, color: colorScheme.outline),
+              const SizedBox(height: 16),
+              Text(
+                'No caregivers available',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Check back later for available caregivers',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return SliverList.builder(
-      itemCount: caregivers.length,
+      itemCount: _caregivers.length,
       itemBuilder: (context, index) {
-        final caregiver = caregivers[index];
+        final caregiver = _caregivers[index];
+
+        // Parse tags - handle both string and list formats
+        List<String> tags = [];
+        final tagsData = caregiver['tags'];
+        if (tagsData != null) {
+          if (tagsData is String) {
+            // Parse comma-separated string
+            tags = tagsData.split(',').map((tag) => tag.trim()).toList();
+          } else if (tagsData is List) {
+            // Already a list
+            tags = tagsData.cast<String>();
+          }
+        }
+
         return InkWell(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => CaregiverDetailsView(
-                  name: caregiver['name'].toString(),
-                  age: caregiver['age'].toString(),
-                  gender: caregiver['gender'].toString(),
-                  desc: caregiver['desc'] as String,
-                  tags: caregiver['tags'] as List<String>,
+                  name: caregiver['full_name'] ?? 'Unknown',
+                  age: '${caregiver['age'] ?? 'N/A'} yrs',
+                  gender: caregiver['gender'] ?? 'N/A',
+                  desc: caregiver['description'] ?? 'No description available',
+                  tags: tags,
                 ),
               ),
             );
@@ -194,35 +284,37 @@ class _CaregiversViewState extends State<CaregiversView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    caregiver['name'].toString(),
+                    caregiver['full_name'] ?? 'Unknown',
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${caregiver['age']} . ${caregiver['gender']}',
+                    '${caregiver['age'] ?? 'N/A'} yrs . ${caregiver['gender'] ?? 'N/A'}',
                     style: textTheme.titleSmall,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    caregiver['desc'] as String,
+                    caregiver['description'] ?? 'No description available',
                     style: textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8.0,
-                    children: (caregiver['tags'] as List<String>)
-                        .map(
-                          (tag) => Chip(
-                            label: Text(tag),
-                            backgroundColor: colorScheme.surface.withValues(
-                              alpha: 0.5,
+                  if (tags.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8.0,
+                      children: tags
+                          .map(
+                            (tag) => Chip(
+                              label: Text(tag),
+                              backgroundColor: colorScheme.surface.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
-                          ),
-                        )
-                        .toList(),
-                  ),
+                          )
+                          .toList(),
+                    ),
+                  ],
                 ],
               ),
             ),

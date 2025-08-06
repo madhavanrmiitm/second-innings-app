@@ -1,0 +1,46 @@
+meta {
+  name: POST_LinkSeniorCitizen
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/family-members/me/link-senior-citizen
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{familyToken}}
+}
+
+body:json {
+  {
+    "id_token": "{{familyToken}}",
+    "senior_citizen_email": "senior@example.com",
+    "relation": "parent"
+  }
+}
+
+tests {
+  test("Status code is 201 or 400", function() {
+    const status = res.getStatus();
+    expect([201, 400, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 201) {
+      expect(res.getBody().message).to.contain("successfully");
+    } else if (status === 404) {
+      expect(res.getBody().message).to.contain("not found");
+    }
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+    if (res.getStatus() === 201) {
+      expect(res.getBody().data).to.have.property('link_id');
+    }
+  });
+}

@@ -1,0 +1,38 @@
+meta {
+  name: PUT_UpdateReminder
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}{{apiPrefix}}/reminders/4
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{seniorToken}}
+}
+
+body:json {
+  {
+    "id_token": "{{seniorToken}}",
+    "title": "Updated Test Reminder",
+    "description": "This is an updated test reminder",
+    "reminder_time": "2024-12-31T11:00:00Z"
+  }
+}
+
+tests {
+  test("Status code is 200 for successful reminder update", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+  });
+}

@@ -61,6 +61,423 @@ async def view_open_requests(request):
         return format_response(status_code=500, message="Internal server error.")
 
 
+async def get_caregiver_requests(request):
+    logger.info("Executing get_caregiver_requests controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered or user.role not in [
+            UserRole.FAMILY_MEMBER,
+            UserRole.SENIOR_CITIZEN,
+        ]:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only family members and senior citizens can view caregiver requests.",
+            )
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                if user.role == UserRole.FAMILY_MEMBER:
+                    # Get sent requests (requests made by this family member)
+                    cur.execute(
+                        """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at
+                           FROM care_requests cr
+                           JOIN users cg ON cr.caregiver_id = cg.id
+                           WHERE cr.made_by = %s AND cr.senior_citizen_id IS NULL""",
+                        (user.id,),
+                    )
+                    sent_requests_data = cur.fetchall()
+
+                    sent_requests = [
+                        {
+                            "id": req[0],
+                            "caregiver_id": req[1],
+                            "caregiver_name": req[2],
+                            "status": req[3],
+                            "created_at": req[4],
+                        }
+                        for req in sent_requests_data
+                    ]
+
+                    # Get received requests (requests for senior citizens linked to this family member)
+                    cur.execute(
+                        """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at
+                           FROM care_requests cr
+                           JOIN users cg ON cr.caregiver_id = cg.id
+                           JOIN relations r ON cr.senior_citizen_id = r.senior_citizen_id
+                           WHERE r.family_member_id = %s AND cr.senior_citizen_id IS NOT NULL""",
+                        (user.id,),
+                    )
+                    received_requests_data = cur.fetchall()
+
+                    received_requests = [
+                        {
+                            "id": req[0],
+                            "caregiver_id": req[1],
+                            "caregiver_name": req[2],
+                            "status": req[3],
+                            "created_at": req[4],
+                        }
+                        for req in received_requests_data
+                    ]
+                else:  # SENIOR_CITIZEN
+                    # Get sent requests (requests made by this senior citizen)
+                    cur.execute(
+                        """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at
+                           FROM care_requests cr
+                           JOIN users cg ON cr.caregiver_id = cg.id
+                           WHERE cr.made_by = %s""",
+                        (user.id,),
+                    )
+                    sent_requests_data = cur.fetchall()
+
+                    sent_requests = [
+                        {
+                            "id": req[0],
+                            "caregiver_id": req[1],
+                            "caregiver_name": req[2],
+                            "status": req[3],
+                            "created_at": req[4],
+                        }
+                        for req in sent_requests_data
+                    ]
+
+                    # Get received requests (requests for this senior citizen)
+                    cur.execute(
+                        """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at
+                           FROM care_requests cr
+                           JOIN users cg ON cr.caregiver_id = cg.id
+                           WHERE cr.senior_citizen_id = %s AND cr.made_by != %s""",
+                        (user.id, user.id),
+                    )
+                    received_requests_data = cur.fetchall()
+
+                    received_requests = [
+                        {
+                            "id": req[0],
+                            "caregiver_id": req[1],
+                            "caregiver_name": req[2],
+                            "status": req[3],
+                            "created_at": req[4],
+                        }
+                        for req in received_requests_data
+                    ]
+
+        return format_response(
+            status_code=200,
+            message="Caregiver requests retrieved successfully.",
+            data={
+                "sent_requests": sent_requests,
+                "received_requests": received_requests,
+            },
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving caregiver requests: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+
+
+async def request_caregiver(request, validated_data):
+    logger.info("Executing request_caregiver controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered or user.role not in [
+            UserRole.FAMILY_MEMBER,
+            UserRole.SENIOR_CITIZEN,
+        ]:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only family members and senior citizens can request caregivers.",
+            )
+
+        caregiver_id = validated_data.caregiver_id
+        message = validated_data.message
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Check if caregiver exists and is active
+                cur.execute(
+                    "SELECT id FROM users WHERE id = %s AND role = %s AND status = %s",
+                    (caregiver_id, UserRole.CAREGIVER, UserStatus.ACTIVE),
+                )
+                if not cur.fetchone():
+                    return format_response(
+                        status_code=404, message="Caregiver not found or not available."
+                    )
+
+                # Create care request
+                if user.role == UserRole.FAMILY_MEMBER:
+                    # Family member creates request without specific senior citizen
+                    cur.execute(
+                        """INSERT INTO care_requests (senior_citizen_id, made_by, caregiver_id, status, timing_to_visit, location, created_at)
+                           VALUES (%s, %s, %s, %s, %s, %s, NOW()) RETURNING id""",
+                        (
+                            None,  # No specific senior citizen for direct caregiver requests
+                            user.id,
+                            caregiver_id,
+                            CareRequestStatus.PENDING.value,
+                            None,  # No specific timing for direct caregiver requests
+                            "Home",  # Default location
+                        ),
+                    )
+                else:  # SENIOR_CITIZEN
+                    # Senior citizen creates request for themselves
+                    cur.execute(
+                        """INSERT INTO care_requests (senior_citizen_id, made_by, caregiver_id, status, timing_to_visit, location, created_at)
+                           VALUES (%s, %s, %s, %s, %s, %s, NOW()) RETURNING id""",
+                        (
+                            user.id,  # Senior citizen ID
+                            user.id,
+                            caregiver_id,
+                            CareRequestStatus.PENDING.value,
+                            None,  # No specific timing for direct caregiver requests
+                            "Home",  # Default location
+                        ),
+                    )
+                request_id = cur.fetchone()[0]
+
+        return format_response(
+            status_code=201,
+            message="Caregiver request created successfully.",
+            data={"request_id": request_id},
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error creating caregiver request: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+
+
+async def accept_caregiver_request(request, validated_data):
+    logger.info("Executing accept_caregiver_request controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered or user.role not in [
+            UserRole.FAMILY_MEMBER,
+            UserRole.SENIOR_CITIZEN,
+        ]:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only family members and senior citizens can accept caregiver requests.",
+            )
+
+        request_id = validated_data.request_id
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Check if request exists and user has permission to accept it
+                if user.role == UserRole.FAMILY_MEMBER:
+                    # Family member can accept requests for senior citizens they are related to
+                    cur.execute(
+                        """SELECT cr.id FROM care_requests cr
+                           JOIN relations r ON cr.senior_citizen_id = r.senior_citizen_id
+                           WHERE cr.id = %s AND r.family_member_id = %s""",
+                        (request_id, user.id),
+                    )
+                else:  # SENIOR_CITIZEN
+                    # Senior citizen can accept requests made for them
+                    cur.execute(
+                        """SELECT cr.id FROM care_requests cr
+                           WHERE cr.id = %s AND cr.senior_citizen_id = %s""",
+                        (request_id, user.id),
+                    )
+
+                if not cur.fetchone():
+                    return format_response(
+                        status_code=404,
+                        message="Caregiver request not found or access denied.",
+                    )
+
+                # Update request status to accepted
+                cur.execute(
+                    "UPDATE care_requests SET status = %s WHERE id = %s",
+                    (CareRequestStatus.ACCEPTED.value, request_id),
+                )
+
+        return format_response(
+            status_code=200,
+            message="Caregiver request accepted successfully.",
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error accepting caregiver request: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+
+
+async def reject_caregiver_request(request, validated_data):
+    logger.info("Executing reject_caregiver_request controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered or user.role not in [
+            UserRole.FAMILY_MEMBER,
+            UserRole.SENIOR_CITIZEN,
+        ]:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only family members and senior citizens can reject caregiver requests.",
+            )
+
+        request_id = validated_data.request_id
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Check if request exists and user has permission to reject it
+                if user.role == UserRole.FAMILY_MEMBER:
+                    # Family member can reject requests for senior citizens they are related to
+                    cur.execute(
+                        """SELECT cr.id FROM care_requests cr
+                           JOIN relations r ON cr.senior_citizen_id = r.senior_citizen_id
+                           WHERE cr.id = %s AND r.family_member_id = %s""",
+                        (request_id, user.id),
+                    )
+                else:  # SENIOR_CITIZEN
+                    # Senior citizen can reject requests made for them
+                    cur.execute(
+                        """SELECT cr.id FROM care_requests cr
+                           WHERE cr.id = %s AND cr.senior_citizen_id = %s""",
+                        (request_id, user.id),
+                    )
+
+                if not cur.fetchone():
+                    return format_response(
+                        status_code=404,
+                        message="Caregiver request not found or access denied.",
+                    )
+
+                # Update request status to rejected
+                cur.execute(
+                    "UPDATE care_requests SET status = %s WHERE id = %s",
+                    (CareRequestStatus.REJECTED.value, request_id),
+                )
+
+        return format_response(
+            status_code=200,
+            message="Caregiver request rejected successfully.",
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error rejecting caregiver request: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+
+
+async def get_current_caregiver(request):
+    logger.info("Executing get_current_caregiver controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered or user.role not in [
+            UserRole.FAMILY_MEMBER,
+            UserRole.SENIOR_CITIZEN,
+        ]:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only family members and senior citizens can view current caregiver.",
+            )
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                if user.role == UserRole.FAMILY_MEMBER:
+                    # Get current caregiver for senior citizens linked to this family member
+                    cur.execute(
+                        """SELECT cg.id, cg.full_name, cg.description, cg.tags
+                           FROM care_requests cr
+                           JOIN users cg ON cr.caregiver_id = cg.id
+                           JOIN relations r ON cr.senior_citizen_id = r.senior_citizen_id
+                           WHERE r.family_member_id = %s AND cr.status = %s""",
+                        (user.id, CareRequestStatus.ACCEPTED.value),
+                    )
+                else:  # SENIOR_CITIZEN
+                    # Get current caregiver for this senior citizen
+                    cur.execute(
+                        """SELECT cg.id, cg.full_name, cg.description, cg.tags
+                           FROM care_requests cr
+                           JOIN users cg ON cr.caregiver_id = cg.id
+                           WHERE cr.senior_citizen_id = %s AND cr.status = %s""",
+                        (user.id, CareRequestStatus.ACCEPTED.value),
+                    )
+
+                caregiver_data = cur.fetchone()
+
+                if not caregiver_data:
+                    return format_response(
+                        status_code=404, message="No current caregiver found."
+                    )
+
+                caregiver = {
+                    "id": caregiver_data[0],
+                    "full_name": caregiver_data[1],
+                    "description": caregiver_data[2],
+                    "tags": caregiver_data[3].split(",") if caregiver_data[3] else [],
+                }
+
+        return format_response(
+            status_code=200,
+            message="Current caregiver retrieved successfully.",
+            data=caregiver,
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving current caregiver: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+
+
 async def get_care_request(request, requestId):
     logger.info(
         f"Executing get_care_request controller logic for request ID: {requestId}."

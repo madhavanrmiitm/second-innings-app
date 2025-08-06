@@ -2,10 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/register.dart';
 import 'package:second_innings/auth/feedback_query_help_page.dart';
+import 'package:second_innings/auth/test_user_selection.dart';
 import 'package:second_innings/services/user_service.dart';
 import 'package:second_innings/dashboard/senior_citizen/senior_citizen_home.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
 import 'package:second_innings/dashboard/caregiver/caregiver_home.dart';
+import 'package:second_innings/config/test_mode_config.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -161,6 +163,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         content: Text(message),
         backgroundColor: Theme.of(context).colorScheme.error,
       ),
+    );
+  }
+
+  void _handleTestMode() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const TestUserSelectionScreen()),
     );
   }
 
@@ -355,39 +363,73 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ).colorScheme.secondaryContainer.withValues(alpha: 0.96),
               builder: (context) => Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
-                child: FilledButton.tonalIcon(
-                  onPressed: _isSigningIn ? null : _handleGoogleSignIn,
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Colors.white),
-                    padding: WidgetStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                    ),
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FilledButton.tonalIcon(
+                      onPressed: _isSigningIn ? null : _handleGoogleSignIn,
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(Colors.white),
+                        padding: WidgetStateProperty.all(
+                          const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 16,
+                          ),
+                        ),
+                        shape: WidgetStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                        ),
+                      ),
+                      icon: _isSigningIn
+                          ? const SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Image.asset(
+                              "assets/google_logo.png",
+                              width: 28,
+                              height: 28,
+                            ),
+                      iconAlignment: IconAlignment.start,
+                      label: Text(
+                        _isSigningIn ? "Signing In..." : "Continue With Google",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                  icon: _isSigningIn
-                      ? const SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Image.asset(
-                          "assets/google_logo.png",
-                          width: 28,
-                          height: 28,
+                    // Test mode button (only show when test mode is enabled)
+                    if (TestModeConfig.isTestMode) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _isSigningIn ? null : _handleTestMode,
+                        style: ButtonStyle(
+                          padding: WidgetStateProperty.all(
+                            const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 16,
+                            ),
+                          ),
+                          shape: WidgetStateProperty.all(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
                         ),
-                  iconAlignment: IconAlignment.start,
-                  label: Text(
-                    _isSigningIn ? "Signing In..." : "Continue With Google",
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                        icon: const Icon(Icons.science, size: 20),
+                        label: Text(
+                          "Test Mode",
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),

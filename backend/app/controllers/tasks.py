@@ -409,12 +409,34 @@ async def get_reminders(request):
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # Reminders are not in schema.sql, assuming they are part of tasks for now or a separate mechanism
-                # For now, returning a not implemented, as reminders are not directly mapped to a table.
-                return format_response(
-                    status_code=501,
-                    message="Reminders functionality not yet implemented in database schema.",
+                cur.execute(
+                    """SELECT id, title, description, reminder_time, status, snooze_count, created_at, updated_at
+                       FROM reminders
+                       WHERE user_id = %s
+                       ORDER BY reminder_time ASC""",
+                    (user.id,),
                 )
+                reminders_data = cur.fetchall()
+
+                reminders = [
+                    {
+                        "id": reminder[0],
+                        "title": reminder[1],
+                        "description": reminder[2],
+                        "reminder_time": reminder[3],
+                        "status": reminder[4],
+                        "snooze_count": reminder[5],
+                        "created_at": reminder[6],
+                        "updated_at": reminder[7],
+                    }
+                    for reminder in reminders_data
+                ]
+
+        return format_response(
+            status_code=200,
+            message="Reminders retrieved successfully.",
+            data={"reminders": reminders},
+        )
 
     except ValueError as e:
         logger.error(f"Authentication failed: {e}")
@@ -428,25 +450,223 @@ async def get_reminders(request):
 
 async def create_reminder(request, validated_data):
     logger.info("Executing create_reminder controller logic.")
-    return format_response(status_code=501, message="Not Implemented")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered:
+            return format_response(status_code=401, message="User not registered.")
+
+        title = validated_data.title
+        description = validated_data.description
+        reminder_time = validated_data.reminder_time
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """INSERT INTO reminders (user_id, title, description, reminder_time)
+                       VALUES (%s, %s, %s, %s)
+                       RETURNING id""",
+                    (user.id, title, description, reminder_time),
+                )
+                reminder_id = cur.fetchone()[0]
+
+        return format_response(
+            status_code=201,
+            message="Reminder created successfully.",
+            data={"reminder_id": reminder_id},
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error creating reminder: {e}")
+        return format_response(status_code=500, message="Internal server error.")
 
 
 async def update_reminder(request, reminderId, validated_data):
     logger.info(
         f"Executing update_reminder controller logic for reminder ID: {reminderId}."
     )
-    return format_response(status_code=501, message="Not Implemented")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered:
+            return format_response(status_code=401, message="User not registered.")
+
+        title = validated_data.title
+        description = validated_data.description
+        reminder_time = validated_data.reminder_time
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Verify ownership
+                cur.execute(
+                    "SELECT user_id FROM reminders WHERE id = %s", (reminderId,)
+                )
+                reminder_data = cur.fetchone()
+                if not reminder_data:
+                    return format_response(
+                        status_code=404, message="Reminder not found."
+                    )
+                if reminder_data[0] != user.id:
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only update your own reminders.",
+                    )
+
+                cur.execute(
+                    """UPDATE reminders
+                       SET title = %s, description = %s, reminder_time = %s, updated_at = CURRENT_TIMESTAMP
+                       WHERE id = %s""",
+                    (title, description, reminder_time, reminderId),
+                )
+                if cur.rowcount == 0:
+                    return format_response(
+                        status_code=404,
+                        message="Reminder not found or no changes made.",
+                    )
+
+        return format_response(
+            status_code=200, message="Reminder updated successfully."
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error updating reminder: {e}")
+        return format_response(status_code=500, message="Internal server error.")
 
 
 async def snooze_reminder(request, reminderId, validated_data):
     logger.info(
         f"Executing snooze_reminder controller logic for reminder ID: {reminderId}."
     )
-    return format_response(status_code=501, message="Not Implemented")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered:
+            return format_response(status_code=401, message="User not registered.")
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Verify ownership
+                cur.execute(
+                    "SELECT user_id, status FROM reminders WHERE id = %s", (reminderId,)
+                )
+                reminder_data = cur.fetchone()
+                if not reminder_data:
+                    return format_response(
+                        status_code=404, message="Reminder not found."
+                    )
+                if reminder_data[0] != user.id:
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only snooze your own reminders.",
+                    )
+
+                # Snooze for 15 minutes
+                cur.execute(
+                    """UPDATE reminders
+                       SET reminder_time = reminder_time + INTERVAL '15 minutes',
+                           snooze_count = snooze_count + 1,
+                           status = 'snoozed',
+                           updated_at = CURRENT_TIMESTAMP
+                       WHERE id = %s""",
+                    (reminderId,),
+                )
+                if cur.rowcount == 0:
+                    return format_response(
+                        status_code=404,
+                        message="Reminder not found or no changes made.",
+                    )
+
+        return format_response(
+            status_code=200, message="Reminder snoozed successfully."
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error snoozing reminder: {e}")
+        return format_response(status_code=500, message="Internal server error.")
 
 
 async def cancel_reminder(request, reminderId, validated_data):
     logger.info(
         f"Executing cancel_reminder controller logic for reminder ID: {reminderId}."
     )
-    return format_response(status_code=501, message="Not Implemented")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered:
+            return format_response(status_code=401, message="User not registered.")
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # Verify ownership
+                cur.execute(
+                    "SELECT user_id FROM reminders WHERE id = %s", (reminderId,)
+                )
+                reminder_data = cur.fetchone()
+                if not reminder_data:
+                    return format_response(
+                        status_code=404, message="Reminder not found."
+                    )
+                if reminder_data[0] != user.id:
+                    return format_response(
+                        status_code=403,
+                        message="Access denied. You can only cancel your own reminders.",
+                    )
+
+                cur.execute("DELETE FROM reminders WHERE id = %s", (reminderId,))
+                if cur.rowcount == 0:
+                    return format_response(
+                        status_code=404,
+                        message="Reminder not found or no changes made.",
+                    )
+
+        return format_response(
+            status_code=200, message="Reminder cancelled successfully."
+        )
+
+    except ValueError as e:
+        logger.error(f"Authentication failed: {e}")
+        return format_response(
+            status_code=401, message="Authentication failed. Invalid token."
+        )
+    except Exception as e:
+        logger.error(f"Error cancelling reminder: {e}")
+        return format_response(status_code=500, message="Internal server error.")

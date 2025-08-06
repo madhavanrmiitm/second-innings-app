@@ -1,6 +1,7 @@
 // caregiver_details_view.dart (for Senior Citizen)
 import 'package:flutter/material.dart';
 import 'package:second_innings/widgets/user_app_bar.dart';
+import 'package:second_innings/services/care_service.dart';
 
 class CaregiverDetailsView extends StatefulWidget {
   final String name;
@@ -23,6 +24,42 @@ class CaregiverDetailsView extends StatefulWidget {
 }
 
 class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
+  bool _isHiring = false;
+
+  Future<void> _hireCaregiver() async {
+    setState(() {
+      _isHiring = true;
+    });
+
+    try {
+      // For senior citizens, we'll use a placeholder caregiver ID
+      // In a real app, this would be passed from the caregiver list
+      final response = await CareService.requestCaregiver(
+        caregiverId: 5, // Placeholder - in real app this would be dynamic
+        message: 'Interested in hiring this caregiver',
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Caregiver request sent successfully!')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to send request')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error sending request: $e')));
+    } finally {
+      setState(() {
+        _isHiring = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -80,13 +117,7 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Caregiver hired successfully!"),
-                      ),
-                    );
-                  },
+                  onPressed: _isHiring ? null : _hireCaregiver,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFB5E5C1),
                     foregroundColor: Colors.black,
@@ -95,10 +126,19 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  icon: const Icon(Icons.play_arrow, size: 20),
-                  label: const Text(
-                    'Hire this Caregiver',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  icon: _isHiring
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.play_arrow, size: 20),
+                  label: Text(
+                    _isHiring ? 'Sending Request...' : 'Hire this Caregiver',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),

@@ -1,0 +1,37 @@
+meta {
+  name: POST_RejectCaregiverRequest
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/me/reject-caregiver-request
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{familyToken}}
+}
+
+body:json {
+  {
+    "request_id": 1
+  }
+}
+
+tests {
+  test("Status code is 200 for successful caregiver request rejection or 404 for not found", function() {
+    const status = res.getStatus();
+    expect([200, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 200) {
+      expect(res.getBody().message).to.contain("successfully");
+    } else if (status === 404) {
+      expect(res.getBody().message).to.contain("not found");
+    }
+  });
+}

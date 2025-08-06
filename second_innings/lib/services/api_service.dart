@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_response.dart';
 import '../config/api_config.dart';
+import '../config/test_mode_config.dart';
 
 class ApiService {
   static String get baseUrl => ApiConfig.currentBaseUrl;
@@ -14,11 +16,60 @@ class ApiService {
     'Accept': 'application/json',
   };
 
-  // GET Request
+  // Get authentication headers - Updated to handle test mode properly
+  static Future<Map<String, String>> _getAuthHeaders() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final idToken = prefs.getString('firebase_id_token');
+
+      if (idToken != null && idToken.isNotEmpty) {
+        return {..._defaultHeaders, 'Authorization': 'Bearer $idToken'};
+      }
+
+      return _defaultHeaders;
+    } catch (e) {
+      return _defaultHeaders;
+    }
+  }
+
+  // Store Firebase ID token for future API calls
+  static Future<bool> storeIdToken(String idToken) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('firebase_id_token', idToken);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Get stored Firebase ID token
+  static Future<String?> getIdToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('firebase_id_token');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Clear stored Firebase ID token (for logout)
+  static Future<bool> clearIdToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('firebase_id_token');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // GET Request with auth
   static Future<ApiResponse<Map<String, dynamic>>> get(
     String endpoint, {
     Map<String, String>? headers,
     Map<String, String>? queryParams,
+    bool requireAuth = true,
   }) async {
     try {
       Uri uri = Uri.parse('$baseUrl$endpoint');
@@ -26,8 +77,12 @@ class ApiService {
         uri = uri.replace(queryParameters: queryParams);
       }
 
+      final requestHeaders = requireAuth
+          ? await _getAuthHeaders()
+          : _defaultHeaders;
+
       final response = await http
-          .get(uri, headers: {..._defaultHeaders, ...?headers})
+          .get(uri, headers: {...requestHeaders, ...?headers})
           .timeout(timeout);
 
       return _handleResponse(response);
@@ -36,17 +91,22 @@ class ApiService {
     }
   }
 
-  // POST Request
+  // POST Request with auth
   static Future<ApiResponse<Map<String, dynamic>>> post(
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
+    bool requireAuth = true,
   }) async {
     try {
+      final requestHeaders = requireAuth
+          ? await _getAuthHeaders()
+          : _defaultHeaders;
+
       final response = await http
           .post(
             Uri.parse('$baseUrl$endpoint'),
-            headers: {..._defaultHeaders, ...?headers},
+            headers: {...requestHeaders, ...?headers},
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(timeout);
@@ -57,17 +117,22 @@ class ApiService {
     }
   }
 
-  // PUT Request
+  // PUT Request with auth
   static Future<ApiResponse<Map<String, dynamic>>> put(
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
+    bool requireAuth = true,
   }) async {
     try {
+      final requestHeaders = requireAuth
+          ? await _getAuthHeaders()
+          : _defaultHeaders;
+
       final response = await http
           .put(
             Uri.parse('$baseUrl$endpoint'),
-            headers: {..._defaultHeaders, ...?headers},
+            headers: {...requestHeaders, ...?headers},
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(timeout);
@@ -78,16 +143,21 @@ class ApiService {
     }
   }
 
-  // DELETE Request
+  // DELETE Request with auth
   static Future<ApiResponse<Map<String, dynamic>>> delete(
     String endpoint, {
     Map<String, String>? headers,
+    bool requireAuth = true,
   }) async {
     try {
+      final requestHeaders = requireAuth
+          ? await _getAuthHeaders()
+          : _defaultHeaders;
+
       final response = await http
           .delete(
             Uri.parse('$baseUrl$endpoint'),
-            headers: {..._defaultHeaders, ...?headers},
+            headers: {...requestHeaders, ...?headers},
           )
           .timeout(timeout);
 

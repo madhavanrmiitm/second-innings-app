@@ -1,8 +1,35 @@
+import 'test_mode_config.dart';
+
 class ApiConfig {
-  // API endpoints
+  // Authentication endpoints
   static const String verifyTokenEndpoint = '/api/auth/verify-token';
   static const String registerEndpoint = '/api/auth/register';
   static const String profileEndpoint = '/api/user/profile';
+
+  // Task endpoints
+  static const String tasksEndpoint = '/api/tasks';
+  static const String remindersEndpoint = '/api/reminders';
+
+  // Care endpoints
+  static const String caregiversEndpoint = '/api/caregivers';
+  static const String careRequestsEndpoint = '/api/care-requests';
+
+  // Family endpoints
+  static const String familyMembersEndpoint =
+      '/api/senior-citizens/me/family-members';
+  static const String linkedSeniorCitizensEndpoint =
+      '/api/family-members/me/linked-senior-citizens';
+  static const String linkSeniorCitizenEndpoint =
+      '/api/family-members/me/link-senior-citizen';
+
+  // Interest Group endpoints
+  static const String interestGroupsEndpoint = '/api/interest-groups';
+
+  // Notification endpoints
+  static const String notificationsEndpoint = '/api/notifications';
+
+  // Ticket endpoints
+  static const String ticketsEndpoint = '/api/tickets';
 
   // Request timeout
   static const Duration requestTimeout = Duration(seconds: 30);
@@ -23,4 +50,7 @@ class ApiConfig {
   static String get currentBaseUrl {
     return isDevelopment ? developmentUrl : productionUrl;
   }
+
+  // Check if test mode is enabled
+  static bool get isTestMode => TestModeConfig.isTestMode;
 }

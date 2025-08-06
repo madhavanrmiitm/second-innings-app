@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/services/interest_group_service.dart';
 
 class EditLocalGroupView extends StatefulWidget {
-  final Map<String, String> groupData;
-  const EditLocalGroupView({super.key, required this.groupData});
+  final String groupId;
+  final Map<String, dynamic> groupData;
+  const EditLocalGroupView({
+    super.key,
+    required this.groupId,
+    required this.groupData,
+  });
 
   @override
   State<EditLocalGroupView> createState() => _EditLocalGroupViewState();
@@ -17,12 +23,14 @@ class _EditLocalGroupViewState extends State<EditLocalGroupView> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.groupData['name']);
+    _nameController = TextEditingController(
+      text: widget.groupData['title'] ?? '',
+    );
     _descriptionController = TextEditingController(
-      text: widget.groupData['description'],
+      text: widget.groupData['description'] ?? '',
     );
     _linkController = TextEditingController(
-      text: widget.groupData['whatsapp_link'],
+      text: widget.groupData['links'] ?? '',
     );
   }
 
@@ -32,6 +40,32 @@ class _EditLocalGroupViewState extends State<EditLocalGroupView> {
     _descriptionController.dispose();
     _linkController.dispose();
     super.dispose();
+  }
+
+  Future<void> _updateGroup() async {
+    try {
+      final response = await InterestGroupService.updateInterestGroup(
+        groupId: widget.groupId,
+        title: _nameController.text,
+        description: _descriptionController.text,
+        links: _linkController.text.isNotEmpty ? _linkController.text : null,
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Group updated successfully')),
+        );
+        Navigator.pop(context, true); // Return true to indicate success
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to update group')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating group: $e')));
+    }
   }
 
   @override
@@ -101,15 +135,9 @@ class _EditLocalGroupViewState extends State<EditLocalGroupView> {
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // Handle update
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Group updated successfully!'),
-                            ),
-                          );
-                          Navigator.pop(context);
+                          await _updateGroup();
                         }
                       },
                       style: ElevatedButton.styleFrom(

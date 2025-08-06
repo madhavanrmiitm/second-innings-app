@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'api_response.dart';
 import '../config/api_config.dart';
+import '../config/test_mode_config.dart';
 
 class UserService {
   static const String _userDataKey = 'user_data';
@@ -16,12 +17,24 @@ class UserService {
     return await ApiService.post(
       ApiConfig.verifyTokenEndpoint,
       body: {'id_token': idToken},
+      requireAuth: false, // No auth header needed for token verification
     );
   }
 
   // Handle authentication flow after Google Sign-In
   static Future<AuthFlowResult> handleAuthFlow(String idToken) async {
     try {
+      // Store the ID token for future API calls
+      await ApiService.storeIdToken(idToken);
+
+      // Check if test mode is enabled and if this is a test token
+      if (ApiConfig.isTestMode) {
+        final testUser = TestModeConfig.getTestUserByToken(idToken);
+        if (testUser != null) {
+          return await handleTestAuthFlow(testUser);
+        }
+      }
+
       final response = await verifyToken(idToken);
 
       if (response.statusCode == 201) {
@@ -100,6 +113,8 @@ class UserService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_userDataKey);
       await prefs.setBool(_isLoggedInKey, false);
+      // Also clear the stored ID token
+      await ApiService.clearIdToken();
       return true;
     } catch (e) {
       debugPrint('Error clearing user data: $e');
@@ -162,6 +177,8 @@ class UserService {
     return await ApiService.post(
       ApiConfig.profileEndpoint,
       body: {'id_token': idToken},
+      requireAuth:
+          false, // No auth header needed for profile retrieval with token
     );
   }
 
@@ -202,6 +219,81 @@ class UserService {
   static Future<String?> getUserStatus() async {
     final userData = await getUserData();
     return userData?['status']?.toString();
+  }
+
+  // Test mode authentication flow
+  static Future<AuthFlowResult> handleTestAuthFlow(TestUser testUser) async {
+    try {
+      // Simulate API call to verify token
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (testUser.isUnregistered) {
+        // New user - return user info for registration
+        return AuthFlowResult.newUser(
+          gmailId: testUser.email,
+          firebaseUid: testUser.firebaseUid,
+          fullName: testUser.name,
+        );
+      } else {
+        // Existing user - store data and return success
+        final userData = testUser.toUserData();
+        await _saveUserData(userData);
+
+        // Store the test token as ID token for API calls
+        await ApiService.storeIdToken(testUser.token);
+
+        return AuthFlowResult.existingUser(userData);
+      }
+    } catch (e) {
+      return AuthFlowResult.error('Test authentication error: $e');
+    }
+  }
+
+  // Test mode token verification
+  static Future<ApiResponse<Map<String, dynamic>>> verifyTestToken(
+    String testToken,
+  ) async {
+    try {
+      // Simulate API call delay
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      final testUser = TestModeConfig.getTestUserByToken(testToken);
+      if (testUser == null) {
+        return ApiResponse<Map<String, dynamic>>(
+          statusCode: 401,
+          error: 'Invalid test token',
+        );
+      }
+
+      if (testUser.isUnregistered) {
+        // Return 201 for new user
+        return ApiResponse<Map<String, dynamic>>(
+          statusCode: 201,
+          data: {
+            'data': {
+              'user_info': {
+                'gmail_id': testUser.email,
+                'firebase_uid': testUser.firebaseUid,
+                'full_name': testUser.name,
+              },
+            },
+          },
+        );
+      } else {
+        // Return 200 for existing user
+        return ApiResponse<Map<String, dynamic>>(
+          statusCode: 200,
+          data: {
+            'data': {'user': testUser.toUserData()},
+          },
+        );
+      }
+    } catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        statusCode: 500,
+        error: 'Test token verification error: $e',
+      );
+    }
   }
 }
 

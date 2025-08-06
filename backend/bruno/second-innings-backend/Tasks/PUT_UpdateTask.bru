@@ -1,0 +1,42 @@
+meta {
+  name: PUT_UpdateTask
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}{{apiPrefix}}/tasks/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{familyToken}}
+}
+
+body:json {
+  {
+    "id_token": "{{familyToken}}",
+    "title": "Updated Task Title",
+    "description": "Updated task description",
+    "status": "in_progress"
+  }
+}
+
+tests {
+  test("Status code is 200, 400, 403, or 404", function() {
+    const status = res.getStatus();
+    expect([200, 400, 403, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 200) {
+      expect(res.getBody().message).to.contain("successfully");
+    }
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+  });
+}

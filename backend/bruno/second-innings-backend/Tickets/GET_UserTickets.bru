@@ -32,9 +32,28 @@ tests {
     if (res.getBody().data.tickets.length > 0) {
       const ticket = res.getBody().data.tickets[0];
       expect(ticket).to.have.property('id');
+      expect(ticket).to.have.property('user_id');
+      expect(ticket).to.have.property('assigned_to');
       expect(ticket).to.have.property('subject');
+      expect(ticket).to.have.property('description');
       expect(ticket).to.have.property('status');
       expect(ticket).to.have.property('created_at');
+      expect(ticket).to.have.property('resolved_at');
+    }
+  });
+
+  test("Test data includes tickets with required fields", function() {
+    const tickets = res.getBody().data.tickets;
+    if (tickets.length > 0) {
+      const ticket = tickets[0];
+      expect(ticket).to.have.property('id');
+      expect(ticket).to.have.property('user_id');
+      expect(ticket).to.have.property('assigned_to');
+      expect(ticket).to.have.property('subject');
+      expect(ticket).to.have.property('description');
+      expect(ticket).to.have.property('status');
+      expect(ticket).to.have.property('created_at');
+      expect(ticket).to.have.property('resolved_at');
     }
   });
 }

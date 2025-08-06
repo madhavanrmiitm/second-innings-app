@@ -1,0 +1,33 @@
+meta {
+  name: POST_CloseCareRequest
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/care-requests/1/close
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{familyToken}}
+}
+
+tests {
+  test("Status code is 200, 400, or 404", function() {
+    const status = res.getStatus();
+    expect([200, 400, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 200) {
+      expect(res.getBody().message).to.contain("successfully");
+    }
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+  });
+}

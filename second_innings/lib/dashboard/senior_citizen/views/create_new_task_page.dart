@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/services/task_service.dart';
 
 class CreateNewTaskPage extends StatefulWidget {
   const CreateNewTaskPage({super.key});
@@ -18,6 +19,51 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
     _dateController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _createTask() async {
+    try {
+      // Parse the date from the form format
+      final dateParts = _dateController.text.split(' / ');
+      if (dateParts.length != 3) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Invalid date format')));
+        return;
+      }
+
+      final day = int.parse(dateParts[0]);
+      final month = int.parse(dateParts[1]);
+      final year = int.parse(dateParts[2]);
+      final taskDate = DateTime(year, month, day);
+
+      // Format date for API (YYYY-MM-DD)
+      final formattedDate =
+          "${taskDate.year.toString().padLeft(4, '0')}-"
+          "${taskDate.month.toString().padLeft(2, '0')}-"
+          "${taskDate.day.toString().padLeft(2, '0')}";
+
+      final response = await TaskService.createTask(
+        title: _descriptionController.text,
+        description: _descriptionController.text,
+        timeOfCompletion: formattedDate,
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Task created successfully')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to create task')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error creating task: $e')));
+    }
   }
 
   @override
@@ -92,14 +138,17 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                       : _buildManualInputUI(context),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_isVoiceInput) {
                         // TODO: Implement voice log creation
-                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Voice input not implemented yet'),
+                          ),
+                        );
                       } else {
                         if (_formKey.currentState!.validate()) {
-                          // TODO: Implement manual log creation
-                          Navigator.pop(context);
+                          await _createTask();
                         }
                       }
                     },

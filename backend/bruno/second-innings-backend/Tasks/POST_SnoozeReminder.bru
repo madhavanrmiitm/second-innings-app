@@ -1,0 +1,35 @@
+meta {
+  name: POST_SnoozeReminder
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/reminders/4/snooze
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{seniorToken}}
+}
+
+body:json {
+  {
+    "id_token": "{{seniorToken}}"
+  }
+}
+
+tests {
+  test("Status code is 200 for successful reminder snooze", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+  });
+}
