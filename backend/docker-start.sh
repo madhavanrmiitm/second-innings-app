@@ -10,9 +10,19 @@ if ! docker info >/dev/null 2>&1; then
     exit 1
 fi
 
+# Determine the correct compose command
+if command -v docker &> /dev/null && docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    echo "❌ Neither 'docker compose' nor 'docker-compose' found. Please install Docker Compose."
+    exit 1
+fi
+
 # Build and start the services
 echo "📦 Building and starting services..."
-docker-compose up --build
+$COMPOSE_CMD up --build -d
 
 echo "✅ Services started! Your API should be available at http://localhost:8000"
 echo "📊 PostgreSQL is available at localhost:5432"

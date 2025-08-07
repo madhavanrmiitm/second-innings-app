@@ -57,57 +57,7 @@ export class TestAuthService {
         created_at: '2024-01-01T00:00:00Z'
       },
 
-      // Family Member Users
-      test_family_token_001: {
-        token: 'test_family_token_001',
-        email: 'family1@test.com',
-        name: 'Test Family Member One',
-        firebase_uid: 'test_family_uid_001',
-        role: 'family_member',
-        status: 'ACTIVE',
-        id: 5,
-        full_name: 'Test Family Member One',
-        date_of_birth: '1990-01-01',
-        created_at: '2024-01-01T00:00:00Z'
-      },
-      test_family_token_002: {
-        token: 'test_family_token_002',
-        email: 'family2@test.com',
-        name: 'Test Family Member Two',
-        firebase_uid: 'test_family_uid_002',
-        role: 'family_member',
-        status: 'ACTIVE',
-        id: 6,
-        full_name: 'Test Family Member Two',
-        date_of_birth: '1991-01-01',
-        created_at: '2024-01-01T00:00:00Z'
-      },
 
-      // Senior Citizen Users
-      test_senior_token_001: {
-        token: 'test_senior_token_001',
-        email: 'senior1@test.com',
-        name: 'Test Senior Citizen One',
-        firebase_uid: 'test_senior_uid_001',
-        role: 'senior_citizen',
-        status: 'ACTIVE',
-        id: 7,
-        full_name: 'Test Senior Citizen One',
-        date_of_birth: '1950-01-01',
-        created_at: '2024-01-01T00:00:00Z'
-      },
-      test_senior_token_002: {
-        token: 'test_senior_token_002',
-        email: 'senior2@test.com',
-        name: 'Test Senior Citizen Two',
-        firebase_uid: 'test_senior_uid_002',
-        role: 'senior_citizen',
-        status: 'ACTIVE',
-        id: 8,
-        full_name: 'Test Senior Citizen Two',
-        date_of_birth: '1951-01-01',
-        created_at: '2024-01-01T00:00:00Z'
-      },
 
       // Interest Group Admin Users
       test_groupadmin_token_001: {

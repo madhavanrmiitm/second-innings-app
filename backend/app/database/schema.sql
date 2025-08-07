@@ -25,7 +25,7 @@ CREATE TYPE care_request_status AS ENUM ('pending', 'accepted', 'rejected', 'can
 
 -- Create ENUM type for ticket status
 DROP TYPE IF EXISTS ticket_status CASCADE;
-CREATE TYPE ticket_status AS ENUM ('open', 'in_progress', 'resolved', 'closed');
+CREATE TYPE ticket_status AS ENUM ('open', 'in_progress', 'closed');
 
 -- Create ENUM type for notification type
 DROP TYPE IF EXISTS notification_type CASCADE;
@@ -152,8 +152,11 @@ CREATE TABLE tickets (
     assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
     subject VARCHAR(255) NOT NULL,
     description TEXT,
+    priority notification_priority NOT NULL DEFAULT 'medium',  -- Added
+    category VARCHAR(100),  -- Added
     status ticket_status NOT NULL DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Added
     resolved_at TIMESTAMP
 );
 
@@ -191,6 +194,10 @@ CREATE INDEX idx_interest_groups_status ON interest_groups(status);
 CREATE INDEX idx_tickets_user_id ON tickets(user_id);
 CREATE INDEX idx_tickets_assigned_to ON tickets(assigned_to);
 CREATE INDEX idx_tickets_status ON tickets(status);
+
+CREATE INDEX idx_tickets_priority ON tickets(priority);
+CREATE INDEX idx_tickets_category ON tickets(category);
+CREATE INDEX idx_tickets_updated_at ON tickets(updated_at);
 
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_notifications_type ON notifications(type);
