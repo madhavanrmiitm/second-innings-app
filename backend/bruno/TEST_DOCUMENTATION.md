@@ -43,6 +43,11 @@ bru run User --env Local
 <img width="1224" height="1914" alt="image" src="https://github.com/user-attachments/assets/fb7d9d6f-519b-48f2-8d67-a2644c563346" />
 <img width="672" height="902" alt="Screenshot 2025-08-07 at 22 42 32" src="https://github.com/user-attachments/assets/cc03c5f3-2916-45ab-bbd7-3699cb69ee77" />
 
+### Sample Code Screenshots of Tests
+
+<img width="2184" height="2132" alt="image" src="https://github.com/user-attachments/assets/24787dfe-1d05-43f8-b35d-941a2425eaae" />
+<img width="816" height="973" alt="Screenshot 2025-08-07 at 22 50 28" src="https://github.com/user-attachments/assets/ca80dcd4-ce99-4784-ac81-bb330c927a31" />
+
 
 ### Admin Tests (9 tests) - ALL PASSED
 
