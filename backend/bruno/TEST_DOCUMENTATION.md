@@ -33,6 +33,17 @@ bru run Tickets --env Local
 bru run User --env Local
 ```
 
+### Screenshots of test execution
+
+<img width="1742" height="1732" alt="image" src="https://github.com/user-attachments/assets/758af398-1e7d-424f-a577-8ca30df122e9" />
+<img width="1440" height="1920" alt="image" src="https://github.com/user-attachments/assets/a5a09c69-9011-46a0-b64c-d164812c1298" />
+<img width="1724" height="1812" alt="image" src="https://github.com/user-attachments/assets/7cc6c50e-10c4-4e53-bffa-281f461b06ab" />
+<img width="1530" height="1738" alt="image" src="https://github.com/user-attachments/assets/e1e4baa9-c124-4fef-9bce-6396a624c66a" />
+<img width="1506" height="1924" alt="image" src="https://github.com/user-attachments/assets/aa90b41c-eece-4302-bfb6-63280bbd3295" />
+<img width="1224" height="1914" alt="image" src="https://github.com/user-attachments/assets/fb7d9d6f-519b-48f2-8d67-a2644c563346" />
+<img width="672" height="902" alt="Screenshot 2025-08-07 at 22 42 32" src="https://github.com/user-attachments/assets/cc03c5f3-2916-45ab-bbd7-3699cb69ee77" />
+
+
 ### Admin Tests (9 tests) - ALL PASSED
 
 #### 1. GET_Users
