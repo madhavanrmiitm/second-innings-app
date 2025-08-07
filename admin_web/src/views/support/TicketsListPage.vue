@@ -3,7 +3,9 @@
     <div class="container-fluid">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Support Tickets</h1>
-        <button class="btn btn-success"><i class="bi bi-plus-circle me-2"></i>New Ticket</button>
+        <button @click="showCreateModal = true" class="btn btn-success">
+          <i class="bi bi-plus-circle me-2"></i>New Ticket
+        </button>
       </div>
 
       <!-- Filters -->
@@ -13,24 +15,25 @@
             <div class="col-12 col-md-4">
               <select v-model="filters.status" class="form-select" @change="updateFilters">
                 <option value="">All Status</option>
-                <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Closed">Closed</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="closed">Closed</option>
               </select>
             </div>
             <div class="col-12 col-md-4">
               <select v-model="filters.priority" class="form-select" @change="updateFilters">
                 <option value="">All Priority</option>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
               </select>
             </div>
             <div class="col-12 col-md-4">
-              <select v-model="filters.assignedTo" class="form-select" @change="updateFilters">
+              <select v-model="filters.assigned_to" class="form-select" @change="updateFilters">
                 <option value="">All Assignees</option>
-                <option value="Jane Smith">Jane Smith</option>
-                <option value="John Doe">John Doe</option>
+                <option v-for="user in assignableUsers" :key="user.id" :value="user.id">
+                  {{ user.name }}
+                </option>
               </select>
             </div>
           </div>
@@ -46,22 +49,26 @@
             :loading="ticketsStore.loading"
             empty-message="No tickets found"
           >
-            <template #cell-title="{ item }">
+            <template #cell-subject="{ item }">
               <router-link :to="`/tickets/${item.id}`" class="text-decoration-none fw-medium">
-                {{ item.title }}
+                {{ item.subject }}
               </router-link>
             </template>
 
             <template #cell-status="{ item }">
               <span :class="`badge bg-${getStatusColor(item.status)}`">
-                {{ item.status }}
+                {{ formatStatus(item.status) }}
               </span>
             </template>
 
             <template #cell-priority="{ item }">
               <span :class="`badge bg-${getPriorityColor(item.priority)}`">
-                {{ item.priority }}
+                {{ formatPriority(item.priority) }}
               </span>
+            </template>
+
+            <template #cell-assignedToName="{ item }">
+              {{ item.assignedToName || 'Unassigned' }}
             </template>
 
             <template #cell-actions="{ item }">
@@ -73,6 +80,48 @@
         </div>
       </div>
     </div>
+
+    <!-- Create Ticket Modal -->
+    <div v-if="showCreateModal" class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Create New Ticket</h5>
+            <button type="button" class="btn-close" @click="showCreateModal = false"></button>
+          </div>
+          <form @submit.prevent="createTicket">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Subject</label>
+                <input v-model="newTicket.subject" type="text" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea v-model="newTicket.description" class="form-control" rows="4" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Priority</label>
+                <select v-model="newTicket.priority" class="form-select" required>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Category</label>
+                <input v-model="newTicket.category" type="text" class="form-control" placeholder="Optional">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
+              <button type="submit" class="btn btn-primary" :disabled="ticketsStore.loading">
+                Create Ticket
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </RoleBasedLayout>
 </template>
 
@@ -81,52 +130,99 @@ import { ref, computed, onMounted } from 'vue'
 import RoleBasedLayout from '@/components/common/RoleBasedLayout.vue'
 import DataTable from '@/components/ui/DataTable.vue'
 import { useTicketsStore } from '@/stores/tickets'
+import { useToast } from 'vue-toast-notification'
 
 const ticketsStore = useTicketsStore()
+const toast = useToast()
 
+const showCreateModal = ref(false)
 const filters = ref({
   status: '',
   priority: '',
-  assignedTo: '',
+  assigned_to: '',
+})
+
+const newTicket = ref({
+  subject: '',
+  description: '',
+  priority: 'medium',
+  category: ''
 })
 
 const columns = [
   { key: 'id', label: 'ID' },
-  { key: 'title', label: 'Title' },
+  { key: 'subject', label: 'Subject' },
   { key: 'category', label: 'Category' },
   { key: 'status', label: 'Status' },
   { key: 'priority', label: 'Priority' },
-  { key: 'assignedTo', label: 'Assigned To' },
+  { key: 'assignedToName', label: 'Assigned To' },
   { key: 'createdAt', label: 'Created' },
   { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
 const filteredTickets = computed(() => ticketsStore.filteredTickets)
+const assignableUsers = computed(() => ticketsStore.assignableUsers)
+
+// Format functions
+const formatStatus = (status) => {
+  const map = {
+    'open': 'Open',
+    'in_progress': 'In Progress',
+    'closed': 'Closed'
+  }
+  return map[status] || status
+}
+
+const formatPriority = (priority) => {
+  const map = {
+    'low': 'Low',
+    'medium': 'Medium',
+    'high': 'High'
+  }
+  return map[priority] || priority
+}
 
 const getStatusColor = (status) => {
   const colors = {
-    Open: 'warning',
-    'In Progress': 'info',
-    Closed: 'success',
+    'open': 'warning',
+    'in_progress': 'info',
+    'closed': 'success'
   }
   return colors[status] || 'secondary'
 }
 
 const getPriorityColor = (priority) => {
   const colors = {
-    Low: 'secondary',
-    Medium: 'warning',
-    High: 'danger',
+    'low': 'secondary',
+    'medium': 'warning',
+    'high': 'danger'
   }
   return colors[priority] || 'secondary'
 }
 
 const updateFilters = () => {
   ticketsStore.updateFilters(filters.value)
-  ticketsStore.fetchTickets()
 }
 
-onMounted(() => {
-  ticketsStore.fetchTickets()
+const createTicket = async () => {
+  const result = await ticketsStore.createTicket(newTicket.value)
+  if (result.success) {
+    toast.success('Ticket created successfully')
+    showCreateModal.value = false
+    // Reset form
+    newTicket.value = {
+      subject: '',
+      description: '',
+      priority: 'medium',
+      category: ''
+    }
+  } else {
+    toast.error(result.error || 'Failed to create ticket')
+  }
+}
+
+onMounted(async () => {
+  await ticketsStore.fetchTickets()
+  await ticketsStore.fetchAssignableUsers()
 })
 </script>

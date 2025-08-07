@@ -177,10 +177,13 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async clearSession() {
+      // Clear store state
       this.user = null
       this.firebaseUser = null
       this.isAuthenticated = false
       this.error = null
+      
+      // Clear all localStorage items through UserService
       await UserService.clearUserData()
 
       // Clear test token if in test mode
@@ -188,6 +191,9 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('testToken')
         sessionStorage.removeItem('testToken')
       }
+      
+      // Reset any other stores that might have cached data
+      // This is important for tickets store
     },
 
     async initializeAuth() {

@@ -251,29 +251,58 @@ async def update_ticket(request, ticketId, validated_data):
                 update_fields = []
                 update_values = []
 
-                if validated_data.subject is not None:
+                # Handle subject update
+                if hasattr(validated_data, 'subject') and validated_data.subject is not None:
                     update_fields.append("subject = %s")
                     update_values.append(validated_data.subject)
                 
-                if validated_data.description is not None:
+                # Handle description update
+                if hasattr(validated_data, 'description') and validated_data.description is not None:
                     update_fields.append("description = %s")
                     update_values.append(validated_data.description)
                 
+                # Handle priority update with validation
                 if hasattr(validated_data, 'priority') and validated_data.priority is not None:
+                    # Validate priority value
+                    valid_priorities = ['low', 'medium', 'high']
+                    if validated_data.priority not in valid_priorities:
+                        return format_response(
+                            status_code=400,
+                            message=f"Invalid priority. Must be one of: {', '.join(valid_priorities)}"
+                        )
                     update_fields.append("priority = %s")
                     update_values.append(validated_data.priority)
                 
+                # Handle category update
                 if hasattr(validated_data, 'category') and validated_data.category is not None:
                     update_fields.append("category = %s")
                     update_values.append(validated_data.category)
                 
-                if validated_data.status is not None:
+                # Handle status update with validation - FIXED
+                if hasattr(validated_data, 'status') and validated_data.status is not None:
+                    # Validate status value
+                    valid_statuses = ['open', 'in_progress', 'closed']
+                    status_value = validated_data.status
+                    
+                    # Handle if it's an enum object with .value attribute or just a string
+                    if hasattr(status_value, 'value'):
+                        status_value = status_value.value
+                    
+                    # Validate the status value
+                    if status_value not in valid_statuses:
+                        return format_response(
+                            status_code=400, 
+                            message=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                        )
+                    
                     update_fields.append("status = %s")
-                    update_values.append(validated_data.status.value)
-                    # Set resolved_at when closing ticket
-                    if validated_data.status.value == 'closed' or validated_data.status.value == 'resolved':
+                    update_values.append(status_value)
+                    
+                    # Set resolved_at timestamp when closing ticket
+                    if status_value == 'closed':
                         update_fields.append("resolved_at = CURRENT_TIMESTAMP")
                 
+                # Handle assigned_to update
                 if hasattr(validated_data, 'assigned_to') and validated_data.assigned_to is not None:
                     # Verify assigned user exists and is support/admin
                     cur.execute(
@@ -293,11 +322,13 @@ async def update_ticket(request, ticketId, validated_data):
                     update_fields.append("assigned_to = %s")
                     update_values.append(validated_data.assigned_to)
 
+                # Check if there are any fields to update
                 if not update_fields:
                     return format_response(
                         status_code=400, message="No fields to update."
                     )
 
+                # Build and execute update query
                 update_values.append(ticketId)
                 update_query = f"UPDATE tickets SET {', '.join(update_fields)}, updated_at = CURRENT_TIMESTAMP WHERE id = %s"
 
@@ -316,4 +347,51 @@ async def update_ticket(request, ticketId, validated_data):
         )
     except Exception as e:
         logger.error(f"Error updating ticket: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+    
+
+
+async def get_assignable_users(request):
+    """Get users who can be assigned tickets (admin and support users)"""
+    logger.info("Executing get_assignable_users controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered:
+            return format_response(status_code=401, message="User not registered.")
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, full_name, role 
+                    FROM users 
+                    WHERE role IN ('admin', 'support_user') 
+                    AND status = 'active'
+                    ORDER BY full_name
+                """)
+                users_data = cur.fetchall()
+                
+                users = [
+                    {
+                        "id": user[0],
+                        "name": user[1],
+                        "role": user[2]
+                    }
+                    for user in users_data
+                ]
+
+        return format_response(
+            status_code=200,
+            message="Assignable users retrieved successfully.",
+            data={"users": users},
+        )
+
+    except Exception as e:
+        logger.error(f"Error retrieving assignable users: {e}")
         return format_response(status_code=500, message="Internal server error.")

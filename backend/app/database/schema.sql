@@ -202,3 +202,15 @@ CREATE INDEX idx_tickets_updated_at ON tickets(updated_at);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_notifications_type ON notifications(type);
 CREATE INDEX idx_notifications_is_read ON notifications(is_read);
+
+---Test Tickets
+
+-- Add test tickets after all table creations
+-- Insert test tickets for testing
+INSERT INTO tickets (user_id, assigned_to, subject, description, priority, category, status) VALUES
+(7, 11, 'Cannot login to account', 'Getting error message when trying to login', 'high', 'Authentication', 'open'),
+(8, 11, 'Profile not updating', 'Changes to profile are not being saved', 'medium', 'Profile', 'in_progress'),
+(7, 12, 'Notification issues', 'Not receiving any notifications', 'low', 'Notifications', 'open'),
+(9, NULL, 'App crashes on startup', 'The app crashes immediately after opening', 'high', 'Technical', 'open'),
+(10, 11, 'Request for new feature', 'Would like to have dark mode', 'low', 'Feature Request', 'closed'),
+(8, 12, 'Payment not processing', 'Credit card payment failing', 'high', 'Billing', 'in_progress');

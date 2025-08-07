@@ -1,6 +1,61 @@
 import axios from 'axios'
 import { ApiResponse } from '@/utils/apiResponse'
 import { ApiConfig } from '@/config/api'
+import { FirebaseAuthService } from '@/services/firebaseAuth'
+
+// Create axios instance with interceptors
+const axiosInstance = axios.create({
+  baseURL: ApiConfig.currentBaseUrl,
+  timeout: ApiConfig.requestTimeout,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  }
+})
+
+// Request interceptor to add auth token
+axiosInstance.interceptors.request.use(
+  async (config) => {
+    // Check for test token first
+    const testToken = localStorage.getItem('testToken')
+    if (testToken) {
+      config.headers['Authorization'] = `Bearer ${testToken}`
+      return config
+    }
+    
+    // Otherwise use Firebase token
+    try {
+      const idToken = await FirebaseAuthService.getCurrentUserIdToken()
+      if (idToken) {
+        config.headers['Authorization'] = `Bearer ${idToken}`
+      }
+    } catch (error) {
+      console.error('Failed to get auth token:', error)
+    }
+    
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// Response interceptor for 401 handling
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear all auth data
+      localStorage.removeItem('user_data')
+      localStorage.removeItem('is_logged_in')
+      localStorage.removeItem('userId')
+      localStorage.removeItem('userRole')
+      localStorage.removeItem('testToken')
+      
+      // Redirect to login
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
 
 export class ApiService {
   static get baseUrl() {
@@ -31,7 +86,8 @@ export class ApiService {
         }
       })
 
-      const response = await axios.get(url.toString(), {
+      // Changed: axios.get → axiosInstance.get
+      const response = await axiosInstance.get(url.toString(), {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
       })
@@ -45,7 +101,8 @@ export class ApiService {
   // POST Request
   static async post(endpoint, { body = null, headers = {} } = {}) {
     try {
-      const response = await axios.post(`${this.baseUrl}${endpoint}`, body, {
+      // Changed: axios.post → axiosInstance.post
+      const response = await axiosInstance.post(`${this.baseUrl}${endpoint}`, body, {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
       })
@@ -59,7 +116,8 @@ export class ApiService {
   // PUT Request
   static async put(endpoint, { body = null, headers = {} } = {}) {
     try {
-      const response = await axios.put(`${this.baseUrl}${endpoint}`, body, {
+      // Changed: axios.put → axiosInstance.put
+      const response = await axiosInstance.put(`${this.baseUrl}${endpoint}`, body, {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
       })
@@ -83,7 +141,8 @@ export class ApiService {
         config.data = body
       }
 
-      const response = await axios.delete(`${this.baseUrl}${endpoint}`, config)
+      // Changed: axios.delete → axiosInstance.delete
+      const response = await axiosInstance.delete(`${this.baseUrl}${endpoint}`, config)
 
       return this._handleResponse(response)
     } catch (error) {
