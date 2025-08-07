@@ -1,0 +1,359 @@
+(base) nakshatragupta@Nakshatras-MacBook-Air second-innings-backend % cd bruno/second-innings-backend
+bru run --env Local
+cd: no such file or directory: bruno/second-innings-backend
+(node:30529) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Admin/GET_Users (200 OK) - 64 ms
+Tests
+   ✓ Status code is 200 for successful user retrieval
+   ✓ Response has success message
+   ✓ Response contains users data
+   ✓ Each user has required fields
+   ✓ User roles are valid
+   ✓ User statuses are valid
+   ✓ Test data includes users with different statuses
+   ✓ Test data includes all user roles
+   ✓ Test data includes users with all required fields
+Admin/DELETE_User (200 OK) - 22 ms
+Tests
+   ✓ Status code is 200 for successful user deletion or 404 for not found
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Admin/GET_Caregivers (200 OK) - 11 ms
+Tests
+   ✓ Status code is 200 for successful caregiver retrieval or 403 for insufficient permissions
+   ✓ Response has appropriate message
+   ✓ Response contains caregivers data when successful
+   ✓ Each caregiver has required fields when successful
+   ✓ Caregivers are pending approval when successful
+Admin/POST_VerifyCaregiver (404 Not Found) - 13 ms
+Tests
+   ✓ Status code is 200 for successful verification or 404 for not found
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Admin/GET_InterestGroupAdmins (200 OK) - 13 ms
+Tests
+   ✓ Status code is 200 for successful interest group admin retrieval or 403 for insufficient permissions
+   ✓ Response has appropriate message
+   ✓ Response contains interest group admins data when successful
+   ✓ Each interest group admin has required fields when successful
+   ✓ Interest group admins are pending approval when successful
+Admin/GET_Tickets (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200 for successful ticket retrieval
+   ✓ Response has success message
+   ✓ Response contains tickets data
+   ✓ Each ticket has required fields
+   ✓ Ticket statuses are valid
+   ✓ Tickets are sorted by creation date (newest first)
+Admin/POST_ResolveTicket (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200, 400, or 404 for ticket resolution
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Admin/POST_VerifyInterestGroupAdmin (404 Not Found) - 13 ms
+Tests
+   ✓ Status code is 200 for successful verification or 404 for not found
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Admin/GET_TicketStats (200 OK) - 14 ms
+Tests
+   ✓ Status code is 200 for successful ticket stats retrieval
+   ✓ Response has success message
+   ✓ Response contains ticket stats data
+   ✓ Ticket stats have valid status keys
+   ✓ All counts are non-negative integers
+Auth/POST_VerifyToken (200 OK) - 3 ms
+Tests
+   ✓ Status code is 200 or 201
+   ✓ Response structure is correct for registered user (200)
+   ✓ Response structure is correct for unregistered user (201)
+Auth/POST_RegisterUser (201 Created) - 5 ms
+Tests
+   ✓ Status code is 201 for successful registration
+   ✓ Response has success message
+   ✓ Response contains user data
+   ✓ User has all required fields
+   ✓ User data matches input (Test Mode - AI processing skipped)
+Care/GET_CareRequests (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200 for successful care requests retrieval
+   ✓ Response has success message
+   ✓ Response contains care requests data
+   ✓ Each care request has required fields
+   ✓ Test data includes care requests with locations
+   ✓ Test data includes care requests with timing
+   ✓ Test data includes care requests with senior citizen information
+Care/GET_CareRequest (200 OK) - 13 ms
+Tests
+   ✓ Status code is 200 or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Care/POST_CreateCareRequest (201 Created) - 13 ms
+Tests
+   ✓ Status code is 201 or 400
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Care/GET_Caregivers (200 OK) - 11 ms
+Tests
+   ✓ Status code is 200 for successful caregivers retrieval
+   ✓ Response has success message
+   ✓ Response contains caregivers data
+   ✓ Each caregiver has required fields
+   ✓ Test data includes caregivers with required fields
+   ✓ Test data includes caregivers with YouTube URLs
+   ✓ Test data includes caregivers with descriptions
+   ✓ Test data includes caregivers with tags
+Care/PUT_UpdateCareRequest (200 OK) - 13 ms
+Tests
+   ✓ Status code is 200, 400, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Care/POST_CloseCareRequest (400 Bad Request) - 9 ms
+Tests
+   ✓ Status code is 200, 400, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Care/GET_CaregiverProfile (404 Not Found) - 10 ms
+Tests
+   ✓ Status code is 200 or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Care/POST_ApplyForRequest (400 Bad Request) - 13 ms
+Tests
+   ✓ Status code is 200, 400, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Care/GET_CaregiverRequests (200 OK) - 15 ms
+Tests
+   ✓ Status code is 200 for successful caregiver requests retrieval
+   ✓ Response has success message
+   ✓ Response contains caregiver requests data
+   ✓ Each sent request has required fields
+   ✓ Each received request has required fields
+Care/POST_AcceptEngagement (400 Bad Request) - 12 ms
+Tests
+   ✓ Status code is 200, 400, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Care/POST_DeclineEngagement (400 Bad Request) - 14 ms
+Tests
+   ✓ Status code is 200, 400, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Care/POST_RequestCaregiver (201 Created) - 14 ms
+Tests
+   ✓ Status code is 201 for successful caregiver request creation
+   ✓ Response has success message
+   ✓ Response contains request ID
+Care/POST_AcceptCaregiverRequest (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200 for successful caregiver request acceptance or 404 for not found
+   ✓ Response has appropriate message
+Care/POST_RejectCaregiverRequest (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200 for successful caregiver request rejection or 404 for not found
+   ✓ Response has appropriate message
+Care/GET_CurrentHiredCaregiver (404 Not Found) - 11 ms
+Tests
+   ✓ Status code is 200 for successful current caregiver retrieval or 404 for not found
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+   ✓ Caregiver has required fields when found
+Care/GET_CaregiverRequests_SeniorCitizen (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200 for successful caregiver requests retrieval
+   ✓ Response has success message
+   ✓ Response contains caregiver requests data
+   ✓ Each sent request has required fields
+   ✓ Each received request has required fields
+Care/POST_RequestCaregiver_SeniorCitizen (201 Created) - 14 ms
+Tests
+   ✓ Status code is 201 for successful caregiver request creation
+   ✓ Response has success message
+   ✓ Response contains request ID
+Care/GET_CurrentHiredCaregiver_SeniorCitizen (404 Not Found) - 11 ms
+Tests
+   ✓ Status code is 200 for successful current caregiver retrieval or 404 for not found
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+   ✓ Caregiver has required fields when found
+Family/GET_FamilyMembers (200 OK) - 10 ms
+Tests
+   ✓ Status code is 200 for successful family members retrieval
+   ✓ Response has success message
+   ✓ Response contains family members data
+   ✓ Each family member has required fields
+   ✓ Test data includes family members with required fields
+Family/POST_AddFamilyMember (409 Conflict) - 59 ms
+Tests
+   ✓ Status code is 201, 400, 409, or 422
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Family/DELETE_FamilyMember (200 OK) - 114 ms
+Tests
+   ✓ Status code is 200, 400, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Family/GET_LinkedSeniorCitizens (200 OK) - 10 ms
+Tests
+   ✓ Status code is 200 for successful linked senior citizens retrieval
+   ✓ Response has success message
+   ✓ Response contains linked senior citizens data
+   ✓ Each linked senior citizen has required fields
+   ✓ Test data includes linked senior citizens with required fields
+Family/POST_LinkSeniorCitizen (404 Not Found) - 11 ms
+Tests
+   ✓ Status code is 201 or 400
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+InterestGroups/GET_InterestGroups (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200 for successful interest groups retrieval
+   ✓ Response has success message
+   ✓ Response contains interest groups data
+   ✓ Each interest group has required fields
+   ✓ Test data includes interest groups with descriptions
+   ✓ Test data includes interest groups with links
+   ✓ Test data includes interest groups with different statuses
+   ✓ Test data includes interest groups with timing
+   ✓ Test data includes interest groups without timing
+InterestGroups/POST_CreateInterestGroup (201 Created) - 14 ms
+Tests
+   ✓ Status code is 201 or 400
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+InterestGroups/POST_JoinGroup (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200, 400, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+InterestGroups/PUT_UpdateInterestGroup (200 OK) - 14 ms
+Tests
+   ✓ Status code is 200, 400, 403, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+InterestGroups/POST_LeaveGroup (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200, 400, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Notifications/GET_Notifications (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200 for successful notifications retrieval
+   ✓ Response has success message
+   ✓ Response contains notifications data
+   ✓ Each notification has required fields
+   ✓ Test data includes notifications with required fields
+Notifications/POST_MarkAsRead (403 Forbidden) - 12 ms
+Tests
+   ✓ Status code is 200, 400, 403, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Root/GET_ComprehensiveTestData (200 OK) - 10 ms
+Tests
+   ✓ Comprehensive test data validation - Users
+   ✓ Test data includes specific test users
+   ✓ Test data includes users with different statuses
+Root/GET_HealthCheck (200 OK) - 8 ms
+Tests
+   ✓ Status code is 200
+Root/GET_TestDataValidation (200 OK) - 9 ms
+Tests
+   ✓ Comprehensive test data validation - Tasks
+   ✓ Test data includes tasks with valid structure
+Tasks/GET_Tasks (200 OK) - 11 ms
+Tests
+   ✓ Status code is 200 for successful tasks retrieval
+   ✓ Response has success message
+   ✓ Response contains tasks data
+   ✓ Each task has required fields
+   ✓ Task statuses are valid
+   ✓ Test data includes tasks with required fields
+Tasks/POST_CreateTask (201 Created) - 21 ms
+Tests
+   ✓ Status code is 201 or 400
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Tasks/GET_Task (403 Forbidden) - 9 ms
+Tests
+   ✓ Status code is 200, 403, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Tasks/POST_CompleteTask (403 Forbidden) - 10 ms
+Tests
+   ✓ Status code is 200, 400, 403, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Tasks/PUT_UpdateTask (200 OK) - 13 ms
+Tests
+   ✓ Status code is 200, 400, 403, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Tasks/DELETE_DeleteTask (200 OK) - 11 ms
+Tests
+   ✓ Status code is 200, 400, 403, or 404
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Tasks/GET_Reminders (200 OK) - 13 ms
+Tests
+   ✓ Status code is 200 for successful reminders retrieval
+   ✓ Response has success message
+   ✓ Response contains reminders data
+   ✓ Each reminder has required fields
+   ✓ Test data includes reminders with valid statuses
+Tasks/POST_CreateReminder (201 Created) - 13 ms
+Tests
+   ✓ Status code is 201 for successful reminder creation
+   ✓ Response has success message
+   ✓ Response contains reminder ID
+   ✓ Response structure is correct
+Tasks/PUT_UpdateReminder (200 OK) - 12 ms
+Tests
+   ✓ Status code is 200 for successful reminder update
+   ✓ Response has success message
+   ✓ Response structure is correct
+Tasks/POST_SnoozeReminder (200 OK) - 9 ms
+Tests
+   ✓ Status code is 200 for successful reminder snooze
+   ✓ Response has success message
+   ✓ Response structure is correct
+Tasks/DELETE_CancelReminder (200 OK) - 9 ms
+Tests
+   ✓ Status code is 200 for successful reminder cancellation or 404 for not found
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Tickets/GET_UserTickets (200 OK) - 10 ms
+Tests
+   ✓ Status code is 200 for successful tickets retrieval
+   ✓ Response has success message
+   ✓ Response contains tickets data
+   ✓ Each ticket has required fields
+   ✓ Test data includes tickets with required fields
+Tickets/POST_CreateTicket (201 Created) - 12 ms
+Tests
+   ✓ Status code is 201, 400, 422, or 500
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+Tickets/PUT_UpdateTicket (200 OK) - 11 ms
+Tests
+   ✓ Status code is 200, 400, 403, 404, or 500
+   ✓ Response has appropriate message
+   ✓ Response structure is correct
+User/POST_GetProfile (200 OK) - 3 ms
+Tests
+   ✓ Status code is 200 for successful profile retrieval
+   ✓ Response has success message
+   ✓ Response contains user profile data
+   ✓ User profile has all required fields
+   ✓ User has valid role
+   ✓ User has valid status
+
+Requests:    59 passed, 59 total
+Tests:       227 passed, 227 total
+Assertions:  0 passed, 0 total
+Ran all requests - 889 ms
+
+Requests:    59 passed, 59 total
+Tests:       227 passed, 227 total
+Assertions:  0 passed, 0 total

@@ -12,7 +12,7 @@ fi
 
 # Build and start the services
 echo "📦 Building and starting services..."
-docker-compose up --build
+docker compose up --build
 
 echo "✅ Services started! Your API should be available at http://localhost:8000"
 echo "📊 PostgreSQL is available at localhost:5432"
