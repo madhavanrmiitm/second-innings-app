@@ -3,13 +3,7 @@
     <div class="container-fluid">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Notifications</h1>
-        <button
-          v-if="unreadCount > 0"
-          @click="markAllAsRead"
-          class="btn btn-outline-primary btn-sm"
-        >
-          <i class="bi bi-check-all me-2"></i>Mark all as read
-        </button>
+        <!-- Mark as read button removed - notifications auto-disappear when tasks completed -->
       </div>
 
       <div class="card">
@@ -29,9 +23,8 @@
             <div
               v-for="notification in sortedNotifications"
               :key="notification.id"
-              class="list-group-item list-group-item-action"
+              class="list-group-item"
               :class="{ 'bg-light': !notification.read }"
-              @click="handleNotificationClick(notification)"
             >
               <div class="d-flex align-items-start">
                 <div
@@ -108,20 +101,7 @@ const formatTime = (timestamp) => {
   return date.toLocaleDateString()
 }
 
-const handleNotificationClick = async (notification) => {
-  if (!notification.read) {
-    await notificationsStore.markAsRead(notification.id)
-  }
-
-  // Navigate based on notification type
-  if (notification.type === 'ticket' && notification.ticketId) {
-    router.push(`/tickets/${notification.ticketId}`)
-  }
-}
-
-const markAllAsRead = async () => {
-  await notificationsStore.markAllAsRead()
-}
+// Mark as read functionality removed - notifications auto-disappear when tasks completed
 
 onMounted(() => {
   notificationsStore.fetchNotifications()

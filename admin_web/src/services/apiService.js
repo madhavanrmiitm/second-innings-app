@@ -42,16 +42,10 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Don't automatically clear session on 401 - let the app handle it
+    // This prevents premature logout during page loads
     if (error.response?.status === 401) {
-      // Clear all auth data
-      localStorage.removeItem('user_data')
-      localStorage.removeItem('is_logged_in')
-      localStorage.removeItem('userId')
-      localStorage.removeItem('userRole')
-      localStorage.removeItem('testToken')
-      
-      // Redirect to login
-      window.location.href = '/login'
+      console.warn('401 Unauthorized received:', error.config?.url)
     }
     return Promise.reject(error)
   }

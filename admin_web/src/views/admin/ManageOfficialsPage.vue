@@ -209,13 +209,8 @@ const deleteUser = async (id) => {
   }
 }
 
-onMounted(() => {
-  // Check if user is authenticated for admin operations
-  if (!adminStore.isAuthenticatedForAdmin()) {
-    console.warn('User not authenticated for admin operations')
-    return
-  }
-
+onMounted(async () => {
+  // Load users data - authentication will be handled by API calls
   adminStore.fetchUsers()
 })
 </script>

@@ -15,19 +15,44 @@ import App from './App.vue'
 import router from './router'
 import './assets/main.scss'
 
+// Firebase auth
+import { FirebaseAuthService } from './services/firebaseAuth'
+
 const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
-app.use(router)
 app.use(VueToast, {
   position: 'top-right',
   duration: 3000,
 })
 
-// Initialize auth after creating the app
+// Initialize auth store after pinia is ready
 import { useAuthStore } from './stores/auth'
-const authStore = useAuthStore()
-authStore.initializeAuth()
 
-app.mount('#app')
+// Wait for Firebase auth state to be restored before mounting the app
+const initializeApp = async () => {
+  return new Promise((resolve) => {
+    // Set a timeout to prevent infinite waiting
+    const timeout = setTimeout(() => {
+      console.log('Firebase auth state timeout, proceeding anyway')
+      resolve()
+    }, 3000)
+
+    const unsubscribe = FirebaseAuthService.onAuthStateChanged(async (user) => {
+      clearTimeout(timeout)
+      unsubscribe() // Stop listening after first state change
+      
+      // Initialize auth store with current state
+      const authStore = useAuthStore()
+      await authStore.initializeAuth()
+      
+      resolve()
+    })
+  })
+}
+
+initializeApp().then(() => {
+  app.use(router)
+  app.mount('#app')
+})
