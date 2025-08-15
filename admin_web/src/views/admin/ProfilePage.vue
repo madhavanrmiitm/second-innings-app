@@ -57,7 +57,7 @@
                 <small class="text-muted">{{ user?.email || user?.gmail_id }}</small>
               </div>
               <div v-if="isIGA" class="d-flex justify-content-between">
-                <span>Groups</span>
+                <span>Groups Managed</span>
                 <strong>{{ user?.groups_count || '0' }}</strong>
               </div>
             </div>
@@ -65,10 +65,10 @@
         </div>
 
         <div class="col-12 col-md-8">
-          <!-- Profile Form -->
+          <!-- Basic Profile Form -->
           <div class="card">
             <div class="card-header">
-              <h6 class="mb-0">Profile Information</h6>
+              <h6 class="mb-0">Basic Information</h6>
             </div>
             <div class="card-body">
               <form @submit.prevent="updateProfile">
@@ -82,7 +82,7 @@
                       required
                       :readonly="!canEditProfile"
                     />
-                    <div v-if="!canEditProfile" class="form-text text-warning">
+                    <div v-if="!canEditProfile && isIGA" class="form-text text-warning">
                       <i class="bi bi-info-circle me-1"></i>
                       Profile editing is disabled until account is approved
                     </div>
@@ -109,81 +109,6 @@
                       :readonly="!canEditProfile"
                     />
                   </div>
-
-                  <div v-if="isIGA" class="col-12">
-                    <label class="form-label">YouTube Video URL</label>
-                    <input
-                      v-model="profileForm.youtubeUrl"
-                      type="url"
-                      class="form-control"
-                      placeholder="https://youtube.com/watch?v=..."
-                      :readonly="!canEditProfile"
-                    />
-                    <div class="form-text">
-                      Your YouTube video for Interest Group Admin verification
-                    </div>
-                  </div>
-
-                  <div v-if="isIGA" class="col-12">
-                    <label class="form-label">Video Description</label>
-                    <textarea
-                      v-model="profileForm.description"
-                      class="form-control"
-                      rows="4"
-                      placeholder="Description extracted from your YouTube video..."
-                      :readonly="!canEditProfile"
-                    ></textarea>
-                    <div class="form-text">
-                      <i class="bi bi-info-circle me-1"></i>
-                      This description is automatically extracted from your YouTube video
-                    </div>
-                  </div>
-
-                  <div v-if="isIGA" class="col-12">
-                    <label class="form-label">Tags</label>
-                    <div class="input-group">
-                      <input
-                        v-model="tagsInput"
-                        type="text"
-                        class="form-control"
-                        placeholder="Add tags separated by commas..."
-                        :readonly="!canEditProfile"
-                        @keypress.enter.prevent="addTag"
-                      />
-                      <button
-                        v-if="canEditProfile && tagsInput.trim()"
-                        type="button"
-                        class="btn btn-outline-primary"
-                        @click="addTag"
-                      >
-                        Add
-                      </button>
-                    </div>
-
-                    <!-- Display Tags -->
-                    <div v-if="profileForm.tags.length > 0" class="mt-2">
-                      <span
-                        v-for="(tag, index) in profileForm.tags"
-                        :key="index"
-                        class="badge bg-primary me-2 mb-2 p-2"
-                      >
-                        {{ tag }}
-                        <button
-                          v-if="canEditProfile"
-                          type="button"
-                          class="btn-close btn-close-white ms-2"
-                          style="font-size: 0.7em"
-                          @click="removeTag(index)"
-                        ></button>
-                      </span>
-                    </div>
-
-                    <div class="form-text">
-                      <i class="bi bi-info-circle me-1"></i>
-                      Tags help categorize your interest group and are partially extracted from your
-                      YouTube video
-                    </div>
-                  </div>
                 </div>
 
                 <hr class="my-4" />
@@ -207,6 +132,76 @@
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+
+          <!-- IGA-specific Verification Information (Read-only) -->
+          <div v-if="isIGA && (user?.youtube_url || user?.description || user?.tags)" class="card mt-4">
+            <div class="card-header">
+              <h6 class="mb-0">
+                <i class="bi bi-patch-check me-2"></i>
+                Verification Information
+              </h6>
+            </div>
+            <div class="card-body">
+              <div v-if="user?.youtube_url" class="mb-3">
+                <label class="form-label">Verification Video</label>
+                <div class="input-group">
+                  <input
+                    :value="user.youtube_url"
+                    type="url"
+                    class="form-control"
+                    readonly
+                  />
+                  <a
+                    :href="user.youtube_url"
+                    target="_blank"
+                    class="btn btn-outline-primary"
+                  >
+                    <i class="bi bi-play-circle me-1"></i>
+                    Watch
+                  </a>
+                </div>
+                <div class="form-text">
+                  YouTube video submitted during registration for verification
+                </div>
+              </div>
+
+              <div v-if="user?.description" class="mb-3">
+                <label class="form-label">AI-Generated Profile</label>
+                <textarea
+                  :value="user.description"
+                  class="form-control"
+                  rows="3"
+                  readonly
+                ></textarea>
+                <div class="form-text">
+                  <i class="bi bi-robot me-1"></i>
+                  Automatically generated from your verification video
+                </div>
+              </div>
+
+              <div v-if="user?.tags" class="mb-3">
+                <label class="form-label">Activity Tags</label>
+                <div class="mt-2">
+                  <span
+                    v-for="(tag, index) in parseUserTags"
+                    :key="index"
+                    class="badge bg-primary me-2 mb-2 p-2"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+                <div class="form-text">
+                  <i class="bi bi-robot me-1"></i>
+                  Tags extracted from your verification video to categorize your interests
+                </div>
+              </div>
+
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Note:</strong> This verification information was automatically generated during your registration and cannot be edited. Contact support if you need to update your verification details.
+              </div>
             </div>
           </div>
 
@@ -255,17 +250,30 @@ const memberSince = computed(() => {
   return new Date(date).toLocaleDateString()
 })
 
+// Parse user tags for display (read-only)
+const parseUserTags = computed(() => {
+  if (!user.value?.tags) return []
+  
+  if (Array.isArray(user.value.tags)) {
+    return user.value.tags
+  }
+  
+  if (typeof user.value.tags === 'string') {
+    return user.value.tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+  }
+  
+  return []
+})
+
 const saving = ref(false)
 
 const profileForm = ref({
   fullName: '',
   dateOfBirth: '',
-  youtubeUrl: '',
-  description: '',
-  tags: [],
 })
-
-const tagsInput = ref('')
 
 // Get role display name
 const getRoleDisplayName = (role) => {
@@ -325,38 +333,9 @@ const getStatusIcon = (status) => {
 
 const initializeForm = () => {
   if (user.value) {
-    // Parse tags - handle both string and array formats
-    let parsedTags = []
-    if (user.value.tags) {
-      if (Array.isArray(user.value.tags)) {
-        parsedTags = user.value.tags
-      } else if (typeof user.value.tags === 'string') {
-        // If tags is a string, split by comma and clean up
-        parsedTags = user.value.tags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter((tag) => tag.length > 0)
-      }
-    } else if (isIGA.value) {
-      // Demo tags for IGA users if no tags exist
-      parsedTags = [
-        'Cooking',
-        'Reading',
-        'Group Activities',
-        'Entertainment',
-        'Fitness',
-        'Learning',
-      ]
-    }
-
     profileForm.value = {
       fullName: user.value.full_name || '',
       dateOfBirth: user.value.date_of_birth || '',
-      youtubeUrl: user.value.youtube_url || '',
-      description:
-        user.value.description ||
-        'Sample description extracted from your YouTube video about interest group activities, cooking tutorials, and community engagement...',
-      tags: parsedTags,
     }
   }
 }
@@ -374,13 +353,10 @@ const updateProfile = async () => {
   saving.value = true
 
   try {
-    // Update the auth store with new profile data
+    // Update only the basic editable fields
     const success = await authStore.updateProfile({
       full_name: profileForm.value.fullName,
       date_of_birth: profileForm.value.dateOfBirth,
-      youtube_url: profileForm.value.youtubeUrl,
-      description: profileForm.value.description,
-      tags: profileForm.value.tags,
     })
 
     if (success) {
@@ -394,22 +370,6 @@ const updateProfile = async () => {
   } finally {
     saving.value = false
   }
-}
-
-const addTag = () => {
-  if (canEditProfile.value && tagsInput.value.trim()) {
-    const newTags = tagsInput.value
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0 && !profileForm.value.tags.includes(tag))
-
-    profileForm.value.tags.push(...newTags)
-    tagsInput.value = ''
-  }
-}
-
-const removeTag = (index) => {
-  profileForm.value.tags.splice(index, 1)
 }
 
 onMounted(() => {

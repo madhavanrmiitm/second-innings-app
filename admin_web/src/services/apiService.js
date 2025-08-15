@@ -184,9 +184,18 @@ export class ApiService {
         })
 
       case 422:
+        // Handle validation errors with detailed messages
+        let validationError = 'Validation failed'
+        if (data?.data && Array.isArray(data.data)) {
+          // Format Pydantic validation errors
+          const errors = data.data.map(err => `${err.loc?.join('.')} ${err.msg}`).join(', ')
+          validationError = `Validation errors: ${errors}`
+        } else if (data?.message) {
+          validationError = data.message
+        }
         return ApiResponse.error({
           statusCode,
-          error: data?.error || data?.message || 'Unprocessable Entity',
+          error: validationError,
         })
 
       case 500:

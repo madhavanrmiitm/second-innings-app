@@ -70,6 +70,12 @@ const routes = [
     component: () => import('@/views/admin/InterestGroupAdminListPage.vue'),
     meta: { requiresAuth: true, role: 'admin' },
   },
+  {
+    path: '/admin/interest-groups',
+    name: 'AdminManageInterestGroups',
+    component: () => import('@/views/iga/ManageGroupsPage.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
 
   // Shared Routes (accessible to admin and support)
   {

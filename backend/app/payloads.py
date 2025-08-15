@@ -129,18 +129,18 @@ class UpdateReminder(BaseModel):
 
 
 class CreateInterestGroup(BaseModel):
-    id_token: str
     title: str
     description: Optional[str] = None
-    links: Optional[str] = None
+    whatsapp_link: Optional[str] = None
+    category: Optional[str] = None
     timing: Optional[datetime] = None
 
 
 class UpdateInterestGroup(BaseModel):
-    id_token: str
     title: Optional[str] = None
     description: Optional[str] = None
-    links: Optional[str] = None
+    whatsapp_link: Optional[str] = None
+    category: Optional[str] = None
     status: Optional[str] = None
     timing: Optional[datetime] = None
 

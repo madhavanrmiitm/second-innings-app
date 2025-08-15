@@ -25,7 +25,7 @@ services:
       DATABASE_URL: postgresql://fastapi_user:fastapi_password@db:5432/fastapi_db
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       INIT_DB_ON_STARTUP: "true"
-      TEST_MODE: "true"
+      TEST_MODE: "test"
     depends_on:
       db:
         condition: service_healthy

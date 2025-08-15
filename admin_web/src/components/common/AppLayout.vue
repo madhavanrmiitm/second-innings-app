@@ -37,7 +37,7 @@ const menuItems = computed(() => {
         { name: 'Dashboard', path: '/dashboard', icon: 'bi bi-speedometer2' },
         { name: 'Manage Officials', path: '/officials', icon: 'bi bi-people' },
         { name: 'View Tickets', path: '/tickets', icon: 'bi bi-ticket-perforated' },
-        { name: 'Interest Groups', path: '/iga/groups', icon: 'bi bi-collection' },
+        { name: 'Interest Groups', path: '/admin/interest-groups', icon: 'bi bi-collection' },
         { name: 'Caregivers', path: '/caregivers', icon: 'bi bi-heart' },
         { name: 'Interest Group Admins', path: '/admin/interest-group-admins', icon: 'bi bi-people-fill' },
         { name: 'Notifications', path: '/notifications', icon: 'bi bi-bell' },
@@ -52,7 +52,7 @@ const menuItems = computed(() => {
     case 'iga':
       return [
         { name: 'Dashboard', path: '/iga/dashboard', icon: 'bi bi-speedometer2' },
-        { name: 'My Groups', path: '/iga/groups', icon: 'bi bi-people' },
+        { name: 'Manage Groups', path: '/iga/groups', icon: 'bi bi-people' },
         { name: 'Profile', path: '/profile', icon: 'bi bi-person' },
       ]
     default:

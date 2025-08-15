@@ -57,6 +57,8 @@ VALUES ('21f3001600@ds.study.iitm.ac.in', 'qEGg9NTOjfgSaw646IhSRCXKtaZ2', 'Ashwi
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
 VALUES ('nakshatra.nsb@gmail.com', '4N2P7ZAWGPgXXoQmp2YAKXJTw253', 'Nakshatra Gupta', 'admin', 'active');
 
+
+
 -- Insert test mode users (2 per role)
 -- Admin users
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
@@ -138,7 +140,8 @@ CREATE TABLE interest_groups (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    links VARCHAR(500),
+    whatsapp_link VARCHAR(500),
+    category VARCHAR(100),
     status VARCHAR(50) DEFAULT 'active',
     timing TIMESTAMP,
     created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -205,8 +208,6 @@ CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 
 ---Test Tickets
 
--- Add test tickets after all table creations
--- Insert test tickets for testing
 INSERT INTO tickets (user_id, assigned_to, subject, description, priority, category, status) VALUES
 (7, 11, 'Cannot login to account', 'Getting error message when trying to login', 'high', 'Authentication', 'open'),
 (8, 11, 'Profile not updating', 'Changes to profile are not being saved', 'medium', 'Profile', 'in_progress'),
@@ -214,3 +215,14 @@ INSERT INTO tickets (user_id, assigned_to, subject, description, priority, categ
 (9, NULL, 'App crashes on startup', 'The app crashes immediately after opening', 'high', 'Technical', 'open'),
 (10, 11, 'Request for new feature', 'Would like to have dark mode', 'low', 'Feature Request', 'closed'),
 (8, 12, 'Payment not processing', 'Credit card payment failing', 'high', 'Billing', 'in_progress');
+
+-- Insert test interest groups
+INSERT INTO interest_groups (title, description, whatsapp_link, category, status, timing, created_by) VALUES
+('Morning Yoga & Wellness', 'Join our daily morning yoga sessions designed specifically for seniors. Improve flexibility, balance, and mental well-being.', 'https://chat.whatsapp.com/BQJVvF9M8B50Qj4xDf2a1z', 'Health', 'active', '2025-01-20 07:00:00', 11),
+('Digital Learning Circle', 'Learn to use smartphones, tablets, and the internet safely. Weekly sessions covering WhatsApp, video calls, and online banking.', 'https://chat.whatsapp.com/CRKWwG0N9C61Rk5yEg3b2A', 'Technology', 'active', '2025-01-22 15:00:00', 11),
+('Book Club Enthusiasts', 'Monthly book discussions featuring classic literature and contemporary works. Share insights and make new friends through reading.', 'https://chat.whatsapp.com/DSLXxH1O0D72Sl6zFh4c3B', 'Education', 'active', '2025-01-25 16:00:00', 12),
+('Garden Lovers Community', 'Share gardening tips, plant care advice, and seasonal growing guides. Perfect for those with green thumbs or aspiring gardeners.', 'https://chat.whatsapp.com/ETMYyI2P1E83Tm7aGi5d4C', 'Hobby', 'active', '2025-01-27 10:00:00', 12),
+('Art & Craft Workshop', 'Creative sessions including painting, pottery, and handicrafts. Express yourself through various art forms in a supportive environment.', 'https://chat.whatsapp.com/FUNZzJ3Q2F94Un8bHj6e5D', 'Arts', 'active', '2025-01-30 14:00:00', 11),
+('Walking & Fitness Group', 'Regular walking sessions in local parks and fitness activities tailored for seniors. Stay active and socialize with like-minded individuals.', 'https://chat.whatsapp.com/GVOAaK4R3G05Vo9cIk7f6E', 'Health', 'active', '2025-02-02 08:00:00', 12),
+('Cooking & Recipe Exchange', 'Share traditional recipes, cooking tips, and healthy meal ideas. Learn new cuisines and cooking techniques from fellow food enthusiasts.', 'https://chat.whatsapp.com/HWPBbL5S4H16Wp0dJl8g7F', 'Social', 'inactive', '2025-02-05 11:00:00', 11),
+('Memory Lane Stories', 'Share life experiences, historical memories, and personal stories. A safe space to connect through storytelling and reminiscence.', 'https://chat.whatsapp.com/IXQCcM6T5I27Xq1eKm9h8G', 'Social', 'active', '2025-02-08 17:00:00', 12);
