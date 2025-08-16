@@ -31,11 +31,11 @@ class LocalGroupDetailsView extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     // Add a placeholder for the WhatsApp link if it doesn't exist in the data
-    final whatsappLink = group['link']?.toString() ?? '';
+    final whatsappLink = group['whatsapp_link']?.toString() ?? '';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(group['name']?.toString() ?? 'Group Details'),
+        title: Text(group['title']?.toString() ?? 'Group Details'),
         backgroundColor: colorScheme.primaryContainer.withAlpha(204),
         elevation: 0,
       ),
@@ -45,7 +45,7 @@ class LocalGroupDetailsView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              group['name']?.toString() ?? 'Untitled Group',
+              group['title']?.toString() ?? 'Untitled Group',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,

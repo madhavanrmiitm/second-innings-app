@@ -32,6 +32,7 @@ async def get_tasks(request):
 
                 # If user is a family member and senior_citizen_id is provided, get tasks for that specific senior citizen
                 linked_senior_tasks = []
+                senior_citizen_id = None
                 if user.role == UserRole.FAMILY_MEMBER:
                     # Check if senior_citizen_id query parameter is provided
                     senior_citizen_id = request.query_params.get("senior_citizen_id")
@@ -55,7 +56,7 @@ async def get_tasks(request):
                                 linked_senior_tasks = cur.fetchall()
                         except ValueError:
                             # Invalid senior_citizen_id parameter, ignore it
-                            pass
+                            senior_citizen_id = None
 
                 # Combine and format all tasks
                 all_tasks = own_tasks

@@ -230,7 +230,7 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
                     children: [
                       Expanded(
                         child: Text(
-                          group['name'] ?? 'Untitled Group',
+                          group['title'] ?? 'Untitled Group',
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -248,7 +248,7 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          isActive ? 'ACTIVE' : 'INACTIVE',
+                          !isActive ? 'ACTIVE' : 'INACTIVE',
                           style: textTheme.bodySmall?.copyWith(
                             color: isActive
                                 ? colorScheme.onPrimary
