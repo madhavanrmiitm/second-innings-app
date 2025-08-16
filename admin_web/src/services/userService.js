@@ -50,17 +50,26 @@ export class UserService {
     }
   }
 
-  // Save user data to localStorage
-  static async _saveUserData(userData) {
-    try {
-      localStorage.setItem(this._userDataKey, JSON.stringify(userData))
-      localStorage.setItem(this._isLoggedInKey, 'true')
-      return true
-    } catch (error) {
-      console.error('Error saving user data:', error)
-      return false
+ static async _saveUserData(userData) {
+  try {
+    // Save full user object
+    localStorage.setItem(this._userDataKey, JSON.stringify(userData))
+    localStorage.setItem(this._isLoggedInKey, 'true')
+    
+    // CRITICAL: Save userId and userRole separately for easy access
+    if (userData.id) {
+      localStorage.setItem('userId', userData.id.toString())
     }
+    if (userData.role) {
+      localStorage.setItem('userRole', userData.role)
+    }
+    
+    return true
+  } catch (error) {
+    console.error('Error saving user data:', error)
+    return false
   }
+}
 
   // Get user data from localStorage
   static async getUserData() {
@@ -87,16 +96,20 @@ export class UserService {
   }
 
   // Clear user data (logout)
-  static async clearUserData() {
-    try {
-      localStorage.removeItem(this._userDataKey)
-      localStorage.removeItem(this._isLoggedInKey)
-      return true
-    } catch (error) {
-      console.error('Error clearing user data:', error)
-      return false
-    }
+static async clearUserData() {
+  try {
+    // Clear ALL user-related items
+    localStorage.removeItem(this._userDataKey)
+    localStorage.removeItem(this._isLoggedInKey)
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userRole')
+    return true
+  } catch (error) {
+    console.error('Error clearing user data:', error)
+    return false
   }
+}
+
 
   // Get specific user field
   static async getUserField(field) {
@@ -104,17 +117,19 @@ export class UserService {
     return userData?.[field]?.toString()
   }
 
-  // Update user data
-  static async updateUserData(newData) {
-    try {
-      const currentData = (await this.getUserData()) || {}
-      const updatedData = { ...currentData, ...newData }
-      return await this._saveUserData(updatedData)
-    } catch (error) {
-      console.error('Error updating user data:', error)
-      return false
-    }
+  // Update user data - also update the separate fields
+static async updateUserData(newData) {
+  try {
+    const currentData = (await this.getUserData()) || {}
+    const updatedData = { ...currentData, ...newData }
+    
+    // Use the existing _saveUserData which now handles separate fields
+    return await this._saveUserData(updatedData)
+  } catch (error) {
+    console.error('Error updating user data:', error)
+    return false
   }
+}
 
   // Fetch user profile from backend
   static async fetchUserProfile() {

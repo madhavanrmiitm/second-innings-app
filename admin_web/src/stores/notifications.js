@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { notificationsAPI } from '@/services/api'
+import { notificationsAPI } from '@/services/notificationsService'
 
 export const useNotificationsStore = defineStore('notifications', {
   state: () => ({
@@ -11,11 +11,11 @@ export const useNotificationsStore = defineStore('notifications', {
   }),
 
   getters: {
-    unreadNotifications: (state) => state.notifications.filter((n) => !n.read),
-    unreadCount: (state) => state.notifications.filter((n) => !n.read).length,
+    unreadNotifications: (state) => state.notifications.filter((n) => !n.is_read),
+    unreadCount: (state) => state.notifications.filter((n) => !n.is_read).length,
 
     sortedNotifications: (state) => {
-      return [...state.notifications].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      return [...state.notifications].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     },
 
     recentNotifications: (state) => {
@@ -30,6 +30,15 @@ export const useNotificationsStore = defineStore('notifications', {
       })
       return grouped
     },
+
+    // Separate dynamic and static notifications
+    dynamicNotifications: (state) => {
+      return state.notifications.filter((n) => n.source === 'dynamic')
+    },
+
+    staticNotifications: (state) => {
+      return state.notifications.filter((n) => n.source === 'database')
+    },
   },
 
   actions: {
@@ -37,7 +46,18 @@ export const useNotificationsStore = defineStore('notifications', {
       this.loading = true
       this.error = null
       try {
-        this.notifications = await notificationsAPI.getAll()
+        const response = await notificationsAPI.getAll()
+        // Map backend response to frontend format
+        this.notifications = response.map(notif => ({
+          id: notif.id,
+          title: this._generateTitle(notif),
+          message: notif.body || notif.message || 'No message',
+          type: notif.type || 'system',
+          priority: notif.priority || 'medium',
+          read: notif.is_read !== undefined ? notif.is_read : notif.read || false,
+          timestamp: notif.created_at || notif.timestamp || new Date().toISOString(),
+          source: notif.source || 'database'
+        }))
       } catch (error) {
         this.error = error.message
         console.error('Failed to fetch notifications:', error)
@@ -46,28 +66,30 @@ export const useNotificationsStore = defineStore('notifications', {
       }
     },
 
-    async markAsRead(id) {
-      try {
-        await notificationsAPI.markAsRead(id)
-        const notification = this.notifications.find((n) => n.id === id)
-        if (notification) {
-          notification.read = true
-        }
-      } catch (error) {
-        console.error('Failed to mark notification as read:', error)
+    _generateTitle(notif) {
+      // Generate appropriate titles based on notification type
+      switch (notif.type) {
+        case 'care_request':
+          return 'Caregiver Approval Required'
+        case 'interest_group':
+          return 'Interest Group Admin Approval'
+        case 'task':
+          return 'Task Notification'
+        case 'relation':
+          return 'Relationship Update'
+        default:
+          return 'System Notification'
       }
     },
 
+    async markAsRead(id) {
+      // Mark as read functionality disabled - notifications auto-disappear when tasks completed
+      console.log('Mark as read disabled - notifications disappear when underlying task is completed')
+    },
+
     async markAllAsRead() {
-      try {
-        const unreadIds = this.unreadNotifications.map((n) => n.id)
-        await Promise.all(unreadIds.map((id) => notificationsAPI.markAsRead(id)))
-        this.notifications.forEach((n) => {
-          if (!n.read) n.read = true
-        })
-      } catch (error) {
-        console.error('Failed to mark all as read:', error)
-      }
+      // Mark all as read functionality disabled - notifications auto-disappear when tasks completed
+      console.log('Mark all as read disabled - notifications disappear when underlying tasks are completed')
     },
 
     addNotification(notification) {

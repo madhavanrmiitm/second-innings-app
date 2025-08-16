@@ -177,10 +177,13 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async clearSession() {
+      // Clear store state
       this.user = null
       this.firebaseUser = null
       this.isAuthenticated = false
       this.error = null
+      
+      // Clear all localStorage items through UserService
       await UserService.clearUserData()
 
       // Clear test token if in test mode
@@ -188,6 +191,9 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('testToken')
         sessionStorage.removeItem('testToken')
       }
+      
+      // Reset any other stores that might have cached data
+      // This is important for tickets store
     },
 
     async initializeAuth() {
@@ -210,6 +216,45 @@ export const useAuthStore = defineStore('auth', {
               email: firebaseUser.email,
               displayName: firebaseUser.displayName,
               photoURL: firebaseUser.photoURL,
+            }
+            
+            // Verify the Firebase user matches our stored user
+            if (this.user.firebase_uid !== firebaseUser.uid) {
+              console.warn('Firebase UID mismatch, clearing session')
+              await this.clearSession()
+              return
+            }
+          } else {
+            // No Firebase user but we have stored data - might be test mode
+            if (!TestAuthService.isTestModeEnabled()) {
+              console.warn('No Firebase user found but not in test mode, clearing session')
+              await this.clearSession()
+              return
+            }
+          }
+        } else {
+          // No stored session, check if Firebase user exists (page reload scenario)
+          const firebaseUser = FirebaseAuthService.getCurrentUser()
+          if (firebaseUser && !TestAuthService.isTestModeEnabled()) {
+            // Firebase user exists but no stored session - try to restore
+            try {
+              const idToken = await FirebaseAuthService.getCurrentUserIdToken()
+              if (idToken) {
+                const authFlowResult = await UserService.handleAuthFlow(idToken)
+                if (authFlowResult.isExistingUser) {
+                  this.user = authFlowResult.userData
+                  this.firebaseUser = {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    displayName: firebaseUser.displayName,
+                    photoURL: firebaseUser.photoURL,
+                  }
+                  this.isAuthenticated = true
+                }
+              }
+            } catch (error) {
+              console.error('Failed to restore session from Firebase:', error)
+              await this.clearSession()
             }
           }
         }

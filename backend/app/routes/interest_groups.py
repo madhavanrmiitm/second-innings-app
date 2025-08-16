@@ -1,5 +1,5 @@
 from app.controllers import interest_groups as interest_groups_controller
-from app.payloads import CreateInterestGroup, TokenRequest, UpdateInterestGroup
+from app.payloads import CreateInterestGroup, UpdateInterestGroup
 from app.utils.request_validator import validate_body
 from fastapi import APIRouter, Request
 
@@ -9,6 +9,11 @@ router = APIRouter()
 @router.get("/interest-groups")
 async def get_interest_groups(request: Request):
     return await interest_groups_controller.get_interest_groups(request)
+
+
+@router.get("/interest-groups/public")
+async def get_public_interest_groups(request: Request):
+    return await interest_groups_controller.get_public_interest_groups(request)
 
 
 @router.post("/interest-groups")
@@ -34,21 +39,6 @@ async def update_interest_group(
     )
 
 
-@router.post("/interest-groups/{groupId}/join")
-@validate_body(TokenRequest)
-async def join_interest_group(
-    request: Request, groupId: int, validated_data: TokenRequest
-):
-    return await interest_groups_controller.join_interest_group(
-        request, groupId, validated_data
-    )
-
-
-@router.post("/interest-groups/{groupId}/leave")
-@validate_body(TokenRequest)
-async def leave_interest_group(
-    request: Request, groupId: int, validated_data: TokenRequest
-):
-    return await interest_groups_controller.leave_interest_group(
-        request, groupId, validated_data
-    )
+@router.delete("/interest-groups/{groupId}")
+async def delete_interest_group(request: Request, groupId: int):
+    return await interest_groups_controller.delete_interest_group(request, groupId)

@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth'
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -17,6 +17,11 @@ const app = initializeApp(firebaseConfig)
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app)
+
+// Set persistence to local storage to survive browser restarts
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.error('Failed to set Firebase auth persistence:', error)
+})
 
 // Configure Google Auth Provider
 export const googleProvider = new GoogleAuthProvider()

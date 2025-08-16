@@ -46,13 +46,13 @@
           <StatCard title="My Groups" :value="myGroups.length" icon="users" color="primary" />
         </div>
         <div class="col-12 col-sm-6 col-lg-3">
-          <StatCard title="Total Members" :value="totalMembers" icon="user-check" color="success" />
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
           <StatCard title="Active Groups" :value="activeGroupsCount" icon="bell" color="info" />
         </div>
         <div class="col-12 col-sm-6 col-lg-3">
-          <StatCard title="This Month Events" value="8" icon="ticket" color="warning" />
+          <StatCard title="Total Categories" :value="uniqueCategories" icon="grid" color="success" />
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+          <StatCard title="Upcoming Events" :value="upcomingEvents" icon="calendar" color="warning" />
         </div>
       </div>
 
@@ -135,16 +135,18 @@
                   </div>
                 </template>
 
+                <template #cell-category="{ item }">
+                  <span class="badge bg-light text-dark">{{ item.category }}</span>
+                </template>
+
                 <template #cell-status="{ item }">
-                  <span :class="`badge bg-${item.active ? 'success' : 'secondary'}`">
-                    {{ item.active ? 'Active' : 'Inactive' }}
+                  <span :class="`badge bg-${item.status === 'active' ? 'success' : 'secondary'}`">
+                    {{ item.status === 'active' ? 'Active' : 'Inactive' }}
                   </span>
                 </template>
 
-                <template #cell-members="{ item }">
-                  <div class="text-center">
-                    <strong>{{ item.members }}</strong>
-                  </div>
+                <template #cell-timing="{ item }">
+                  <small class="text-muted">{{ formatTiming(item.timing) }}</small>
                 </template>
 
                 <template #cell-actions="{ item }">
@@ -152,12 +154,18 @@
                     <button @click="manageGroup(item)" class="btn btn-outline-primary">
                       Manage
                     </button>
-                    <button @click="viewMembers(item)" class="btn btn-outline-info">Members</button>
+                    <button 
+                      v-if="item.whatsapp_link" 
+                      @click="viewWhatsApp(item)" 
+                      class="btn btn-outline-success"
+                    >
+                      WhatsApp
+                    </button>
                     <button
                       @click="toggleStatus(item)"
-                      :class="`btn btn-outline-${item.active ? 'warning' : 'success'}`"
+                      :class="`btn btn-outline-${item.status === 'active' ? 'warning' : 'success'}`"
                     >
-                      {{ item.active ? 'Pause' : 'Activate' }}
+                      {{ item.status === 'active' ? 'Pause' : 'Activate' }}
                     </button>
                   </div>
                 </template>
@@ -177,10 +185,12 @@ import StatCard from '@/components/ui/StatCard.vue'
 import DataTable from '@/components/ui/DataTable.vue'
 import { useToast } from 'vue-toast-notification'
 import { useAuthStore } from '@/stores/auth'
+import interestGroupsService from '@/services/interestGroupsService'
 
 const toast = useToast()
 const authStore = useAuthStore()
 const loading = ref(false)
+const myGroups = ref([])
 
 // User status from auth store
 const userStatus = computed(() => authStore.userStatus)
@@ -190,70 +200,65 @@ const canManageGroups = computed(() => {
   return authStore.canAccess && userStatus.value === 'active'
 })
 
-// Hardcoded groups data for current IGA
-const myGroups = ref([
-  {
-    id: 1,
-    name: 'Morning Yoga Group',
-    description: 'Daily yoga sessions for seniors',
-    category: 'health',
-    members: 25,
-    active: true,
-    createdAt: '2024-01-15',
-  },
-  {
-    id: 2,
-    name: 'Book Reading Club',
-    description: 'Weekly book discussions',
-    category: 'education',
-    members: 18,
-    active: true,
-    createdAt: '2024-02-20',
-  },
-  {
-    id: 3,
-    name: 'Garden Enthusiasts',
-    description: 'Gardening tips and plant care',
-    category: 'hobby',
-    members: 32,
-    active: false,
-    createdAt: '2024-03-10',
-  },
-  {
-    id: 4,
-    name: 'Tech Learning Circle',
-    description: 'Learn smartphones and internet',
-    category: 'technology',
-    members: 15,
-    active: true,
-    createdAt: '2024-04-05',
-  },
-])
-
 const columns = [
   { key: 'group', label: 'Group' },
   { key: 'category', label: 'Category' },
-  { key: 'members', label: 'Members' },
   { key: 'status', label: 'Status' },
+  { key: 'timing', label: 'Next Event' },
   { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
-const totalMembers = computed(() =>
-  myGroups.value.reduce((total, group) => total + group.members, 0),
+const totalMembers = computed(() => {
+  // For MVP, we don't track membership, so this is placeholder
+  return myGroups.value.length * 15 // Estimated average
+})
+
+const activeGroupsCount = computed(() => 
+  myGroups.value.filter((g) => g.status === 'active').length
 )
 
-const activeGroupsCount = computed(() => myGroups.value.filter((g) => g.active).length)
+const uniqueCategories = computed(() => {
+  const categories = new Set(myGroups.value.map(g => g.category).filter(Boolean))
+  return categories.size
+})
+
+const upcomingEvents = computed(() => {
+  const now = new Date()
+  return myGroups.value.filter(g => {
+    if (!g.timing) return false
+    const eventDate = new Date(g.timing)
+    return eventDate > now && g.status === 'active'
+  }).length
+})
 
 const getGroupIcon = (category) => {
-  const icons = {
-    health: 'heart',
-    education: 'book',
-    hobby: 'palette',
-    technology: 'laptop',
-    sports: 'trophy',
-    social: 'people',
+  return interestGroupsService.getCategoryIcon(category)
+}
+
+// Load interest groups from API
+const loadInterestGroups = async () => {
+  loading.value = true
+  try {
+    const response = await interestGroupsService.getInterestGroups()
+    // API returns { data: { interest_groups: [...] } }
+    const groups = response.data?.interest_groups || response.interest_groups || []
+    myGroups.value = groups.map(group => ({
+      id: group.id,
+      name: group.title,
+      description: group.description,
+      category: group.category || 'Other',
+      whatsapp_link: group.whatsapp_link,
+      status: group.status,
+      timing: group.timing,
+      created_at: group.created_at,
+      updated_at: group.updated_at
+    }))
+  } catch (error) {
+    console.error('Failed to load interest groups:', error)
+    toast.error('Failed to load interest groups')
+  } finally {
+    loading.value = false
   }
-  return icons[category] || 'circle'
 }
 
 // Initialize component and refresh user profile
@@ -262,6 +267,9 @@ onMounted(async () => {
   loading.value = true
   try {
     await authStore.refreshUserProfile()
+    if (canManageGroups.value) {
+      await loadInterestGroups()
+    }
   } catch (error) {
     console.error('Failed to refresh user profile:', error)
     toast.error('Failed to refresh user status')
@@ -271,20 +279,44 @@ onMounted(async () => {
 })
 
 const createGroup = () => {
-  toast.info('Create new group functionality coming soon')
+  // Navigate to create group page or open modal
+  window.location.href = '/iga/groups'
 }
 
 const manageGroup = (group) => {
-  toast.info(`Managing group: ${group.name}`)
+  // Navigate to manage group page
+  window.location.href = `/iga/groups?edit=${group.id}`
 }
 
-const viewMembers = (group) => {
-  toast.info(`Viewing ${group.members} members of ${group.name}`)
+const viewWhatsApp = (group) => {
+  if (group.whatsapp_link) {
+    window.open(group.whatsapp_link, '_blank')
+  } else {
+    toast.warning('No WhatsApp link available for this group')
+  }
 }
 
-const toggleStatus = (group) => {
-  group.active = !group.active
-  const status = group.active ? 'activated' : 'paused'
-  toast.success(`Group ${group.name} has been ${status}`)
+const toggleStatus = async (group) => {
+  try {
+    const newStatus = group.status === 'active' ? 'inactive' : 'active'
+    
+    await interestGroupsService.updateInterestGroup(group.id, {
+      status: newStatus
+    })
+    
+    // Only update local state and show success if API call succeeded
+    group.status = newStatus
+    const statusText = newStatus === 'active' ? 'activated' : 'deactivated'
+    toast.success(`Group ${group.name} has been ${statusText}`)
+  } catch (error) {
+    console.error('Failed to toggle group status:', error)
+    // Show specific error message if available
+    const errorMessage = error.response?.data?.message || 'Failed to update group status'
+    toast.error(errorMessage)
+  }
+}
+
+const formatTiming = (timing) => {
+  return interestGroupsService.formatTiming(timing)
 }
 </script>

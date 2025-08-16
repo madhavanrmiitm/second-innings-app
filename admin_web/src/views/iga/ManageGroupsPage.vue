@@ -1,58 +1,80 @@
 <template>
-  <AppLayout>
+  <RoleBasedLayout>
     <div class="container-fluid">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Manage Interest Groups</h1>
-        <button class="btn btn-success" @click="showAddModal = true">
+        <button class="btn btn-success" @click="showAddModal = true" :disabled="loading">
           <i class="bi bi-plus-circle me-2"></i>Add Group
         </button>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
       <!-- Groups Grid -->
-      <div class="row g-4">
+      <div v-else class="row g-4">
+        <div v-if="groups.length === 0" class="col-12">
+          <div class="card">
+            <div class="card-body text-center py-5">
+              <i class="bi bi-collection text-muted" style="font-size: 3rem"></i>
+              <h5 class="mt-3 text-muted">No Interest Groups Found</h5>
+              <p class="text-muted">Create your first interest group to get started!</p>
+              <button class="btn btn-success" @click="showAddModal = true">
+                <i class="bi bi-plus-circle me-2"></i>Add Your First Group
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div v-for="group in groups" :key="group.id" class="col-12 col-md-6 col-lg-4">
           <div class="card h-100">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
-                <h5 class="card-title">{{ group.name }}</h5>
-                <span :class="`badge bg-${group.active ? 'success' : 'secondary'}`">
-                  {{ group.active ? 'Active' : 'Inactive' }}
+                <h5 class="card-title">{{ group.title }}</h5>
+                <span :class="`badge bg-${group.status === 'active' ? 'success' : 'secondary'}`">
+                  {{ group.status === 'active' ? 'Active' : 'Inactive' }}
                 </span>
               </div>
 
-              <p class="card-text text-muted">{{ group.description }}</p>
+              <p class="card-text text-muted">{{ group.description || 'No description provided' }}</p>
 
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <small class="text-muted">
-                  <i class="bi bi-people me-1"></i>
-                  {{ group.members }} members
-                </small>
+              <div v-if="group.category" class="mb-3">
+                <span class="badge bg-light text-dark">
+                  <i :class="`bi bi-${getCategoryIcon(group.category)} me-1`"></i>
+                  {{ group.category }}
+                </span>
+              </div>
+
+              <div v-if="group.timing" class="mb-3">
                 <small class="text-muted">
                   <i class="bi bi-calendar-event me-1"></i>
-                  {{ group.events }} events
+                  {{ formatTiming(group.timing) }}
                 </small>
               </div>
 
-              <div class="mb-3">
-                <small class="text-muted d-block mb-1">Admin:</small>
-                <div class="d-flex align-items-center">
-                  <img
-                    :src="`https://ui-avatars.com/api/?name=${group.admin}`"
-                    :alt="group.admin"
-                    class="avatar-sm me-2"
-                  />
-                  <span>{{ group.admin }}</span>
-                </div>
+              <div v-if="group.whatsapp_link" class="mb-3">
+                <a 
+                  :href="group.whatsapp_link" 
+                  target="_blank" 
+                  class="btn btn-sm btn-success w-100"
+                >
+                  <i class="bi bi-whatsapp me-1"></i>Join WhatsApp Group
+                </a>
               </div>
 
               <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-outline-primary" @click="editGroup(group)">
                   <i class="bi bi-pencil me-1"></i>Edit
                 </button>
-                <button class="btn btn-sm btn-outline-info">
-                  <i class="bi bi-eye me-1"></i>View
-                </button>
-                <button class="btn btn-sm btn-outline-danger" @click="deleteGroup(group)">
+                <button 
+                  class="btn btn-sm btn-outline-danger" 
+                  @click="deleteGroup(group)"
+                  :disabled="deleting === group.id"
+                >
                   <i class="bi bi-trash me-1"></i>Delete
                 </button>
               </div>
@@ -79,173 +101,245 @@
           <form @submit.prevent="saveGroup">
             <div class="modal-body">
               <div class="mb-3">
-                <label class="form-label">Group Name</label>
-                <input v-model="formData.name" type="text" class="form-control" required />
+                <label class="form-label">Group Name <span class="text-danger">*</span></label>
+                <input 
+                  v-model="formData.title" 
+                  type="text" 
+                  class="form-control" 
+                  required 
+                  maxlength="255"
+                />
               </div>
+              
               <div class="mb-3">
                 <label class="form-label">Description</label>
                 <textarea
                   v-model="formData.description"
                   class="form-control"
                   rows="3"
-                  required
+                  placeholder="Describe what this group is about..."
                 ></textarea>
               </div>
+              
               <div class="mb-3">
                 <label class="form-label">Category</label>
-                <select v-model="formData.category" class="form-select" required>
+                <select v-model="formData.category" class="form-select">
                   <option value="">Select Category</option>
-                  <option value="sports">Sports & Fitness</option>
-                  <option value="arts">Arts & Culture</option>
-                  <option value="tech">Technology</option>
-                  <option value="social">Social Activities</option>
+                  <option v-for="cat in categories" :key="cat.value" :value="cat.value">
+                    {{ cat.label }}
+                  </option>
                 </select>
               </div>
+
               <div class="mb-3">
-                <label class="form-label">Admin</label>
-                <select v-model="formData.adminId" class="form-select" required>
-                  <option value="">Select Admin</option>
-                  <option value="1">John Doe</option>
-                  <option value="2">Jane Smith</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <div class="form-check">
-                  <input
-                    v-model="formData.active"
-                    type="checkbox"
-                    class="form-check-input"
-                    id="activeCheck"
-                  />
-                  <label class="form-check-label" for="activeCheck"> Active </label>
+                <label class="form-label">WhatsApp Group Link</label>
+                <input 
+                  v-model="formData.whatsapp_link" 
+                  type="url" 
+                  class="form-control" 
+                  placeholder="https://chat.whatsapp.com/..."
+                />
+                <div class="form-text">
+                  Optional: Link to the WhatsApp group for this community
+                </div>
+                <div v-if="whatsappLinkError" class="text-danger small">
+                  {{ whatsappLinkError }}
                 </div>
               </div>
+
+              <div class="mb-3">
+                <label class="form-label">Next Event/Meeting Time</label>
+                <input 
+                  v-model="formData.timing" 
+                  type="datetime-local" 
+                  class="form-control" 
+                />
+                <div class="form-text">
+                  Optional: When is the next scheduled activity?
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select v-model="formData.status" class="form-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
             </div>
+            
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
-              <button type="submit" class="btn btn-success" :disabled="saving">
+              <button type="button" class="btn btn-secondary" @click="closeModal">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary" :disabled="saving">
                 <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
-                {{ showEditModal ? 'Update' : 'Create' }} Group
+                {{ showEditModal ? 'Update Group' : 'Create Group' }}
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
-    <div
-      v-if="showAddModal || showEditModal"
+
+    <!-- Modal Backdrop -->
+    <div 
+      v-if="showAddModal || showEditModal" 
       class="modal-backdrop fade show"
       @click="closeModal"
     ></div>
-  </AppLayout>
+  </RoleBasedLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import AppLayout from '@/components/common/AppLayout.vue'
+import { ref, onMounted, computed } from 'vue'
+import RoleBasedLayout from '@/components/common/RoleBasedLayout.vue'
 import { useToast } from 'vue-toast-notification'
+import interestGroupsService from '@/services/interestGroupsService'
 
 const toast = useToast()
 
+// State
+const loading = ref(false)
+const saving = ref(false)
+const deleting = ref(null)
+const groups = ref([])
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const saving = ref(false)
 
-const groups = ref([
-  {
-    id: 1,
-    name: 'Morning Walkers',
-    description: 'Daily morning walks in the park for health and socializing',
-    category: 'sports',
-    members: 45,
-    events: 120,
-    admin: 'John Doe',
-    active: true,
-  },
-  {
-    id: 2,
-    name: 'Book Club',
-    description: 'Monthly book discussions and literary activities',
-    category: 'arts',
-    members: 28,
-    events: 24,
-    admin: 'Jane Smith',
-    active: true,
-  },
-  {
-    id: 3,
-    name: 'Tech Seniors',
-    description: 'Learning and exploring technology together',
-    category: 'tech',
-    members: 32,
-    events: 48,
-    admin: 'Mike Johnson',
-    active: false,
-  },
-])
+// Get categories from service
+const categories = computed(() => interestGroupsService.getCategories())
 
+// Form data
 const formData = ref({
-  name: '',
+  id: null,
+  title: '',
   description: '',
   category: '',
-  adminId: '',
-  active: true,
+  whatsapp_link: '',
+  timing: '',
+  status: 'active'
 })
 
-const editGroup = (group) => {
-  formData.value = { ...group }
-  showEditModal.value = true
+// Validation
+const whatsappLinkError = computed(() => {
+  if (!formData.value.whatsapp_link) return null
+  if (!interestGroupsService.validateWhatsAppLink(formData.value.whatsapp_link)) {
+    return 'WhatsApp link must be in format: https://chat.whatsapp.com/...'
+  }
+  return null
+})
+
+// Helper functions
+const getCategoryIcon = (category) => {
+  return interestGroupsService.getCategoryIcon(category)
 }
 
-const deleteGroup = (group) => {
-  if (confirm(`Are you sure you want to delete "${group.name}"?`)) {
-    groups.value = groups.value.filter((g) => g.id !== group.id)
-    toast.success('Group deleted successfully')
+const formatTiming = (timing) => {
+  return interestGroupsService.formatTiming(timing)
+}
+
+// Load groups from API
+const loadGroups = async () => {
+  loading.value = true
+  try {
+    const response = await interestGroupsService.getInterestGroups()
+    // API returns { data: { interest_groups: [...] } }
+    groups.value = response.data?.interest_groups || response.interest_groups || []
+  } catch (error) {
+    console.error('Failed to load groups:', error)
+    toast.error('Failed to load interest groups')
+  } finally {
+    loading.value = false
   }
 }
 
+// Initialize
+onMounted(() => {
+  loadGroups()
+})
+
+// Modal functions
 const closeModal = () => {
   showAddModal.value = false
   showEditModal.value = false
   formData.value = {
-    name: '',
+    id: null,
+    title: '',
     description: '',
     category: '',
-    adminId: '',
-    active: true,
+    whatsapp_link: '',
+    timing: '',
+    status: 'active'
   }
 }
 
-const saveGroup = async () => {
-  saving.value = true
+// CRUD Operations
+const editGroup = (group) => {
+  formData.value = {
+    id: group.id,
+    title: group.title,
+    description: group.description || '',
+    category: group.category || '',
+    whatsapp_link: group.whatsapp_link || '',
+    timing: group.timing ? new Date(group.timing).toISOString().slice(0, 16) : '',
+    status: group.status || 'active'
+  }
+  showEditModal.value = true
+}
 
+const saveGroup = async () => {
+  if (whatsappLinkError.value) {
+    toast.error(whatsappLinkError.value)
+    return
+  }
+
+  saving.value = true
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const groupData = {
+      title: formData.value.title,
+      description: formData.value.description,
+      category: formData.value.category,
+      whatsapp_link: formData.value.whatsapp_link,
+      timing: formData.value.timing ? new Date(formData.value.timing).toISOString() : null,
+      status: formData.value.status
+    }
 
     if (showEditModal.value) {
       // Update existing group
-      const index = groups.value.findIndex((g) => g.id === formData.value.id)
-      if (index !== -1) {
-        groups.value[index] = { ...formData.value }
-      }
+      await interestGroupsService.updateInterestGroup(formData.value.id, groupData)
       toast.success('Group updated successfully')
     } else {
-      // Add new group
-      groups.value.push({
-        ...formData.value,
-        id: Date.now(),
-        members: 0,
-        events: 0,
-        admin: 'New Admin',
-      })
+      // Create new group
+      await interestGroupsService.createInterestGroup(groupData)
       toast.success('Group created successfully')
     }
 
     closeModal()
+    await loadGroups()
   } catch (error) {
-    toast.error('Operation failed')
+    console.error('Failed to save group:', error)
+    toast.error(error.response?.data?.message || 'Failed to save group')
   } finally {
     saving.value = false
+  }
+}
+
+const deleteGroup = async (group) => {
+  if (!confirm(`Are you sure you want to delete "${group.title}"? This action cannot be undone.`)) {
+    return
+  }
+
+  deleting.value = group.id
+  try {
+    await interestGroupsService.deleteInterestGroup(group.id)
+    toast.success('Group deleted successfully')
+    await loadGroups()
+  } catch (error) {
+    console.error('Failed to delete group:', error)
+    toast.error(error.response?.data?.message || 'Failed to delete group')
+  } finally {
+    deleting.value = null
   }
 }
 </script>

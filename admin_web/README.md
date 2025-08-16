@@ -153,7 +153,9 @@ src/
 │   ├── testAuthService.js # Test mode authentication service
 │   ├── adminService.js  # Admin-specific API services
 │   ├── userService.js   # User management and profile service
-│   └── mockData.js      # Development mock data
+│   ├── officialsService.js # Officials management API services
+│   ├── notificationsService.js # Notifications API services
+│   └── ticketsService.js # Tickets API services
 ├── stores/
 │   ├── auth.js          # Authentication state management
 │   ├── notifications.js # Notification state
