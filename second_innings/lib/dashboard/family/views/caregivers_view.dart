@@ -70,215 +70,321 @@ class _CaregiversViewState extends State<CaregiversView> {
     }
   }
 
+  Future<void> _refreshCaregivers() async {
+    await _loadCaregivers();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          const UserAppBar(title: '2nd Innings'),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  _buildSearchBar(colorScheme),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FeatureCard(
-                          title: "Current",
-                          isColumn: true,
-                          icon: Icons.person_search_outlined,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const ViewCurrentHiredCaregiverPage(),
-                              ),
-                            );
-                          },
-                          colorScheme: colorScheme,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: FeatureCard(
-                          title: "Requests",
-                          isColumn: true,
-                          icon: Icons.request_page_outlined,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const CaregiverRequestsPage(),
-                              ),
-                            );
-                          },
-                          colorScheme: colorScheme,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFilterChips(colorScheme),
-                  const SizedBox(height: 24),
-                ],
-              ),
+      body: RefreshIndicator(
+        onRefresh: _refreshCaregivers,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              title: const Text('2nd Innings'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _refreshCaregivers,
+                  tooltip: 'Refresh Caregivers',
+                ),
+              ],
             ),
-          ),
-          if (_isLoading)
-            const SliverToBoxAdapter(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_error != null)
             SliverToBoxAdapter(
-              child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: colorScheme.error,
+                    const SizedBox(height: 16),
+                    _buildSearchBar(colorScheme),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FeatureCard(
+                            title: "Current",
+                            isColumn: true,
+                            icon: Icons.person_search_outlined,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ViewCurrentHiredCaregiverPage(),
+                                ),
+                              );
+                            },
+                            colorScheme: colorScheme,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: FeatureCard(
+                            title: "Requests",
+                            isColumn: true,
+                            icon: Icons.assignment_outlined,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const CaregiverRequestsPage(),
+                                ),
+                              );
+                            },
+                            colorScheme: colorScheme,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      "Available Caregivers",
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    Text(_error!, style: textTheme.bodyLarge),
+                    _buildFilterChips(colorScheme),
                     const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _loadCaregivers,
-                      child: const Text('Retry'),
-                    ),
                   ],
                 ),
               ),
-            )
-          else
-            _buildCaregiverList(colorScheme, textTheme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(ColorScheme colorScheme) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Search based on needs',
-        prefixIcon: const Icon(Icons.search),
-        filled: true,
-        fillColor: colorScheme.primaryContainer.withAlpha(51),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
+            ),
+            if (_isLoading)
+              const SliverToBoxAdapter(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              SliverToBoxAdapter(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(_error!, style: textTheme.bodyLarge),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadCaregivers,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                sliver: _buildCaregiversList(colorScheme, textTheme),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterChips(ColorScheme colorScheme) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+  Widget _buildSearchBar(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(25),
+      ),
       child: Row(
-        children: _filters.map((filter) {
-          final isSelected = _selectedFilters.contains(filter);
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: FilterChip(
-              label: Text(filter),
-              selected: isSelected,
-              onSelected: (bool selected) {
-                setState(() {
-                  if (selected) {
-                    _selectedFilters.add(filter);
-                  } else {
-                    _selectedFilters.remove(filter);
-                  }
-                });
-              },
-              selectedColor: colorScheme.primaryContainer.withAlpha(102),
-              checkmarkColor: colorScheme.onPrimaryContainer,
+        children: [
+          Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search caregivers...',
+                border: InputBorder.none,
+                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+              ),
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildCaregiverList(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildFilterChips(ColorScheme colorScheme) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _filters.map((filter) {
+        final isSelected = _selectedFilters.contains(filter);
+        return FilterChip(
+          label: Text(filter),
+          selected: isSelected,
+          onSelected: (selected) {
+            setState(() {
+              if (selected) {
+                _selectedFilters.add(filter);
+              } else {
+                _selectedFilters.remove(filter);
+              }
+            });
+          },
+          backgroundColor: colorScheme.surfaceContainerHighest,
+          selectedColor: colorScheme.primaryContainer,
+          labelStyle: TextStyle(
+            color: isSelected
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurfaceVariant,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildCaregiversList(ColorScheme colorScheme, TextTheme textTheme) {
+    if (_caregivers.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.person_search, size: 64, color: colorScheme.outline),
+              const SizedBox(height: 16),
+              Text(
+                'No caregivers found',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Try adjusting your filters or search terms',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return SliverList.builder(
       itemCount: _caregivers.length,
       itemBuilder: (context, index) {
         final caregiver = _caregivers[index];
+        final name = caregiver['full_name'] ?? 'Unknown';
+        final specialization = caregiver['specialization'] ?? 'General Care';
+        final experience = caregiver['experience_years'] ?? 0;
+        final rating = caregiver['rating'] ?? 0.0;
+        final tags = _parseTags(caregiver['tags']);
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Material(
-            color: colorScheme.primaryContainer.withAlpha(51),
+        return Card(
+          elevation: 0,
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              hoverColor: colorScheme.primaryContainer.withAlpha(100),
-              splashColor: colorScheme.primary.withAlpha(80),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => CaregiverDetailsView(
-                      name: caregiver['full_name'] ?? 'Unknown',
-                      age: '${caregiver['age'] ?? 'N/A'} yrs',
-                      gender: caregiver['gender'] ?? 'N/A',
-                      desc:
-                          caregiver['description'] ??
-                          'No description available',
-                      tags: _parseTags(caregiver['tags']),
-                      caregiverId: caregiver['id'],
-                    ),
+          ),
+          color: colorScheme.primaryContainer.withAlpha(51),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CaregiverDetailsView(
+                    name: name,
+                    age: '${caregiver['age'] ?? 'N/A'} yrs',
+                    gender: caregiver['gender'] ?? 'N/A',
+                    desc:
+                        caregiver['description'] ?? 'No description available',
+                    tags: _parseTags(caregiver['tags']),
+                    caregiverId: caregiver['id'],
                   ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      caregiver['name']?.toString() ?? 'Unknown',
-                      style: textTheme.titleMedium?.copyWith(
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: colorScheme.primaryContainer.withAlpha(
+                      204,
+                    ),
+                    child: Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      style: TextStyle(
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onPrimaryContainer,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${caregiver['age']?.toString() ?? 'N/A'} . ${caregiver['gender']?.toString() ?? 'N/A'}',
-                      style: textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      caregiver['desc']?.toString() ??
-                          'No description available',
-                      style: textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8.0,
-                      children: _parseTags(caregiver['tags'])
-                          .map<Widget>(
-                            (tag) => Chip(
-                              label: Text(tag),
-                              backgroundColor: colorScheme.surface.withAlpha(
-                                128,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          specialization,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
-                          )
-                          .toList(),
+                            const SizedBox(width: 16),
+                            Icon(
+                              Icons.work,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$experience years',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
               ),
             ),
           ),

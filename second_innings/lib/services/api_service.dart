@@ -146,6 +146,7 @@ class ApiService {
   // DELETE Request with auth
   static Future<ApiResponse<Map<String, dynamic>>> delete(
     String endpoint, {
+    Map<String, dynamic>? body,
     Map<String, String>? headers,
     bool requireAuth = true,
   }) async {
@@ -158,6 +159,7 @@ class ApiService {
           .delete(
             Uri.parse('$baseUrl$endpoint'),
             headers: {...requestHeaders, ...?headers},
+            body: body != null ? jsonEncode(body) : null,
           )
           .timeout(timeout);
 

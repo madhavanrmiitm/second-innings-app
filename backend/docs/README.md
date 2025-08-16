@@ -52,7 +52,7 @@ The project features a **complete Bruno API testing suite** with:
 | 🏥 Admin | 7 tests | User management, caregiver approval, ticket handling |
 | 🩺 Care | 6 tests | Care requests, caregiver profiles, applications |
 | 👨‍👩‍👧‍👦 Family | 3 tests | Family member management |
-| 📋 Tasks | 5 tests | Task management, reminders |
+| 📋 Tasks | 5 tests | Task management |
 | 🎯 Interest Groups | 3 tests | Group management, joining/leaving |
 | 🎫 Tickets | 2 tests | Support ticket management |
 | 🔔 Notifications | 2 tests | Notification management |

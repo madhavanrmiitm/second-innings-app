@@ -96,7 +96,7 @@ bru run --env Local
 - **🏥 Admin Endpoints**: 7 tests (User management, caregiver approval, ticket handling)
 - **🩺 Care Endpoints**: 6 tests (Care requests, caregiver profiles, applications)
 - **👨‍👩‍👧‍👦 Family Endpoints**: 3 tests (Family member management)
-- **📋 Task Endpoints**: 5 tests (Task management, reminders)
+- **📋 Task Endpoints**: 5 tests (Task management)
 - **🎯 Interest Groups**: 3 tests (Group management, joining/leaving)
 - **🎫 Ticket Endpoints**: 2 tests (Support ticket management)
 - **🔔 Notification Endpoints**: 2 tests (Notification management)
@@ -112,7 +112,7 @@ bru run --env Local
 bru run Admin --env Local           # Admin functionality
 bru run Care --env Local            # Care management
 bru run Family --env Local          # Family member management
-bru run Tasks --env Local           # Task and reminder system
+bru run Tasks --env Local           # Task management system
 bru run InterestGroups --env Local  # Interest group management
 bru run Tickets --env Local         # Support ticket system
 bru run Notifications --env Local   # Notification system
@@ -150,7 +150,7 @@ backend/
 │   │   ├── family.py            # Family member management
 │   │   ├── interest_groups.py   # Interest group management
 │   │   ├── notifications.py     # Notification management
-│   │   ├── tasks.py             # Task and reminder management
+│   │   ├── tasks.py             # Task management
 │   │   ├── tickets.py           # Support ticket management
 │   │   └── user.py              # User profile controller
 │   ├── database/                # Database configuration and schema
@@ -206,7 +206,7 @@ backend/
 - **👑 Admin Management**: Complete admin panel for user, caregiver, and ticket management
 - **🩺 Care Services**: Care request management, caregiver profiles, and application system
 - **👨‍👩‍👧‍👦 Family Management**: Family member linking and relationship management
-- **📋 Task Management**: Task assignment, completion tracking, and reminder system
+- **📋 Task Management**: Task assignment, completion tracking, and family member management for senior citizens
 - **🎯 Interest Groups**: Community group creation, management, and participation
 - **🎫 Support System**: Ticket creation, tracking, and resolution
 - **🔔 Notifications**: Real-time notification system with read/unread status
@@ -269,7 +269,7 @@ python main.py --init-db --reload          # Run Python app
 ### Family & Task Management
 - **Family Members**: `GET/POST/DELETE /api/senior-citizens/me/family-members`
 - **Tasks**: `GET/POST/PUT/DELETE /api/tasks`, `POST /api/tasks/{taskId}/complete`
-- **Reminders**: `GET/POST/PUT/DELETE /api/reminders`, `POST /api/reminders/{reminderId}/snooze`
+
 
 ### Community & Support
 - **Interest Groups**: `GET/POST/PUT /api/interest-groups`, `POST /api/interest-groups/{groupId}/join|leave`
@@ -283,7 +283,7 @@ The comprehensive test suite validates:
 - ✅ **Admin Operations**: User management, caregiver approval, ticket resolution
 - ✅ **Care Services**: Request management, caregiver profiles, applications
 - ✅ **Family Features**: Member linking and relationship management
-- ✅ **Task System**: Task creation, assignment, completion, and reminders
+- ✅ **Task System**: Task creation, assignment, completion, and family member management for senior citizens
 - ✅ **Community Features**: Interest group management and participation
 - ✅ **Support System**: Ticket creation, tracking, and resolution
 - ✅ **Notifications**: Message delivery and read status management

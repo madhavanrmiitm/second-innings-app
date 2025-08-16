@@ -133,20 +133,6 @@ class UpdateTask(BaseModel):
     assigned_to_firebase_uid: Optional[str] = None
 
 
-class CreateReminder(BaseModel):
-    id_token: str
-    title: str
-    description: Optional[str] = None
-    reminder_time: datetime
-
-
-class UpdateReminder(BaseModel):
-    id_token: str
-    title: Optional[str] = None
-    description: Optional[str] = None
-    reminder_time: Optional[datetime] = None
-
-
 class CreateInterestGroup(BaseModel):
     title: str
     description: Optional[str] = None

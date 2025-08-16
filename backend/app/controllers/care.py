@@ -84,15 +84,24 @@ async def get_caregiver_requests(request):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 if user.role == UserRole.FAMILY_MEMBER:
+                    logger.info(
+                        f"Family member {user.id} requesting caregiver requests"
+                    )
+
                     # Get sent requests (requests made by this family member)
                     cur.execute(
-                        """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at
+                        """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at,
+                                  cr.senior_citizen_id, sc.full_name as senior_citizen_name
                            FROM care_requests cr
                            JOIN users cg ON cr.caregiver_id = cg.id
-                           WHERE cr.made_by = %s AND cr.senior_citizen_id IS NULL""",
+                           LEFT JOIN users sc ON cr.senior_citizen_id = sc.id
+                           WHERE cr.made_by = %s""",
                         (user.id,),
                     )
                     sent_requests_data = cur.fetchall()
+                    logger.info(
+                        f"Found {len(sent_requests_data)} sent requests for family member {user.id}"
+                    )
 
                     sent_requests = [
                         {
@@ -101,20 +110,27 @@ async def get_caregiver_requests(request):
                             "caregiver_name": req[2],
                             "status": req[3],
                             "created_at": req[4],
+                            "senior_citizen_id": req[5],
+                            "senior_citizen_name": req[6],
                         }
                         for req in sent_requests_data
                     ]
 
                     # Get received requests (requests for senior citizens linked to this family member)
                     cur.execute(
-                        """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at
+                        """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at,
+                                  cr.senior_citizen_id, sc.full_name as senior_citizen_name
                            FROM care_requests cr
                            JOIN users cg ON cr.caregiver_id = cg.id
+                           JOIN users sc ON cr.senior_citizen_id = sc.id
                            JOIN relations r ON cr.senior_citizen_id = r.senior_citizen_id
-                           WHERE r.family_member_id = %s AND cr.senior_citizen_id IS NOT NULL""",
-                        (user.id,),
+                           WHERE r.family_member_id = %s AND cr.made_by != %s""",
+                        (user.id, user.id),
                     )
                     received_requests_data = cur.fetchall()
+                    logger.info(
+                        f"Found {len(received_requests_data)} received requests for family member {user.id}"
+                    )
 
                     received_requests = [
                         {
@@ -123,10 +139,16 @@ async def get_caregiver_requests(request):
                             "caregiver_name": req[2],
                             "status": req[3],
                             "created_at": req[4],
+                            "senior_citizen_id": req[5],
+                            "senior_citizen_name": req[6],
                         }
                         for req in received_requests_data
                     ]
                 else:  # SENIOR_CITIZEN
+                    logger.info(
+                        f"Senior citizen {user.id} requesting caregiver requests"
+                    )
+
                     # Get sent requests (requests made by this senior citizen)
                     cur.execute(
                         """SELECT cr.id, cr.caregiver_id, cg.full_name as caregiver_name, cr.status, cr.created_at
@@ -136,6 +158,9 @@ async def get_caregiver_requests(request):
                         (user.id,),
                     )
                     sent_requests_data = cur.fetchall()
+                    logger.info(
+                        f"Found {len(sent_requests_data)} sent requests for senior citizen {user.id}"
+                    )
 
                     sent_requests = [
                         {
@@ -157,6 +182,9 @@ async def get_caregiver_requests(request):
                         (user.id, user.id),
                     )
                     received_requests_data = cur.fetchall()
+                    logger.info(
+                        f"Found {len(received_requests_data)} received requests for senior citizen {user.id}"
+                    )
 
                     received_requests = [
                         {
@@ -169,12 +197,19 @@ async def get_caregiver_requests(request):
                         for req in received_requests_data
                     ]
 
+        # Log summary for debugging
+        logger.info(
+            f"Returning {len(sent_requests)} sent requests and {len(received_requests)} received requests for user {user.id} ({user.role.value})"
+        )
+
         return format_response(
             status_code=200,
             message="Caregiver requests retrieved successfully.",
             data={
                 "sent_requests": sent_requests,
                 "received_requests": received_requests,
+                "user_role": user.role.value,
+                "user_id": user.id,
             },
         )
 

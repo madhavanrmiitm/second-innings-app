@@ -1,11 +1,5 @@
 from app.controllers import tasks as tasks_controller
-from app.payloads import (
-    CreateReminder,
-    CreateTask,
-    TokenRequest,
-    UpdateReminder,
-    UpdateTask,
-)
+from app.payloads import CreateTask, TokenRequest, UpdateTask
 from app.utils.request_validator import validate_body
 from fastapi import APIRouter, Request
 
@@ -14,6 +8,14 @@ router = APIRouter()
 
 @router.get("/tasks")
 async def get_tasks(request: Request):
+    """
+    Get tasks for the authenticated user.
+
+    For family members, you can optionally pass a 'senior_citizen_id' query parameter
+    to get tasks related to a specific senior citizen they are linked to.
+
+    Example: GET /tasks?senior_citizen_id=9
+    """
     return await tasks_controller.get_tasks(request)
 
 
@@ -44,38 +46,3 @@ async def mark_task_done(request: Request, taskId: int, validated_data: TokenReq
 @validate_body(TokenRequest)
 async def delete_task(request: Request, taskId: int, validated_data: TokenRequest):
     return await tasks_controller.delete_task(request, taskId, validated_data)
-
-
-@router.get("/reminders")
-async def get_reminders(request: Request):
-    return await tasks_controller.get_reminders(request)
-
-
-@router.post("/reminders")
-@validate_body(CreateReminder)
-async def create_reminder(request: Request, validated_data: CreateReminder):
-    return await tasks_controller.create_reminder(request, validated_data)
-
-
-@router.put("/reminders/{reminderId}")
-@validate_body(UpdateReminder)
-async def update_reminder(
-    request: Request, reminderId: int, validated_data: UpdateReminder
-):
-    return await tasks_controller.update_reminder(request, reminderId, validated_data)
-
-
-@router.post("/reminders/{reminderId}/snooze")
-@validate_body(TokenRequest)
-async def snooze_reminder(
-    request: Request, reminderId: int, validated_data: TokenRequest
-):
-    return await tasks_controller.snooze_reminder(request, reminderId, validated_data)
-
-
-@router.delete("/reminders/{reminderId}")
-@validate_body(TokenRequest)
-async def cancel_reminder(
-    request: Request, reminderId: int, validated_data: TokenRequest
-):
-    return await tasks_controller.cancel_reminder(request, reminderId, validated_data)

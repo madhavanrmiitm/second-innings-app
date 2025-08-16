@@ -149,7 +149,7 @@ expect(taskTitles).to.include('Doctor Appointment');
 
 **After**:
 ```javascript
-expect(taskTitles).to.include('Morning Medication Reminder');
+expect(taskTitles).to.include('Morning Medication Task');
 expect(taskTitles).to.include('Evening Walk');
 expect(taskTitles).to.include('Grocery Shopping');
 ```

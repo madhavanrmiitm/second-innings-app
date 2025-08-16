@@ -1,40 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/services/task_service.dart';
 
-class NewReminderForSeniorPage extends StatefulWidget {
-  final String name;
-  final String relation;
-  final String? seniorCitizenFirebaseUid;
-
-  const NewReminderForSeniorPage({
-    super.key,
-    required this.name,
-    required this.relation,
-    this.seniorCitizenFirebaseUid,
-  });
+class CreateFamilyTaskPage extends StatefulWidget {
+  const CreateFamilyTaskPage({super.key});
 
   @override
-  State<NewReminderForSeniorPage> createState() =>
-      _NewReminderForSeniorPageState();
+  State<CreateFamilyTaskPage> createState() => _CreateFamilyTaskPageState();
 }
 
-class _NewReminderForSeniorPageState extends State<NewReminderForSeniorPage> {
-  bool _isVoiceInput = true;
+class _CreateFamilyTaskPageState extends State<CreateFamilyTaskPage> {
+  bool _isVoiceInput = false;
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _reminderTimeController = TextEditingController();
+  final _timeController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _reminderTimeController.dispose();
+    _timeController.dispose();
     super.dispose();
   }
 
-  Future<void> _createReminder() async {
+  Future<void> _createTask() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -42,28 +32,28 @@ class _NewReminderForSeniorPageState extends State<NewReminderForSeniorPage> {
     });
 
     try {
-      final response = await TaskService.createReminder(
+      final response = await TaskService.createTask(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        reminderTime: _reminderTimeController.text.trim(),
+        timeOfCompletion: _timeController.text.trim().isNotEmpty
+            ? _timeController.text.trim()
+            : null,
       );
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reminder created successfully')),
+          const SnackBar(content: Text('Task created successfully')),
         );
         Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.error ?? 'Failed to create reminder'),
-          ),
+          SnackBar(content: Text(response.error ?? 'Failed to create task')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error creating reminder: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error creating task: $e')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -114,14 +104,14 @@ class _NewReminderForSeniorPageState extends State<NewReminderForSeniorPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'New Reminder',
+                    'New Task',
                     style: textTheme.titleLarge?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'for ${widget.name}',
+                    'Create a personal task',
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                     ),
@@ -143,15 +133,15 @@ class _NewReminderForSeniorPageState extends State<NewReminderForSeniorPage> {
                       : _buildManualInputUI(context),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _createReminder,
+                    onPressed: _isLoading ? null : _createTask,
                     icon: _isLoading
                         ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.add_alarm),
-                    label: Text(_isLoading ? 'Creating...' : 'Create Reminder'),
+                        : const Icon(Icons.add_task),
+                    label: Text(_isLoading ? 'Creating...' : 'Create Task'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -184,14 +174,14 @@ class _NewReminderForSeniorPageState extends State<NewReminderForSeniorPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Tap to record your reminder',
+              'Tap to record your task',
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Speak clearly to describe the reminder for ${widget.name}',
+              'Speak clearly to describe your personal task',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -232,7 +222,7 @@ class _NewReminderForSeniorPageState extends State<NewReminderForSeniorPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Reminder Details',
+            'Task Details',
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -241,13 +231,14 @@ class _NewReminderForSeniorPageState extends State<NewReminderForSeniorPage> {
           TextFormField(
             controller: _titleController,
             decoration: const InputDecoration(
-              labelText: 'Reminder Title',
-              hintText: 'Enter reminder title',
+              labelText: 'Task Title',
+              hintText: 'Enter task title',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.task_alt_outlined),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Please enter a reminder title';
+                return 'Please enter a task title';
               }
               return null;
             },
@@ -257,25 +248,21 @@ class _NewReminderForSeniorPageState extends State<NewReminderForSeniorPage> {
             controller: _descriptionController,
             decoration: const InputDecoration(
               labelText: 'Description (Optional)',
-              hintText: 'Enter reminder description',
+              hintText: 'Enter task description',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.description_outlined),
             ),
             maxLines: 3,
           ),
           const SizedBox(height: 16),
           TextFormField(
-            controller: _reminderTimeController,
+            controller: _timeController,
             decoration: const InputDecoration(
-              labelText: 'Reminder Time',
-              hintText: 'e.g., 2024-01-15 14:30',
+              labelText: 'Due Date (Optional)',
+              hintText: 'e.g., 2024-01-15',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.calendar_today_outlined),
             ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter a reminder time';
-              }
-              return null;
-            },
           ),
         ],
       ),

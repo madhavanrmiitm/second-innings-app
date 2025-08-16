@@ -50,7 +50,7 @@ bruno/second-innings-backend/
 ├── Tasks/                       # Task routes
 │   ├── GET_Tasks.bru            # GET /api/tasks - Get tasks
 │   ├── GET_Task.bru             # GET /api/tasks/{task_id} - Get specific task
-│   ├── GET_Reminders.bru        # GET /api/tasks/reminders - Get task reminders
+
 │   ├── POST_CreateTask.bru      # POST /api/tasks - Create task
 │   └── POST_CompleteTask.bru    # POST /api/tasks/{task_id}/complete - Complete task
 ├── Tickets/                     # Support ticket routes

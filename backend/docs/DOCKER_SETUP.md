@@ -211,7 +211,7 @@ docker-compose ps
    bru run Admin --env Local           # Admin functionality
    bru run Care --env Local            # Care management
    bru run Family --env Local          # Family member management
-   bru run Tasks --env Local           # Task and reminder system
+   bru run Tasks --env Local           # Task management system
    bru run InterestGroups --env Local  # Interest group management
    bru run Tickets --env Local         # Support ticket system
    bru run Notifications --env Local   # Notification system

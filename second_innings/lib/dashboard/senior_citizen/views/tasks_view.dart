@@ -58,6 +58,10 @@ class _TasksViewState extends State<TasksView> {
     }
   }
 
+  Future<void> _refreshTasks() async {
+    await _loadTasks();
+  }
+
   Future<void> _completeTask(String taskId) async {
     try {
       final response = await TaskService.completeTask(taskId: taskId);
@@ -80,65 +84,198 @@ class _TasksViewState extends State<TasksView> {
     }
   }
 
+  Future<void> _deleteTask(String taskId) async {
+    try {
+      final response = await TaskService.deleteTask(taskId);
+
+      if (response.statusCode == 200) {
+        // Reload tasks to reflect the change
+        await _loadTasks();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Task deleted successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to delete task')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error deleting task: $e')));
+    }
+  }
+
+  void _showEditTaskDialog(Map<String, dynamic> task) {
+    final titleController = TextEditingController(text: task['title'] ?? '');
+    final descriptionController = TextEditingController(
+      text: task['description'] ?? '',
+    );
+    final timeController = TextEditingController(
+      text: task['time_of_completion'] ?? '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Task'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: timeController,
+              decoration: const InputDecoration(
+                labelText: 'Due Date (YYYY-MM-DD)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _updateTask(
+                task['id'].toString(),
+                titleController.text,
+                descriptionController.text,
+                timeController.text.isNotEmpty ? timeController.text : null,
+              );
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateTask(
+    String taskId,
+    String title,
+    String description,
+    String? timeOfCompletion,
+  ) async {
+    try {
+      final response = await TaskService.updateTask(
+        taskId: taskId,
+        title: title,
+        description: description,
+        timeOfCompletion: timeOfCompletion,
+      );
+
+      if (response.statusCode == 200) {
+        await _loadTasks();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Task updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to update task')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating task: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          const UserAppBar(title: 'Tasks'),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 32),
-                  Text(
-                    "Your Tasks",
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-          if (_isLoading)
-            const SliverToBoxAdapter(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_error != null)
-            SliverToBoxAdapter(
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(_error!, style: Theme.of(context).textTheme.bodyLarge),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _loadTasks,
-                      child: const Text('Retry'),
-                    ),
-                  ],
+      body: RefreshIndicator(
+        onRefresh: _refreshTasks,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              title: const Text('Tasks'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _refreshTasks,
+                  tooltip: 'Refresh Tasks',
                 ),
-              ),
-            )
-          else
+              ],
+            ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: _buildTasksList(colorScheme),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 32),
+                    Text(
+                      "Your Tasks",
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-        ],
+            if (_isLoading)
+              const SliverToBoxAdapter(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              SliverToBoxAdapter(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadTasks,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: _buildTasksList(colorScheme),
+                ),
+              ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: "senior_citizen_tasks_fab",
@@ -184,11 +321,16 @@ class _TasksViewState extends State<TasksView> {
     }
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: _tasks.length,
       itemBuilder: (context, index) {
         final task = _tasks[index];
         final isCompleted = task['status'] == 'completed';
         final isAssigned = task['assigned_to'] != null;
+        final isCreatedByMe =
+            task['created_by'] == task['assigned_to'] ||
+            task['assigned_to'] == null;
 
         return Card(
           elevation: 0,
@@ -201,63 +343,94 @@ class _TasksViewState extends State<TasksView> {
               : colorScheme.primaryContainer.withAlpha(51),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: isAssigned
-                      ? colorScheme.secondaryContainer.withAlpha(204)
-                      : colorScheme.primaryContainer.withAlpha(204),
-                  child: Icon(
-                    isAssigned
-                        ? Icons.family_restroom_outlined
-                        : Icons.person_outline,
-                    color: isAssigned
-                        ? colorScheme.onSecondaryContainer
-                        : colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        task['title'] ?? 'Untitled Task',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              decoration: isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: isAssigned
+                          ? colorScheme.secondaryContainer.withAlpha(204)
+                          : colorScheme.primaryContainer.withAlpha(204),
+                      child: Icon(
+                        isAssigned
+                            ? Icons.family_restroom_outlined
+                            : Icons.person_outline,
+                        color: isAssigned
+                            ? colorScheme.onSecondaryContainer
+                            : colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task['title'] ?? 'Untitled Task',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  decoration: isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            task['description'] ?? '',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  decoration: isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                          ),
+                          if (task['time_of_completion'] != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Due: ${task['time_of_completion']}',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: colorScheme.outline),
                             ),
+                          ],
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        task['description'] ?? '',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          decoration: isCompleted
-                              ? TextDecoration.lineThrough
-                              : null,
+                    ),
+                    if (!isCompleted)
+                      Checkbox(
+                        value: isCompleted,
+                        onChanged: (bool? value) {
+                          _completeTask(task['id'].toString());
+                        },
+                      ),
+                  ],
+                ),
+                if (!isCompleted && isCreatedByMe) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => _showEditTaskDialog(task),
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text('Edit'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
                         ),
                       ),
-                      if (task['time_of_completion'] != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Due: ${task['time_of_completion']}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.outline),
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        onPressed: () => _deleteTask(task['id'].toString()),
+                        icon: const Icon(Icons.delete, size: 18),
+                        label: const Text('Delete'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colorScheme.error,
                         ),
-                      ],
+                      ),
                     ],
                   ),
-                ),
-                if (!isCompleted)
-                  Checkbox(
-                    value: isCompleted,
-                    onChanged: (bool? value) {
-                      _completeTask(task['id'].toString());
-                    },
-                  ),
+                ],
               ],
             ),
           ),

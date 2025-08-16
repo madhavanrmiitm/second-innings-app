@@ -7,6 +7,22 @@ DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS relations CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
+-- User ID Mapping for Sample Data:
+-- ID 1: Ashwin Narayanan S (admin)
+-- ID 2: Nakshatra Gupta (admin)
+-- ID 3: Test Admin One (admin)
+-- ID 4: Test Admin Two (admin)
+-- ID 5: Test Caregiver One (caregiver)
+-- ID 6: Test Caregiver Two (caregiver)
+-- ID 7: Test Family Member One (family_member)
+-- ID 8: Test Family Member Two (family_member)
+-- ID 9: Test Senior Citizen One (senior_citizen)
+-- ID 10: Test Senior Citizen Two (senior_citizen)
+-- ID 11: Test Group Admin One (interest_group_admin)
+-- ID 12: Test Group Admin Two (interest_group_admin)
+-- ID 13: Test Support User One (support_user)
+-- ID 14: Test Support User Two (support_user)
+
 -- Create ENUM type for user roles
 DROP TYPE IF EXISTS user_role CASCADE;
 CREATE TYPE user_role AS ENUM ('admin', 'caregiver', 'family_member', 'senior_citizen', 'interest_group_admin', 'support_user');
@@ -124,9 +140,11 @@ CREATE TABLE tasks (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+
 CREATE TABLE care_requests (
     id SERIAL PRIMARY KEY,
-    senior_citizen_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    senior_citizen_id INTEGER REFERENCES users(id) ON DELETE CASCADE, -- Can be NULL for direct caregiver requests by family members
     caregiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     made_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     status care_request_status NOT NULL DEFAULT 'pending',
@@ -209,12 +227,12 @@ CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 ---Test Tickets
 
 INSERT INTO tickets (user_id, assigned_to, subject, description, priority, category, status) VALUES
-(7, 11, 'Cannot login to account', 'Getting error message when trying to login', 'high', 'Authentication', 'open'),
-(8, 11, 'Profile not updating', 'Changes to profile are not being saved', 'medium', 'Profile', 'in_progress'),
-(7, 12, 'Notification issues', 'Not receiving any notifications', 'low', 'Notifications', 'open'),
-(9, NULL, 'App crashes on startup', 'The app crashes immediately after opening', 'high', 'Technical', 'open'),
-(10, 11, 'Request for new feature', 'Would like to have dark mode', 'low', 'Feature Request', 'closed'),
-(8, 12, 'Payment not processing', 'Credit card payment failing', 'high', 'Billing', 'in_progress');
+(9, 13, 'Cannot login to account', 'Getting error message when trying to login', 'high', 'Authentication', 'open'),
+(10, 13, 'Profile not updating', 'Changes to profile are not being saved', 'medium', 'Profile', 'in_progress'),
+(9, 14, 'Notification issues', 'Not receiving any notifications', 'low', 'Notifications', 'open'),
+(7, NULL, 'App crashes on startup', 'The app crashes immediately after opening', 'high', 'Technical', 'open'),
+(8, 13, 'Request for new feature', 'Would like to have dark mode', 'low', 'Feature Request', 'closed'),
+(10, 14, 'Payment not processing', 'Credit card payment failing', 'high', 'Billing', 'in_progress');
 
 -- Insert test interest groups
 INSERT INTO interest_groups (title, description, whatsapp_link, category, status, timing, created_by) VALUES
@@ -226,3 +244,40 @@ INSERT INTO interest_groups (title, description, whatsapp_link, category, status
 ('Walking & Fitness Group', 'Regular walking sessions in local parks and fitness activities tailored for seniors. Stay active and socialize with like-minded individuals.', 'https://chat.whatsapp.com/GVOAaK4R3G05Vo9cIk7f6E', 'Health', 'active', '2025-02-02 08:00:00', 12),
 ('Cooking & Recipe Exchange', 'Share traditional recipes, cooking tips, and healthy meal ideas. Learn new cuisines and cooking techniques from fellow food enthusiasts.', 'https://chat.whatsapp.com/HWPBbL5S4H16Wp0dJl8g7F', 'Social', 'inactive', '2025-02-05 11:00:00', 11),
 ('Memory Lane Stories', 'Share life experiences, historical memories, and personal stories. A safe space to connect through storytelling and reminiscence.', 'https://chat.whatsapp.com/IXQCcM6T5I27Xq1eKm9h8G', 'Social', 'active', '2025-02-08 17:00:00', 12);
+
+-- Insert test family relations
+INSERT INTO relations (senior_citizen_id, family_member_id, senior_citizen_relation, family_member_relation) VALUES
+(9, 7, 'Son', 'Father'),
+(9, 8, 'Daughter', 'Father'),
+(10, 7, 'Son', 'Mother'),
+(10, 8, 'Daughter', 'Mother');
+
+-- Insert test tasks
+INSERT INTO tasks (title, description, time_of_completion, status, created_by, assigned_to) VALUES
+('Morning Medication Reminder', 'Remind to take blood pressure medication at 8 AM', '2025-01-20 08:00:00', 'completed', 7, 10),
+('Weekly Grocery Shopping', 'Help with grocery shopping for weekly supplies', '2025-01-22 14:00:00', 'in_progress', 7, 10),
+('Doctor Appointment', 'Accompany to cardiologist appointment', '2025-01-25 10:00:00', 'pending', 7, 9),
+('Home Safety Check', 'Inspect home for safety hazards and make necessary adjustments', '2025-01-26 11:00:00', 'pending', 7, 10);
+
+-- Insert test notifications
+INSERT INTO notifications (user_id, type, priority, body, is_read) VALUES
+(7, 'care_request', 'high', 'Your care request for tomorrow has been accepted by Test Caregiver One', false),
+(7, 'task', 'medium', 'New task assigned: Morning Medication Reminder', true),
+(7, 'interest_group', 'low', 'New member joined Morning Yoga & Wellness group', false),
+(8, 'care_request', 'high', 'Your care request for this evening has been accepted by Test Caregiver Two', false),
+(8, 'task', 'medium', 'Task completed: Evening Walk', true),
+(8, 'support_ticket', 'low', 'Your support ticket has been updated', false),
+(9, 'care_request', 'high', 'Care request accepted for your father', true),
+(9, 'relation', 'medium', 'New family member linked to your account', false),
+(10, 'care_request', 'high', 'Care request accepted for your mother', true),
+(10, 'task', 'medium', 'New task assigned: Home Safety Check', false),
+(5, 'care_request', 'high', 'New care request assigned to you', false),
+(5, 'task', 'medium', 'Task completed: Morning Medication Reminder', true),
+(6, 'care_request', 'high', 'New care request assigned to you', false),
+(6, 'task', 'medium', 'New task assigned: Doctor Appointment', false),
+(11, 'interest_group', 'medium', 'New member joined your Digital Learning Circle group', false),
+(12, 'interest_group', 'low', 'Activity reminder: Book Club meeting tomorrow', false),
+(11, 'support_ticket', 'high', 'New support ticket assigned to you', false),
+(12, 'support_ticket', 'medium', 'Support ticket updated: Profile not updating', true),
+(7, 'care_request', 'medium', 'New direct caregiver request created', false),
+(8, 'care_request', 'medium', 'New direct caregiver request created', false);

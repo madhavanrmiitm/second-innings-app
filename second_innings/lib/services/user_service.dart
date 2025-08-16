@@ -159,8 +159,6 @@ class UserService {
         requireAuth: true,
       );
 
-      debugPrint(response.data.toString());
-
       if (response.statusCode == 200) {
         // Update local user data with fresh data from backend
         final freshUserData = response.data?['data']?['user'];

@@ -51,6 +51,10 @@ class _NotificationsViewState extends State<NotificationsView> {
     }
   }
 
+  Future<void> _refreshNotifications() async {
+    await _fetchNotifications();
+  }
+
   Future<void> _markAsRead(String notificationId) async {
     try {
       final response = await NotificationService.markAsRead(
@@ -108,58 +112,78 @@ class _NotificationsViewState extends State<NotificationsView> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          const UserAppBar(title: 'Notifications'),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 32),
-                  Text(
-                    "Your Notifications",
-                    style: textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+      body: RefreshIndicator(
+        onRefresh: _refreshNotifications,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              title: const Text('Notifications'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _refreshNotifications,
+                  tooltip: 'Refresh Notifications',
+                ),
+              ],
             ),
-          ),
-          if (_isLoading)
-            const SliverToBoxAdapter(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_error != null)
             SliverToBoxAdapter(
-              child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: colorScheme.error,
+                    const SizedBox(height: 32),
+                    Text(
+                      "Notifications",
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "Stay updated with important updates and alerts",
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    Text(_error!, style: textTheme.bodyLarge),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _fetchNotifications,
-                      child: const Text('Retry'),
-                    ),
                   ],
                 ),
               ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              sliver: _buildNotificationsList(colorScheme, textTheme),
             ),
-        ],
+            if (_isLoading)
+              const SliverToBoxAdapter(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              SliverToBoxAdapter(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(_error!, style: textTheme.bodyLarge),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchNotifications,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                sliver: _buildNotificationsList(colorScheme, textTheme),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -177,14 +201,14 @@ class _NotificationsViewState extends State<NotificationsView> {
               ),
               const SizedBox(height: 16),
               Text(
-                'No notifications yet',
+                'No notifications',
                 style: textTheme.titleMedium?.copyWith(
                   color: colorScheme.outline,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'You\'ll see important updates here',
+                'You\'re all caught up!',
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.outline,
                 ),
@@ -200,8 +224,11 @@ class _NotificationsViewState extends State<NotificationsView> {
       itemBuilder: (context, index) {
         final notification = _notifications[index];
         final isRead = notification['is_read'] == true;
-        final type = notification['type']?.toString() ?? 'general';
-        final priority = notification['priority']?.toString() ?? 'low';
+        final type = notification['type'] ?? 'general';
+        final priority = notification['priority'] ?? 'medium';
+        final title = notification['title'] ?? 'Notification';
+        final message = notification['message'] ?? 'No message';
+        final timestamp = notification['created_at'] ?? '';
 
         return Card(
           elevation: 0,
@@ -210,85 +237,78 @@ class _NotificationsViewState extends State<NotificationsView> {
             borderRadius: BorderRadius.circular(20),
           ),
           color: isRead
-              ? colorScheme.surfaceVariant.withAlpha(51)
-              : colorScheme.primaryContainer.withAlpha(51),
-          child: InkWell(
-            onTap: () {
-              if (!isRead) {
-                _markAsRead(notification['id'].toString());
-              }
-            },
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer.withAlpha(204),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _getNotificationIcon(type),
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                type.replaceAll('_', ' ').toUpperCase(),
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: _getPriorityColor(
-                                    priority,
-                                    colorScheme,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (!isRead)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: colorScheme.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          notification['body']?.toString() ?? 'No content',
-                          style: textTheme.bodyMedium?.copyWith(
-                            decoration: isRead
-                                ? TextDecoration.lineThrough
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          notification['created_at']?.toString() ?? '',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              ? colorScheme.surfaceContainerHighest
+              : colorScheme.primaryContainer.withAlpha(100),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withAlpha(100),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _getNotificationIcon(type),
+                style: const TextStyle(fontSize: 24),
               ),
             ),
+            title: Text(
+              title,
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+              ),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getPriorityColor(
+                          priority,
+                          colorScheme,
+                        ).withAlpha(100),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        priority.toUpperCase(),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: _getPriorityColor(priority, colorScheme),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      timestamp,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            trailing: !isRead
+                ? IconButton(
+                    icon: const Icon(Icons.mark_email_read),
+                    onPressed: () => _markAsRead(notification['id'].toString()),
+                    tooltip: 'Mark as Read',
+                  )
+                : null,
           ),
         );
       },

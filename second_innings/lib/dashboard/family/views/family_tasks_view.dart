@@ -1,27 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:second_innings/dashboard/family/views/senior_citizen_new_task_view.dart';
+import 'package:second_innings/widgets/user_app_bar.dart';
 import 'package:second_innings/services/task_service.dart';
-import 'package:second_innings/services/user_service.dart';
 
-class SeniorCitizenTasksPage extends StatefulWidget {
-  final String name;
-  final String relation;
-  final String? seniorCitizenFirebaseUid;
-  final Map<String, dynamic>? seniorCitizenData;
-
-  const SeniorCitizenTasksPage({
-    super.key,
-    required this.name,
-    required this.relation,
-    this.seniorCitizenFirebaseUid,
-    this.seniorCitizenData,
-  });
+class FamilyTasksView extends StatefulWidget {
+  const FamilyTasksView({super.key});
 
   @override
-  State<SeniorCitizenTasksPage> createState() => _SeniorCitizenTasksPageState();
+  State<FamilyTasksView> createState() => _FamilyTasksViewState();
 }
 
-class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
+class _FamilyTasksViewState extends State<FamilyTasksView> {
   List<Map<String, dynamic>> _tasks = [];
   bool _isLoading = true;
   String? _error;
@@ -39,31 +27,20 @@ class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
     });
 
     try {
-      // Get the senior citizen ID from the data
-      String? seniorCitizenId;
-      if (widget.seniorCitizenData != null) {
-        seniorCitizenId = widget.seniorCitizenData!['id']?.toString();
-      }
-
-      final response = await TaskService.getTasks(
-        seniorCitizenId: seniorCitizenId,
-      );
+      final response = await TaskService.getTasks();
 
       if (response.statusCode == 200) {
         final tasksData = response.data?['data']?['tasks'] as List?;
         if (tasksData != null) {
-          // Filter tasks for the specific senior citizen if firebase_uid is provided
-          List<Map<String, dynamic>> filteredTasks = tasksData
-              .cast<Map<String, dynamic>>();
-          if (widget.seniorCitizenFirebaseUid != null) {
-            filteredTasks = filteredTasks
-                .where(
-                  (task) =>
-                      task['assigned_to'] == widget.seniorCitizenFirebaseUid ||
-                      task['created_by'] == widget.seniorCitizenFirebaseUid,
-                )
-                .toList();
-          }
+          // Filter tasks created by or assigned to the family member (excluding linked senior citizen tasks)
+          List<Map<String, dynamic>>
+          filteredTasks = tasksData.cast<Map<String, dynamic>>().where((task) {
+            // Include tasks where the family member is the creator or assignee
+            // and exclude tasks that are clearly for linked senior citizens
+            return task['created_by'] == task['assigned_to'] ||
+                task['assigned_to'] == null ||
+                task['created_by'] == null;
+          }).toList();
 
           setState(() {
             _tasks = filteredTasks;
@@ -98,7 +75,6 @@ class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
       final response = await TaskService.completeTask(taskId: taskId);
 
       if (response.statusCode == 200) {
-        // Reload tasks to reflect the change
         await _loadTasks();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Task completed successfully')),
@@ -120,7 +96,6 @@ class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
       final response = await TaskService.deleteTask(taskId);
 
       if (response.statusCode == 200) {
-        // Reload tasks to reflect the change
         await _loadTasks();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Task deleted successfully')),
@@ -235,27 +210,16 @@ class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _refreshTasks,
         child: CustomScrollView(
           slivers: [
-            SliverAppBar.large(
+            SliverAppBar(
               pinned: true,
               floating: true,
-              elevation: 0,
-              backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(30),
-                ),
-              ),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-              ),
+              title: const Text('My Tasks'),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.refresh),
@@ -263,40 +227,27 @@ class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
                   tooltip: 'Refresh Tasks',
                 ),
               ],
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: true,
-                title: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.name,
-                      style: textTheme.titleLarge?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      widget.relation,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ],
-                ),
-                titlePadding: const EdgeInsets.only(bottom: 16),
-              ),
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 24.0,
-                ),
-                child: Text(
-                  "Tasks",
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 32),
+                    Text(
+                      "Personal Tasks",
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "Manage your own tasks and responsibilities",
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ),
               ),
             ),
@@ -306,76 +257,73 @@ class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
               )
             else if (_error != null)
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Center(
-                    child: Text(
-                      _error!,
-                      style: textTheme.bodyMedium?.copyWith(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
                         color: colorScheme.error,
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadTasks,
+                        child: const Text('Retry'),
+                      ),
+                    ],
                   ),
                 ),
               )
             else
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                sliver: _buildTaskList(colorScheme, textTheme),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: _buildTasksList(colorScheme),
+                ),
               ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: "family_senior_tasks_fab",
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SeniorCitizenNewTaskPage(
-                name: widget.name,
-                relation: widget.relation,
-                seniorCitizenFirebaseUid: widget.seniorCitizenFirebaseUid,
-                seniorCitizenData: widget.seniorCitizenData,
-              ),
-            ),
-          ).then((_) => _loadTasks());
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Add Task'),
       ),
     );
   }
 
-  Widget _buildTaskList(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildTasksList(ColorScheme colorScheme) {
     if (_tasks.isEmpty) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.task_alt, size: 64, color: colorScheme.outline),
-              const SizedBox(height: 16),
-              Text(
-                'No tasks found',
-                style: textTheme.titleMedium?.copyWith(
-                  color: colorScheme.outline,
-                ),
-              ),
-            ],
-          ),
+      return Center(
+        child: Column(
+          children: [
+            Icon(Icons.task_alt, size: 64, color: colorScheme.outline),
+            const SizedBox(height: 16),
+            Text(
+              'No personal tasks yet',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: colorScheme.outline),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Create your first task to get started',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: colorScheme.outline),
+            ),
+          ],
         ),
       );
     }
 
-    return SliverList.builder(
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: _tasks.length,
       itemBuilder: (context, index) {
         final task = _tasks[index];
         final isCompleted = task['status'] == 'completed';
-        final isCreatedByMe =
-            task['created_by'] == task['assigned_to'] ||
-            task['assigned_to'] == null;
 
         return Card(
           elevation: 0,
@@ -384,56 +332,66 @@ class _SeniorCitizenTasksPageState extends State<SeniorCitizenTasksPage> {
             borderRadius: BorderRadius.circular(20),
           ),
           color: isCompleted
-              ? colorScheme.surfaceContainerHighest
-              : colorScheme.primaryContainer.withAlpha(100),
+              ? colorScheme.surfaceVariant.withAlpha(51)
+              : colorScheme.primaryContainer.withAlpha(51),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
+                    CircleAvatar(
+                      backgroundColor: colorScheme.primaryContainer.withAlpha(
+                        204,
+                      ),
+                      child: Icon(
+                        Icons.person_outline,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             task['title'] ?? 'Untitled Task',
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              decoration: isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                            ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  decoration: isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
+                                ),
                           ),
-                          if (task['description'] != null) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              task['description'],
-                              style: textTheme.bodySmall?.copyWith(
-                                decoration: isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : TextDecoration.none,
-                              ),
-                            ),
-                          ],
+                          const SizedBox(height: 4),
+                          Text(
+                            task['description'] ?? '',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  decoration: isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
+                                ),
+                          ),
                           if (task['time_of_completion'] != null) ...[
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
                             Text(
                               'Due: ${task['time_of_completion']}',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.outline,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: colorScheme.outline),
                             ),
                           ],
                         ],
                       ),
                     ),
                     if (!isCompleted)
-                      IconButton(
-                        icon: const Icon(Icons.check_circle_outline),
-                        onPressed: () => _completeTask(task['id'].toString()),
-                        tooltip: 'Complete Task',
+                      Checkbox(
+                        value: isCompleted,
+                        onChanged: (bool? value) {
+                          _completeTask(task['id'].toString());
+                        },
                       ),
                   ],
                 ),

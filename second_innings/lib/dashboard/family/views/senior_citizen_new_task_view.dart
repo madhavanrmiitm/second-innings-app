@@ -5,12 +5,14 @@ class SeniorCitizenNewTaskPage extends StatefulWidget {
   final String name;
   final String relation;
   final String? seniorCitizenFirebaseUid;
+  final Map<String, dynamic>? seniorCitizenData;
 
   const SeniorCitizenNewTaskPage({
     super.key,
     required this.name,
     required this.relation,
     this.seniorCitizenFirebaseUid,
+    this.seniorCitizenData,
   });
 
   @override
@@ -42,13 +44,27 @@ class _SeniorCitizenNewTaskPageState extends State<SeniorCitizenNewTaskPage> {
     });
 
     try {
+      // Get the senior citizen ID from the data
+      String? assignedToFirebaseUid;
+      if (widget.seniorCitizenData != null) {
+        // Use the senior citizen ID from the data if available
+        final seniorCitizenId = widget.seniorCitizenData!['id']?.toString();
+        if (seniorCitizenId != null) {
+          // For now, we'll use the senior citizen ID as the assigned_to
+          // In a real implementation, you might want to map this to a firebase UID
+          assignedToFirebaseUid = seniorCitizenId;
+        }
+      } else if (widget.seniorCitizenFirebaseUid != null) {
+        assignedToFirebaseUid = widget.seniorCitizenFirebaseUid;
+      }
+
       final response = await TaskService.createTask(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         timeOfCompletion: _timeController.text.trim().isNotEmpty
             ? _timeController.text.trim()
             : null,
-        assignedToFirebaseUid: widget.seniorCitizenFirebaseUid,
+        assignedToFirebaseUid: assignedToFirebaseUid,
       );
 
       if (response.statusCode == 201) {
@@ -245,6 +261,7 @@ class _SeniorCitizenNewTaskPageState extends State<SeniorCitizenNewTaskPage> {
               labelText: 'Task Title',
               hintText: 'Enter task title',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.task_alt_outlined),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -260,6 +277,7 @@ class _SeniorCitizenNewTaskPageState extends State<SeniorCitizenNewTaskPage> {
               labelText: 'Description (Optional)',
               hintText: 'Enter task description',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.description_outlined),
             ),
             maxLines: 3,
           ),
@@ -267,9 +285,10 @@ class _SeniorCitizenNewTaskPageState extends State<SeniorCitizenNewTaskPage> {
           TextFormField(
             controller: _timeController,
             decoration: const InputDecoration(
-              labelText: 'Due Time (Optional)',
-              hintText: 'e.g., 2024-01-15 14:30',
+              labelText: 'Due Date (Optional)',
+              hintText: 'e.g., 2024-01-15',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.calendar_today_outlined),
             ),
           ),
         ],

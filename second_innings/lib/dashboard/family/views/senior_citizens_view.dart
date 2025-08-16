@@ -58,144 +58,170 @@ class _SeniorCitizensViewState extends State<SeniorCitizensView> {
     }
   }
 
+  Future<void> _refreshSeniorCitizens() async {
+    await _loadSeniorCitizens();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          const UserAppBar(title: '2nd Innings'),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 32),
-                  Text(
-                    "Senior Citizens",
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    "linked to me.",
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+      body: RefreshIndicator(
+        onRefresh: _refreshSeniorCitizens,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              title: const Text('2nd Innings'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _refreshSeniorCitizens,
+                  tooltip: 'Refresh Senior Citizens',
+                ),
+              ],
             ),
-          ),
-          if (_isLoading)
-            const SliverToBoxAdapter(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_error != null)
             SliverToBoxAdapter(
-              child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: colorScheme.error,
+                    const SizedBox(height: 32),
+                    Text(
+                      "Senior Citizens",
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "linked to me.",
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 16),
-                    Text(_error!, style: Theme.of(context).textTheme.bodyLarge),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _loadSeniorCitizens,
-                      child: const Text('Retry'),
-                    ),
                   ],
                 ),
               ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              sliver: SliverList.builder(
-                itemCount: _seniorCitizens.length,
-                itemBuilder: (context, index) {
-                  final citizen = _seniorCitizens[index];
-                  final name = citizen['full_name'] ?? '';
-                  final relation = citizen['relation'] ?? '';
-
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SeniorCitizenDetailPage(
-                            name: name,
-                            relation: relation,
-                            selectedIndex: 0,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      elevation: 0,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+            ),
+            if (_isLoading)
+              const SliverToBoxAdapter(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              SliverToBoxAdapter(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: colorScheme.error,
                       ),
-                      color: colorScheme.primaryContainer.withAlpha(51),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: colorScheme.primaryContainer
-                                  .withAlpha(204),
-                              child: Text(
-                                name.isNotEmpty ? name[0] : '?',
-                                style: TextStyle(
-                                  color: colorScheme.onPrimaryContainer,
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadSeniorCitizens,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                sliver: SliverList.builder(
+                  itemCount: _seniorCitizens.length,
+                  itemBuilder: (context, index) {
+                    final citizen = _seniorCitizens[index];
+                    final name = citizen['full_name'] ?? '';
+                    final relation = citizen['relation'] ?? '';
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SeniorCitizenDetailPage(
+                              name: name,
+                              relation: relation,
+                              selectedIndex: 0,
+                              seniorCitizenData: citizen,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        elevation: 0,
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        color: colorScheme.primaryContainer.withAlpha(51),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: colorScheme.primaryContainer
+                                    .withAlpha(204),
+                                child: Text(
+                                  name.isNotEmpty ? name[0] : '?',
+                                  style: TextStyle(
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  style: Theme.of(context).textTheme.bodyLarge
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  relation,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: colorScheme.surface.withAlpha(128),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Row(
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.arrow_upward, size: 20),
-                                  Icon(Icons.monitor_heart_outlined, size: 20),
-                                  Icon(Icons.square_foot, size: 20),
+                                  Text(
+                                    name,
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    relation,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
                                 ],
                               ),
-                            ),
-                          ],
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surface.withAlpha(128),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.arrow_upward, size: 20),
+                                    Icon(
+                                      Icons.monitor_heart_outlined,
+                                      size: 20,
+                                    ),
+                                    Icon(Icons.square_foot, size: 20),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

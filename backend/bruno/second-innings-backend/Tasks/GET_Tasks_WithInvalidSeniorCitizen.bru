@@ -1,0 +1,54 @@
+meta {
+  name: GET_Tasks_WithInvalidSeniorCitizen
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/tasks?senior_citizen_id=999
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{familyToken}}
+}
+
+tests {
+  test("Status code is 200 for tasks retrieval with invalid senior_citizen_id", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains only own tasks when invalid senior_citizen_id is provided", function() {
+    expect(res.getBody().data).to.have.property('tasks');
+    expect(res.getBody().data.tasks).to.be.an('array');
+
+    // Should only return tasks created by or assigned to the family member
+    const tasks = res.getBody().data.tasks;
+    if (tasks.length > 0) {
+      tasks.forEach(task => {
+        const isOwnTask = task.created_by === 7 || task.assigned_to === 7; // Family member ID
+        expect(isOwnTask).to.be.true;
+      });
+    }
+  });
+
+  test("Each task has required fields", function() {
+    if (res.getBody().data.tasks.length > 0) {
+      const task = res.getBody().data.tasks[0];
+      expect(task).to.have.property('id');
+      expect(task).to.have.property('title');
+      expect(task).to.have.property('description');
+      expect(task).to.have.property('status');
+      expect(task).to.have.property('created_by');
+      expect(task).to.have.property('assigned_to');
+      expect(task).to.have.property('created_at');
+      expect(task).to.have.property('updated_at');
+      expect(task).to.have.property('time_of_completion');
+    }
+  });
+}

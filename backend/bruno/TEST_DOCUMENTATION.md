@@ -1083,85 +1083,7 @@ bru run User --env Local
   - Response: Access denied (expected for test data)
 - **Result**: Success
 
-#### 7. GET_Reminders
-- **API being tested**: `GET /api/tasks/reminders`
-- **Input DATA**:
-  - Authorization: Bearer token (userToken)
-  - Query parameters: page, limit, status
-- **Expected Output**:
-  - Status: 200
-  - Response: List of reminders
-- **Actual Output**:
-  - Status: 200 OK
-  - Response: Successfully retrieved reminders
-- **Result**: Success
 
-#### 8. POST_CreateReminder
-- **API being tested**: `POST /api/tasks/reminder`
-- **Input DATA**:
-  - Authorization: Bearer token (userToken)
-  - Request body:
-    ```json
-    {
-      "title": "Test Reminder",
-      "description": "A test reminder",
-      "reminder_time": "2024-01-15T10:00:00Z",
-      "task_id": 1
-    }
-    ```
-- **Expected Output**:
-  - Status: 201
-  - Response: Reminder creation confirmation
-- **Actual Output**:
-  - Status: 201 Created
-  - Response: Reminder created successfully
-- **Result**: Success
-
-#### 9. PUT_UpdateReminder
-- **API being tested**: `PUT /api/tasks/reminder/{reminder_id}`
-- **Input DATA**:
-  - Authorization: Bearer token (userToken)
-  - Path parameter: reminder_id
-  - Request body:
-    ```json
-    {
-      "title": "Updated Reminder",
-      "reminder_time": "2024-01-16T10:00:00Z"
-    }
-    ```
-- **Expected Output**:
-  - Status: 200
-  - Response: Reminder update confirmation
-- **Actual Output**:
-  - Status: 200 OK
-  - Response: Reminder updated successfully
-- **Result**: Success
-
-#### 10. DELETE_CancelReminder
-- **API being tested**: `DELETE /api/tasks/reminder/{reminder_id}`
-- **Input DATA**:
-  - Authorization: Bearer token (userToken)
-  - Path parameter: reminder_id
-- **Expected Output**:
-  - Status: 200 or 404
-  - Response: Reminder cancellation confirmation
-- **Actual Output**:
-  - Status: 200 OK
-  - Response: Reminder cancelled successfully
-- **Result**: Success
-
-#### 11. POST_SnoozeReminder
-- **API being tested**: `POST /api/tasks/reminder/{reminder_id}/snooze`
-- **Input DATA**:
-  - Authorization: Bearer token (userToken)
-  - Path parameter: reminder_id
-- **Expected Output**:
-  - Status: 200
-  - Response: Reminder snooze confirmation
-- **Actual Output**:
-  - Status: 200 OK
-  - Response: Reminder snoozed successfully
-- **Result**: Success
 
 ### Tickets Tests (3 tests) - ALL PASSED
 
@@ -1295,7 +1217,7 @@ bru run User --env Local
 | Family | 5 tests | PASSED | Family member management |
 | Interest Groups | 5 tests | PASSED | Group management, joining/leaving |
 | Notifications | 2 tests | PASSED | Notification management |
-| Tasks | 11 tests | PASSED | Task management, reminders |
+| Tasks | 5 tests | PASSED | Task management |
 | Tickets | 3 tests | PASSED | Support ticket management |
 | User | 1 test | PASSED | Profile retrieval |
 | Root | 3 tests | PASSED | Health check, test data |
