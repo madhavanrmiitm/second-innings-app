@@ -1,7 +1,7 @@
 from app.database.db import get_db_connection
 from app.logger import logger
 from app.modules.auth.auth_service import auth_service
-from app.payloads import TicketStatus
+from app.payloads import TicketStatus, UserRole
 from app.utils.response_formatter import format_response
 
 
@@ -19,14 +19,51 @@ async def get_tickets(request):
         if not is_registered:
             return format_response(status_code=401, message="User not registered.")
 
+        # Get query parameters
+        status_filter = request.query_params.get("status")
+        priority_filter = request.query_params.get("priority")
+        assigned_to_filter = request.query_params.get("assigned_to")
+
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    """SELECT id, user_id, assigned_to, subject, description, status, created_at, resolved_at
-                       FROM tickets
-                       WHERE user_id = %s""",
-                    (user.id,),
-                )
+                # Base query with user details
+                query = """
+                    SELECT 
+                        t.id, t.user_id, t.assigned_to, t.subject, t.description, 
+                        t.priority, t.category, t.status, t.created_at, t.updated_at, t.resolved_at,
+                        u1.full_name as created_by_name, u2.full_name as assigned_to_name
+                    FROM tickets t
+                    LEFT JOIN users u1 ON t.user_id = u1.id
+                    LEFT JOIN users u2 ON t.assigned_to = u2.id
+                    WHERE 1=1
+                """
+                params = []
+
+                # Role-based filtering
+                if user.role == UserRole.ADMIN.value or user.role == UserRole.SUPPORT_USER.value:
+                    # Admin and support see all tickets
+                    pass
+                else:
+                    # Regular users see only their tickets
+                    query += " AND t.user_id = %s"
+                    params.append(user.id)
+
+                # Apply filters
+                if status_filter:
+                    query += " AND t.status = %s"
+                    params.append(status_filter)
+                
+                if priority_filter:
+                    query += " AND t.priority = %s"
+                    params.append(priority_filter)
+                
+                if assigned_to_filter:
+                    query += " AND t.assigned_to = %s"
+                    params.append(int(assigned_to_filter))
+
+                query += " ORDER BY t.created_at DESC"
+                
+                cur.execute(query, params)
                 tickets_data = cur.fetchall()
 
                 tickets = [
@@ -36,9 +73,14 @@ async def get_tickets(request):
                         "assigned_to": ticket[2],
                         "subject": ticket[3],
                         "description": ticket[4],
-                        "status": ticket[5],
-                        "created_at": ticket[6],
-                        "resolved_at": ticket[7],
+                        "priority": ticket[5],
+                        "category": ticket[6],
+                        "status": ticket[7],
+                        "created_at": ticket[8],
+                        "updated_at": ticket[9],
+                        "resolved_at": ticket[10],
+                        "created_by_name": ticket[11],
+                        "assigned_to_name": ticket[12],
                     }
                     for ticket in tickets_data
                 ]
@@ -73,18 +115,17 @@ async def create_ticket(request, validated_data):
         if not is_registered:
             return format_response(status_code=401, message="User not registered.")
 
-        subject = validated_data.subject
-        description = validated_data.description
-
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    """INSERT INTO tickets (user_id, subject, description)
-                       VALUES (%s, %s, %s) RETURNING id""",
+                    """INSERT INTO tickets (user_id, subject, description, priority, category)
+                       VALUES (%s, %s, %s, %s, %s) RETURNING id""",
                     (
                         user.id,
-                        subject,
-                        description,
+                        validated_data.subject,
+                        validated_data.description,
+                        getattr(validated_data, 'priority', 'medium'),
+                        getattr(validated_data, 'category', None),
                     ),
                 )
                 ticket_id = cur.fetchone()[0]
@@ -122,9 +163,14 @@ async def get_ticket(request, ticketId):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    """SELECT id, user_id, assigned_to, subject, description, status, created_at, resolved_at
-                       FROM tickets
-                       WHERE id = %s""",
+                    """SELECT 
+                        t.id, t.user_id, t.assigned_to, t.subject, t.description, 
+                        t.priority, t.category, t.status, t.created_at, t.updated_at, t.resolved_at,
+                        u1.full_name as created_by_name, u2.full_name as assigned_to_name
+                    FROM tickets t
+                    LEFT JOIN users u1 ON t.user_id = u1.id
+                    LEFT JOIN users u2 ON t.assigned_to = u2.id
+                    WHERE t.id = %s""",
                     (ticketId,),
                 )
                 ticket_data = cur.fetchone()
@@ -133,11 +179,12 @@ async def get_ticket(request, ticketId):
                     return format_response(status_code=404, message="Ticket not found.")
 
                 # Check permissions
-                if user.id != ticket_data[1]:  # user_id
-                    return format_response(
-                        status_code=403,
-                        message="Access denied. You can only view your own tickets.",
-                    )
+                if user.role not in [UserRole.ADMIN.value, UserRole.SUPPORT_USER.value]:
+                    if user.id != ticket_data[1]:  # user_id
+                        return format_response(
+                            status_code=403,
+                            message="Access denied. You can only view your own tickets.",
+                        )
 
                 ticket = {
                     "id": ticket_data[0],
@@ -145,9 +192,14 @@ async def get_ticket(request, ticketId):
                     "assigned_to": ticket_data[2],
                     "subject": ticket_data[3],
                     "description": ticket_data[4],
-                    "status": ticket_data[5],
-                    "created_at": ticket_data[6],
-                    "resolved_at": ticket_data[7],
+                    "priority": ticket_data[5],
+                    "category": ticket_data[6],
+                    "status": ticket_data[7],
+                    "created_at": ticket_data[8],
+                    "updated_at": ticket_data[9],
+                    "resolved_at": ticket_data[10],
+                    "created_by_name": ticket_data[11],
+                    "assigned_to_name": ticket_data[12],
                 }
 
         return format_response(
@@ -182,35 +234,101 @@ async def update_ticket(request, ticketId, validated_data):
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # Verify ownership
-                cur.execute("SELECT user_id FROM tickets WHERE id = %s", (ticketId,))
-                ticket_owner_data = cur.fetchone()
-                if not ticket_owner_data:
+                # Verify ticket exists and check permissions
+                cur.execute("SELECT user_id, status FROM tickets WHERE id = %s", (ticketId,))
+                ticket_data = cur.fetchone()
+                if not ticket_data:
                     return format_response(status_code=404, message="Ticket not found.")
-                if ticket_owner_data[0] != user.id:
-                    return format_response(
-                        status_code=403,
-                        message="Access denied. You can only update your own tickets.",
-                    )
+                
+                # Permission check - admin/support can update any, others only their own
+                if user.role not in [UserRole.ADMIN.value, UserRole.SUPPORT_USER.value]:
+                    if ticket_data[0] != user.id:
+                        return format_response(
+                            status_code=403,
+                            message="Access denied. You can only update your own tickets.",
+                        )
 
                 update_fields = []
                 update_values = []
 
-                if validated_data.subject is not None:
+                # Handle subject update
+                if hasattr(validated_data, 'subject') and validated_data.subject is not None:
                     update_fields.append("subject = %s")
                     update_values.append(validated_data.subject)
-                if validated_data.description is not None:
+                
+                # Handle description update
+                if hasattr(validated_data, 'description') and validated_data.description is not None:
                     update_fields.append("description = %s")
                     update_values.append(validated_data.description)
-                if validated_data.status is not None:
+                
+                # Handle priority update with validation
+                if hasattr(validated_data, 'priority') and validated_data.priority is not None:
+                    # Validate priority value
+                    valid_priorities = ['low', 'medium', 'high']
+                    if validated_data.priority not in valid_priorities:
+                        return format_response(
+                            status_code=400,
+                            message=f"Invalid priority. Must be one of: {', '.join(valid_priorities)}"
+                        )
+                    update_fields.append("priority = %s")
+                    update_values.append(validated_data.priority)
+                
+                # Handle category update
+                if hasattr(validated_data, 'category') and validated_data.category is not None:
+                    update_fields.append("category = %s")
+                    update_values.append(validated_data.category)
+                
+                # Handle status update with validation - FIXED
+                if hasattr(validated_data, 'status') and validated_data.status is not None:
+                    # Validate status value
+                    valid_statuses = ['open', 'in_progress', 'closed']
+                    status_value = validated_data.status
+                    
+                    # Handle if it's an enum object with .value attribute or just a string
+                    if hasattr(status_value, 'value'):
+                        status_value = status_value.value
+                    
+                    # Validate the status value
+                    if status_value not in valid_statuses:
+                        return format_response(
+                            status_code=400, 
+                            message=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                        )
+                    
                     update_fields.append("status = %s")
-                    update_values.append(validated_data.status.value)
+                    update_values.append(status_value)
+                    
+                    # Set resolved_at timestamp when closing ticket
+                    if status_value == 'closed':
+                        update_fields.append("resolved_at = CURRENT_TIMESTAMP")
+                
+                # Handle assigned_to update
+                if hasattr(validated_data, 'assigned_to') and validated_data.assigned_to is not None:
+                    # Verify assigned user exists and is support/admin
+                    cur.execute(
+                        "SELECT role FROM users WHERE id = %s",
+                        (validated_data.assigned_to,),
+                    )
+                    assigned_user = cur.fetchone()
+                    if not assigned_user:
+                        return format_response(
+                            status_code=404, message="Assigned user not found."
+                        )
+                    if assigned_user[0] not in [UserRole.ADMIN.value, UserRole.SUPPORT_USER.value]:
+                        return format_response(
+                            status_code=400, 
+                            message="Tickets can only be assigned to admin or support users."
+                        )
+                    update_fields.append("assigned_to = %s")
+                    update_values.append(validated_data.assigned_to)
 
+                # Check if there are any fields to update
                 if not update_fields:
                     return format_response(
                         status_code=400, message="No fields to update."
                     )
 
+                # Build and execute update query
                 update_values.append(ticketId)
                 update_query = f"UPDATE tickets SET {', '.join(update_fields)}, updated_at = CURRENT_TIMESTAMP WHERE id = %s"
 
@@ -229,4 +347,51 @@ async def update_ticket(request, ticketId, validated_data):
         )
     except Exception as e:
         logger.error(f"Error updating ticket: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+    
+
+
+async def get_assignable_users(request):
+    """Get users who can be assigned tickets (admin and support users)"""
+    logger.info("Executing get_assignable_users controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered:
+            return format_response(status_code=401, message="User not registered.")
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, full_name, role 
+                    FROM users 
+                    WHERE role IN ('admin', 'support_user') 
+                    AND status = 'active'
+                    ORDER BY full_name
+                """)
+                users_data = cur.fetchall()
+                
+                users = [
+                    {
+                        "id": user[0],
+                        "name": user[1],
+                        "role": user[2]
+                    }
+                    for user in users_data
+                ]
+
+        return format_response(
+            status_code=200,
+            message="Assignable users retrieved successfully.",
+            data={"users": users},
+        )
+
+    except Exception as e:
+        logger.error(f"Error retrieving assignable users: {e}")
         return format_response(status_code=500, message="Internal server error.")

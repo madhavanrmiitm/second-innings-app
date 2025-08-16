@@ -1,6 +1,55 @@
 import axios from 'axios'
 import { ApiResponse } from '@/utils/apiResponse'
 import { ApiConfig } from '@/config/api'
+import { FirebaseAuthService } from '@/services/firebaseAuth'
+
+// Create axios instance with interceptors
+const axiosInstance = axios.create({
+  baseURL: ApiConfig.currentBaseUrl,
+  timeout: ApiConfig.requestTimeout,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  }
+})
+
+// Request interceptor to add auth token
+axiosInstance.interceptors.request.use(
+  async (config) => {
+    // Check for test token first
+    const testToken = localStorage.getItem('testToken')
+    if (testToken) {
+      config.headers['Authorization'] = `Bearer ${testToken}`
+      return config
+    }
+    
+    // Otherwise use Firebase token
+    try {
+      const idToken = await FirebaseAuthService.getCurrentUserIdToken()
+      if (idToken) {
+        config.headers['Authorization'] = `Bearer ${idToken}`
+      }
+    } catch (error) {
+      console.error('Failed to get auth token:', error)
+    }
+    
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// Response interceptor for 401 handling
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Don't automatically clear session on 401 - let the app handle it
+    // This prevents premature logout during page loads
+    if (error.response?.status === 401) {
+      console.warn('401 Unauthorized received:', error.config?.url)
+    }
+    return Promise.reject(error)
+  }
+)
 
 export class ApiService {
   static get baseUrl() {
@@ -31,7 +80,8 @@ export class ApiService {
         }
       })
 
-      const response = await axios.get(url.toString(), {
+      // Changed: axios.get → axiosInstance.get
+      const response = await axiosInstance.get(url.toString(), {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
       })
@@ -45,7 +95,8 @@ export class ApiService {
   // POST Request
   static async post(endpoint, { body = null, headers = {} } = {}) {
     try {
-      const response = await axios.post(`${this.baseUrl}${endpoint}`, body, {
+      // Changed: axios.post → axiosInstance.post
+      const response = await axiosInstance.post(`${this.baseUrl}${endpoint}`, body, {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
       })
@@ -59,7 +110,8 @@ export class ApiService {
   // PUT Request
   static async put(endpoint, { body = null, headers = {} } = {}) {
     try {
-      const response = await axios.put(`${this.baseUrl}${endpoint}`, body, {
+      // Changed: axios.put → axiosInstance.put
+      const response = await axiosInstance.put(`${this.baseUrl}${endpoint}`, body, {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
       })
@@ -83,7 +135,8 @@ export class ApiService {
         config.data = body
       }
 
-      const response = await axios.delete(`${this.baseUrl}${endpoint}`, config)
+      // Changed: axios.delete → axiosInstance.delete
+      const response = await axiosInstance.delete(`${this.baseUrl}${endpoint}`, config)
 
       return this._handleResponse(response)
     } catch (error) {
@@ -131,9 +184,18 @@ export class ApiService {
         })
 
       case 422:
+        // Handle validation errors with detailed messages
+        let validationError = 'Validation failed'
+        if (data?.data && Array.isArray(data.data)) {
+          // Format Pydantic validation errors
+          const errors = data.data.map(err => `${err.loc?.join('.')} ${err.msg}`).join(', ')
+          validationError = `Validation errors: ${errors}`
+        } else if (data?.message) {
+          validationError = data.message
+        }
         return ApiResponse.error({
           statusCode,
-          error: data?.error || data?.message || 'Unprocessable Entity',
+          error: validationError,
         })
 
       case 500:

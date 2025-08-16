@@ -9,12 +9,8 @@
               <i class="bi bi-arrow-left"></i> Back to Tickets
             </router-link>
           </div>
-          <h1 class="h3 mb-0">{{ currentTicket.title }}</h1>
+          <h1 class="h3 mb-0">{{ currentTicket.subject }}</h1>
           <div class="text-muted">Ticket #{{ currentTicket.id }}</div>
-        </div>
-        <div class="d-flex gap-2">
-          <button class="btn btn-outline-secondary"><i class="bi bi-pencil me-2"></i>Edit</button>
-          <button class="btn btn-outline-danger"><i class="bi bi-trash me-2"></i>Delete</button>
         </div>
       </div>
 
@@ -41,32 +37,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Comments -->
-          <div class="card">
-            <div class="card-header">
-              <h5 class="card-title mb-0">Comments</h5>
-            </div>
-            <div class="card-body">
-              <div class="text-center text-muted py-3">No comments yet</div>
-
-              <!-- Add Comment Form -->
-              <div class="mt-4">
-                <form @submit.prevent="addComment">
-                  <div class="mb-3">
-                    <textarea
-                      v-model="newComment"
-                      class="form-control"
-                      rows="3"
-                      placeholder="Add a comment..."
-                      required
-                    ></textarea>
-                  </div>
-                  <button type="submit" class="btn btn-primary">Post Comment</button>
-                </form>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Sidebar -->
@@ -79,41 +49,56 @@
             <div class="card-body">
               <div class="mb-3">
                 <label class="form-label small text-muted">Status</label>
-                <select v-model="currentTicket.status" class="form-select" @change="updateStatus">
-                  <option value="Open">Open</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Closed">Closed</option>
+                <select 
+                  v-model="localStatus" 
+                  class="form-select" 
+                  @change="updateStatus"
+                  :disabled="ticketsStore.loading"
+                >
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="closed">Closed</option>
                 </select>
               </div>
 
               <div class="mb-3">
                 <label class="form-label small text-muted">Priority</label>
-                <div>
-                  <span :class="`badge bg-${getPriorityColor(currentTicket.priority)}`">
-                    {{ currentTicket.priority }}
-                  </span>
-                </div>
+                <select 
+                  v-model="localPriority" 
+                  class="form-select" 
+                  @change="updatePriority"
+                  :disabled="ticketsStore.loading"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
               </div>
 
               <div class="mb-3">
                 <label class="form-label small text-muted">Category</label>
-                <p class="mb-0">{{ currentTicket.category }}</p>
+                <p class="mb-0">{{ currentTicket.category || 'Not specified' }}</p>
               </div>
 
-              <div>
+              <div class="mb-3">
                 <label class="form-label small text-muted">Assigned To</label>
-                <p class="mb-0">{{ currentTicket.assignedTo }}</p>
+                <select 
+                  v-model="localAssignedTo" 
+                  class="form-select" 
+                  @change="updateAssignment"
+                  :disabled="ticketsStore.loading"
+                >
+                  <option :value="null">Unassigned</option>
+                  <option v-for="user in assignableUsers" :key="user.id" :value="user.id">
+                    {{ user.name }}
+                  </option>
+                </select>
               </div>
-            </div>
-          </div>
 
-          <!-- Activity Log -->
-          <div class="card">
-            <div class="card-header">
-              <h6 class="mb-0">Activity Log</h6>
-            </div>
-            <div class="card-body">
-              <div class="text-center text-muted py-3">No activity yet</div>
+              <div v-if="currentTicket.resolvedAt">
+                <label class="form-label small text-muted">Resolved At</label>
+                <p class="mb-0">{{ formatDate(currentTicket.resolvedAt) }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -130,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import RoleBasedLayout from '@/components/common/RoleBasedLayout.vue'
 import { useTicketsStore } from '@/stores/tickets'
@@ -140,44 +125,67 @@ const route = useRoute()
 const ticketsStore = useTicketsStore()
 const toast = useToast()
 
-const newComment = ref('')
 const loading = computed(() => ticketsStore.loading)
 const currentTicket = computed(() => ticketsStore.currentTicket)
+const assignableUsers = computed(() => ticketsStore.assignableUsers)
 
-const getPriorityColor = (priority) => {
-  const colors = {
-    Low: 'secondary',
-    Medium: 'warning',
-    High: 'danger',
+// Local state for selects
+const localStatus = ref('')
+const localPriority = ref('')
+const localAssignedTo = ref(null)
+
+// Watch for ticket changes to update local state
+watch(currentTicket, (ticket) => {
+  if (ticket) {
+    localStatus.value = ticket.status
+    localPriority.value = ticket.priority
+    localAssignedTo.value = ticket.assignedTo
   }
-  return colors[priority] || 'secondary'
-}
+})
 
 const formatDate = (date) => {
+  if (!date) return 'N/A'
   return new Date(date).toLocaleString()
 }
 
 const updateStatus = async () => {
-  const result = await ticketsStore.updateTicketStatus(
-    currentTicket.value.id,
-    currentTicket.value.status,
-  )
-
+  const result = await ticketsStore.updateTicketStatus(currentTicket.value.id, localStatus.value)
   if (result.success) {
-    toast.success('Ticket status updated')
+    toast.success('Status updated')
   } else {
     toast.error('Failed to update status')
+    // Revert on failure
+    localStatus.value = currentTicket.value.status
   }
 }
 
-const addComment = () => {
-  // Implement comment functionality
-  toast.success('Comment added')
-  newComment.value = ''
+const updatePriority = async () => {
+  const result = await ticketsStore.updateTicket(currentTicket.value.id, { 
+    priority: localPriority.value 
+  })
+  if (result.success) {
+    toast.success('Priority updated')
+  } else {
+    toast.error('Failed to update priority')
+    // Revert on failure
+    localPriority.value = currentTicket.value.priority
+  }
 }
 
-onMounted(() => {
+const updateAssignment = async () => {
+  const result = await ticketsStore.assignTicket(currentTicket.value.id, localAssignedTo.value)
+  if (result.success) {
+    toast.success('Assignment updated')
+  } else {
+    toast.error('Failed to update assignment')
+    // Revert on failure
+    localAssignedTo.value = currentTicket.value.assignedTo
+  }
+}
+
+onMounted(async () => {
   const ticketId = route.params.id
-  ticketsStore.fetchTicketById(ticketId)
+  await ticketsStore.fetchTicketById(ticketId)
+  await ticketsStore.fetchAssignableUsers()
 })
 </script>

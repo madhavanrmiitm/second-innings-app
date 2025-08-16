@@ -296,16 +296,36 @@ export const useAdminStore = defineStore('admin', {
       this.error = null
     },
 
-    // Check if user is properly authenticated for admin operations
-    isAuthenticatedForAdmin() {
+        // Check if user is properly authenticated for admin operations
+    async isAuthenticatedForAdmin() {
       if (TestAuthService.isTestModeEnabled()) {
         const testToken = localStorage.getItem('testToken') || sessionStorage.getItem('testToken')
         return !!testToken
       }
 
-      // For Firebase mode, we assume if the user is logged in, they have a token
-      // The actual token validation will happen in the API calls
-      return true
+      // For Firebase mode, check multiple layers of authentication
+      try {
+        // First check if we have user data in localStorage
+        const isLoggedIn = localStorage.getItem('is_logged_in') === 'true'
+        const userData = localStorage.getItem('user_data')
+        
+        if (!isLoggedIn || !userData) {
+          return false
+        }
+
+        // Check if we can get a Firebase ID token
+        const idToken = await FirebaseAuthService.getCurrentUserIdToken()
+        if (!idToken) {
+          return false
+        }
+
+        // Check auth store state as additional verification
+        const authStore = useAuthStore()
+        return authStore.isAuthenticated
+      } catch (error) {
+        console.error('Error checking admin authentication:', error)
+        return false
+      }
     }
   }
 })

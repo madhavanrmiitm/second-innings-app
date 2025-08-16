@@ -279,13 +279,7 @@ const formatStatus = (status) => {
 }
 
 onMounted(async () => {
-  // Check if user is authenticated for admin operations
-  if (!adminStore.isAuthenticatedForAdmin()) {
-    console.warn('User not authenticated for admin operations')
-    toast.error('Authentication required')
-    return
-  }
-
+  // Load interest group admins data - authentication will be handled by API calls
   try {
     await adminStore.fetchInterestGroupAdmins()
   } catch (error) {

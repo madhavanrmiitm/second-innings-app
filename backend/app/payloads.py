@@ -148,33 +148,58 @@ class UpdateReminder(BaseModel):
 
 
 class CreateInterestGroup(BaseModel):
-    id_token: str
     title: str
     description: Optional[str] = None
-    links: Optional[str] = None
+    whatsapp_link: Optional[str] = None
+    category: Optional[str] = None
     timing: Optional[datetime] = None
 
 
 class UpdateInterestGroup(BaseModel):
-    id_token: str
     title: Optional[str] = None
     description: Optional[str] = None
-    links: Optional[str] = None
+    whatsapp_link: Optional[str] = None
+    category: Optional[str] = None
     status: Optional[str] = None
     timing: Optional[datetime] = None
 
 
 class CreateTicket(BaseModel):
-    id_token: str
     subject: str
     description: Optional[str] = None
+    priority: Optional[str] = "medium"  # Add this
+    category: Optional[str] = None  # Add this
+
+    # Add validation if needed
+    @field_validator("priority")
+    @classmethod
+    def validate_priority(cls, v):
+        if v and v not in ["low", "medium", "high"]:
+            raise ValueError("Priority must be low, medium, or high")
+        return v
 
 
 class UpdateTicket(BaseModel):
-    id_token: str
     subject: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[TicketStatus] = None
+    status: Optional[str] = None  # Change from TicketStatus enum to str
+    priority: Optional[str] = None  # Add this
+    category: Optional[str] = None  # Add this
+    assigned_to: Optional[int] = None  # Add this
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v):
+        if v and v not in ["open", "in_progress", "closed"]:
+            raise ValueError("Status must be open, in_progress, or closed")
+        return v
+
+    @field_validator("priority")
+    @classmethod
+    def validate_priority(cls, v):
+        if v and v not in ["low", "medium", "high"]:
+            raise ValueError("Priority must be low, medium, or high")
+        return v
 
 
 class MarkNotificationAsRead(BaseModel):

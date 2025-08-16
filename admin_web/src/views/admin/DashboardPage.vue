@@ -206,12 +206,7 @@ const formatUserStatus = (status) => {
 }
 
 onMounted(async () => {
-  // Check if user is authenticated for admin operations
-  if (!adminStore.isAuthenticatedForAdmin()) {
-    console.warn('User not authenticated for admin operations')
-    return
-  }
-
+  // Load admin data - authentication will be handled by API calls
   await Promise.all([
     adminStore.fetchAdminStats(),
     adminStore.fetchUsers(),

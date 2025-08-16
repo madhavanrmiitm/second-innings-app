@@ -141,13 +141,7 @@ const reject = async () => {
 }
 
 onMounted(async () => {
-  // Check if user is authenticated for admin operations
-  if (!adminStore.isAuthenticatedForAdmin()) {
-    console.warn('User not authenticated for admin operations')
-    toast.error('Authentication required')
-    return
-  }
-
+  // Load caregivers data - authentication will be handled by API calls
   try {
     await adminStore.fetchCaregivers()
   } catch (error) {
