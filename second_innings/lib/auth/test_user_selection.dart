@@ -21,9 +21,13 @@ class _TestUserSelectionScreenState extends State<TestUserSelectionScreen> {
   final Map<String, String> _filterOptions = {
     'all': 'All Users',
     'active': 'Active Users',
+    'story': 'Story Characters',
+    'admin': 'Administrators',
     'senior_citizen': 'Senior Citizens',
     'family_member': 'Family Members',
     'caregiver': 'Caregivers',
+    'interest_group_admin': 'Group Admins',
+    'support_user': 'Support Users',
     'unregistered': 'Unregistered',
   };
 
@@ -31,9 +35,16 @@ class _TestUserSelectionScreenState extends State<TestUserSelectionScreen> {
     switch (_selectedFilter) {
       case 'active':
         return TestModeConfig.getActiveTestUsers();
+      case 'story':
+        return TestModeConfig.getStoryCharacters();
+      case 'admin':
+        return TestModeConfig.getAdminUsers();
+      case 'support_user':
+        return TestModeConfig.getSupportUsers();
       case 'senior_citizen':
       case 'family_member':
       case 'caregiver':
+      case 'interest_group_admin':
         return TestModeConfig.getTestUsersByRole(_selectedFilter);
       case 'unregistered':
         return TestModeConfig.getTestUsersByStatus('UNREGISTERED');
@@ -129,17 +140,52 @@ class _TestUserSelectionScreenState extends State<TestUserSelectionScreen> {
             ),
           ),
         ),
-        title: Text(
-          user.name,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                user.name,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            if (user.isStoryCharacter)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.amber,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('🌟', style: TextStyle(fontSize: 12)),
+              ),
+          ],
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
             Text(user.email),
+            if (user.description != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                user.description!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            if (user.age != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Age: ${user.age} years',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             const SizedBox(height: 4),
             Row(
               children: [
@@ -242,14 +288,20 @@ class _TestUserSelectionScreenState extends State<TestUserSelectionScreen> {
 
   String _getRoleDisplayName(String role) {
     switch (role) {
+      case 'admin':
+        return 'Admin';
       case 'caregiver':
         return 'Caregiver';
       case 'family_member':
         return 'Family Member';
       case 'senior_citizen':
         return 'Senior Citizen';
+      case 'interest_group_admin':
+        return 'Group Admin';
+      case 'support_user':
+        return 'Support';
       case 'unregistered':
-        return 'Unregistered User';
+        return 'Unregistered';
       default:
         return role;
     }
@@ -365,6 +417,13 @@ class _TestUserSelectionScreenState extends State<TestUserSelectionScreen> {
         break;
       case 'caregiver':
         targetScreen = const CaregiverHomePage();
+        break;
+      case 'admin':
+      case 'interest_group_admin':
+      case 'support_user':
+        // For now, redirect to senior citizen home as default
+        // TODO: Create specific dashboards for these roles
+        targetScreen = const SeniorCitizenHomePage();
         break;
       default:
         _showErrorMessage('Unknown user type: $userType');

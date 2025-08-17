@@ -7,21 +7,19 @@ DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS relations CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- User ID Mapping for Sample Data:
+-- User ID Mapping for Story Characters:
 -- ID 1: Ashwin Narayanan S (admin)
 -- ID 2: Nakshatra Gupta (admin)
--- ID 3: Test Admin One (admin)
--- ID 4: Test Admin Two (admin)
--- ID 5: Test Caregiver One (caregiver)
--- ID 6: Test Caregiver Two (caregiver)
--- ID 7: Test Family Member One (family_member)
--- ID 8: Test Family Member Two (family_member)
--- ID 9: Test Senior Citizen One (senior_citizen)
--- ID 10: Test Senior Citizen Two (senior_citizen)
--- ID 11: Test Group Admin One (interest_group_admin)
--- ID 12: Test Group Admin Two (interest_group_admin)
--- ID 13: Test Support User One (support_user)
--- ID 14: Test Support User Two (support_user)
+-- ID 3: Asha (senior_citizen) - 80-year-old Indian woman with kind eyes, short grey hair, glasses
+-- ID 4: Rohan (family_member) - 45-year-old professional Indian man, Asha's son
+-- ID 5: Priya (caregiver) - 28-year-old Indian woman with warm smile, long dark hair in ponytail
+-- ID 6: Mr. Verma (interest_group_admin) - 70-year-old retired Indian gentleman with white mustache
+-- ID 7: Test Caregiver Two (caregiver) - Additional caregiver for variety
+-- ID 8: Test Family Member Two (family_member) - Additional family member
+-- ID 9: Test Senior Citizen Two (senior_citizen) - Additional senior citizen
+-- ID 10: Test Group Admin Two (interest_group_admin) - Additional group admin
+-- ID 11: Test Support User One (support_user) - Support specialist
+-- ID 12: Test Support User Two (support_user) - Customer service representative
 
 -- Create ENUM type for user roles
 DROP TYPE IF EXISTS user_role CASCADE;
@@ -73,45 +71,41 @@ VALUES ('21f3001600@ds.study.iitm.ac.in', 'qEGg9NTOjfgSaw646IhSRCXKtaZ2', 'Ashwi
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
 VALUES ('nakshatra.nsb@gmail.com', '4N2P7ZAWGPgXXoQmp2YAKXJTw253', 'Nakshatra Gupta', 'admin', 'active');
 
-
-
--- Insert test mode users (2 per role)
--- Admin users
+-- Insert story characters
+-- Asha - Senior Citizen (ID 3)
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
-VALUES ('admin1@test.com', 'test_admin_uid_001', 'Test Admin One', 'admin', 'active', '1970-01-15', 'Test admin user for development', 'admin,test');
+VALUES ('asha.senior@example.com', 'story_asha_uid_001', 'Asha', 'senior_citizen', 'active', '1945-03-15', '80-year-old Indian woman with kind eyes, short grey hair, and glasses. Enjoys gardening and staying active.', 'senior,indian,gardening,active');
 
+-- Rohan - Family Member (ID 4) - Asha's son
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
-VALUES ('admin2@test.com', 'test_admin_uid_002', 'Test Admin Two', 'admin', 'active', '1975-03-20', 'Second test admin user for development', 'admin,test');
+VALUES ('rohan.family@example.com', 'story_rohan_uid_001', 'Rohan', 'family_member', 'active', '1980-08-22', '45-year-old professional Indian man with short black hair and grey streaks at temples. Caring son managing his mother Asha''s care.', 'family,professional,caring,indian');
 
--- Caregiver users
+-- Priya - Caregiver (ID 5)
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
-VALUES ('caregiver1@test.com', 'test_caregiver_uid_001', 'Test Caregiver One', 'caregiver', 'active', 'https://www.youtube.com/watch?v=test1', '1985-06-10', 'Experienced caregiver specializing in elderly care', 'caregiver,elderly,compassionate');
+VALUES ('priya.caregiver@example.com', 'story_priya_uid_001', 'Priya', 'caregiver', 'active', 'https://www.youtube.com/watch?v=priya_intro', '1997-11-08', '28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.', 'caregiver,physiotherapy,companionship,indian');
 
+-- Mr. Verma - Interest Group Admin (ID 6)
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
+VALUES ('verma.groupadmin@example.com', 'story_verma_uid_001', 'Mr. Verma', 'interest_group_admin', 'active', 'https://www.youtube.com/watch?v=verma_intro', '1955-06-10', '70-year-old retired Indian gentleman with cheerful demeanor, neat white mustache, and glasses. Community leader organizing activities for seniors.', 'group-admin,retired,community,indian');
+
+-- Additional test users for variety
+-- Test Caregiver Two
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
 VALUES ('caregiver2@test.com', 'test_caregiver_uid_002', 'Test Caregiver Two', 'caregiver', 'pending_approval', 'https://www.youtube.com/watch?v=test2', '1990-08-25', 'Certified nurse with 5 years of experience in home care', 'caregiver,nurse,home-care');
 
--- Family member users
-INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
-VALUES ('family1@test.com', 'test_family_uid_001', 'Test Family Member One', 'family_member', 'active', '1980-12-05', 'Caring family member looking after elderly parent', 'family,caring');
-
+-- Test Family Member Two
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
 VALUES ('family2@test.com', 'test_family_uid_002', 'Test Family Member Two', 'family_member', 'active', '1988-04-18', 'Devoted child managing care for senior citizen', 'family,devoted');
 
--- Senior citizen users
-INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
-VALUES ('senior1@test.com', 'test_senior_uid_001', 'Test Senior Citizen One', 'senior_citizen', 'active', '1945-02-14', 'Retired teacher enjoying second innings of life', 'senior,retired,teacher');
-
+-- Test Senior Citizen Two
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
 VALUES ('senior2@test.com', 'test_senior_uid_002', 'Test Senior Citizen Two', 'senior_citizen', 'active', '1950-09-30', 'Former engineer with passion for gardening', 'senior,engineer,gardening');
 
--- Interest group admin users
-INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
-VALUES ('groupadmin1@test.com', 'test_groupadmin_uid_001', 'Test Group Admin One', 'interest_group_admin', 'active', 'https://www.youtube.com/watch?v=testgroup1', '1965-07-22', 'Community leader organizing activities for seniors', 'group-admin,community,activities');
-
+-- Test Group Admin Two
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
 VALUES ('groupadmin2@test.com', 'test_groupadmin_uid_002', 'Test Group Admin Two', 'interest_group_admin', 'pending_approval', 'https://www.youtube.com/watch?v=testgroup2', '1972-11-08', 'Art therapist creating engaging programs for elderly', 'group-admin,art-therapy,programs');
 
--- Support user users
+-- Support users
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
 VALUES ('support1@test.com', 'test_support_uid_001', 'Test Support User One', 'support_user', 'active', '1992-01-12', 'Support specialist helping users with platform issues', 'support,specialist');
 
@@ -139,8 +133,6 @@ CREATE TABLE tasks (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
 
 CREATE TABLE care_requests (
     id SERIAL PRIMARY KEY,
@@ -224,60 +216,46 @@ CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_notifications_type ON notifications(type);
 CREATE INDEX idx_notifications_is_read ON notifications(is_read);
 
----Test Tickets
-
-INSERT INTO tickets (user_id, assigned_to, subject, description, priority, category, status) VALUES
-(9, 13, 'Cannot login to account', 'Getting error message when trying to login', 'high', 'Authentication', 'open'),
-(10, 13, 'Profile not updating', 'Changes to profile are not being saved', 'medium', 'Profile', 'in_progress'),
-(9, 14, 'Notification issues', 'Not receiving any notifications', 'low', 'Notifications', 'open'),
-(7, NULL, 'App crashes on startup', 'The app crashes immediately after opening', 'high', 'Technical', 'open'),
-(8, 13, 'Request for new feature', 'Would like to have dark mode', 'low', 'Feature Request', 'closed'),
-(10, 14, 'Payment not processing', 'Credit card payment failing', 'high', 'Billing', 'in_progress');
-
--- Insert test interest groups
-INSERT INTO interest_groups (title, description, whatsapp_link, category, status, timing, created_by) VALUES
-('Morning Yoga & Wellness', 'Join our daily morning yoga sessions designed specifically for seniors. Improve flexibility, balance, and mental well-being.', 'https://chat.whatsapp.com/BQJVvF9M8B50Qj4xDf2a1z', 'Health', 'active', '2025-01-20 07:00:00', 11),
-('Digital Learning Circle', 'Learn to use smartphones, tablets, and the internet safely. Weekly sessions covering WhatsApp, video calls, and online banking.', 'https://chat.whatsapp.com/CRKWwG0N9C61Rk5yEg3b2A', 'Technology', 'active', '2025-01-22 15:00:00', 11),
-('Book Club Enthusiasts', 'Monthly book discussions featuring classic literature and contemporary works. Share insights and make new friends through reading.', 'https://chat.whatsapp.com/DSLXxH1O0D72Sl6zFh4c3B', 'Education', 'active', '2025-01-25 16:00:00', 12),
-('Garden Lovers Community', 'Share gardening tips, plant care advice, and seasonal growing guides. Perfect for those with green thumbs or aspiring gardeners.', 'https://chat.whatsapp.com/ETMYyI2P1E83Tm7aGi5d4C', 'Hobby', 'active', '2025-01-27 10:00:00', 12),
-('Art & Craft Workshop', 'Creative sessions including painting, pottery, and handicrafts. Express yourself through various art forms in a supportive environment.', 'https://chat.whatsapp.com/FUNZzJ3Q2F94Un8bHj6e5D', 'Arts', 'active', '2025-01-30 14:00:00', 11),
-('Walking & Fitness Group', 'Regular walking sessions in local parks and fitness activities tailored for seniors. Stay active and socialize with like-minded individuals.', 'https://chat.whatsapp.com/GVOAaK4R3G05Vo9cIk7f6E', 'Health', 'active', '2025-02-02 08:00:00', 12),
-('Cooking & Recipe Exchange', 'Share traditional recipes, cooking tips, and healthy meal ideas. Learn new cuisines and cooking techniques from fellow food enthusiasts.', 'https://chat.whatsapp.com/HWPBbL5S4H16Wp0dJl8g7F', 'Social', 'inactive', '2025-02-05 11:00:00', 11),
-('Memory Lane Stories', 'Share life experiences, historical memories, and personal stories. A safe space to connect through storytelling and reminiscence.', 'https://chat.whatsapp.com/IXQCcM6T5I27Xq1eKm9h8G', 'Social', 'active', '2025-02-08 17:00:00', 12);
-
--- Insert test family relations
+-- Insert story-based family relations
 INSERT INTO relations (senior_citizen_id, family_member_id, senior_citizen_relation, family_member_relation) VALUES
-(9, 7, 'Son', 'Father'),
-(9, 8, 'Daughter', 'Father'),
-(10, 7, 'Son', 'Mother'),
-(10, 8, 'Daughter', 'Mother');
+(3, 4, 'Son', 'Mother'); -- Asha and Rohan
 
--- Insert test tasks
+-- Insert story-based tasks
 INSERT INTO tasks (title, description, time_of_completion, status, created_by, assigned_to) VALUES
-('Morning Medication Reminder', 'Remind to take blood pressure medication at 8 AM', '2025-01-20 08:00:00', 'completed', 7, 10),
-('Weekly Grocery Shopping', 'Help with grocery shopping for weekly supplies', '2025-01-22 14:00:00', 'in_progress', 7, 10),
-('Doctor Appointment', 'Accompany to cardiologist appointment', '2025-01-25 10:00:00', 'pending', 7, 9),
-('Home Safety Check', 'Inspect home for safety hazards and make necessary adjustments', '2025-01-26 11:00:00', 'pending', 7, 10);
+('Morning Medicine Reminder', 'Remind Asha to take her blood pressure medication at 8 AM', '2025-01-20 08:00:00', 'completed', 4, 3),
+('Afternoon Medicine Reminder', 'Remind Asha to take her afternoon medication', '2025-01-20 14:00:00', 'pending', 4, 3),
+('Weekly Grocery Shopping', 'Help Asha with grocery shopping for weekly supplies', '2025-01-22 14:00:00', 'in_progress', 4, 3),
+('Doctor Appointment', 'Accompany Asha to cardiologist appointment', '2025-01-25 10:00:00', 'pending', 4, 3),
+('Home Safety Check', 'Inspect Asha''s home for safety hazards and make necessary adjustments', '2025-01-26 11:00:00', 'pending', 4, 3);
 
--- Insert test notifications
+-- Insert story-based care requests
+INSERT INTO care_requests (senior_citizen_id, caregiver_id, made_by, status, timing_to_visit, location) VALUES
+(3, 5, 4, 'accepted', '2025-01-20 09:00:00', 'Asha''s Home, Mumbai'),
+(3, 5, 4, 'pending', '2025-01-22 15:00:00', 'Asha''s Home, Mumbai');
+
+-- Insert story-based interest groups (created by Mr. Verma)
+INSERT INTO interest_groups (title, description, whatsapp_link, category, status, timing, created_by) VALUES
+('Sunrise Walkers Club', 'Morning walking group for seniors in the neighborhood. Start your day with gentle exercise and friendly conversation.', 'https://chat.whatsapp.com/BQJVvF9M8B50Qj4xDf2a1z', 'Health', 'active', '2025-01-20 07:00:00', 6),
+('Laughter Yoga Club', 'Weekly laughter yoga sessions to boost mood and health. No experience needed, just bring your smile!', 'https://chat.whatsapp.com/CRKWwG0N9C61Rk5yEg3b2A', 'Health', 'active', '2025-01-22 16:00:00', 6),
+('Garden Lovers Community', 'Share gardening tips, plant care advice, and seasonal growing guides. Perfect for those with green thumbs or aspiring gardeners.', 'https://chat.whatsapp.com/DSLXxH1O0D72Sl6zFh4c3B', 'Hobby', 'active', '2025-01-25 10:00:00', 6),
+('Digital Learning Circle', 'Learn to use smartphones, tablets, and the internet safely. Weekly sessions covering WhatsApp, video calls, and online banking.', 'https://chat.whatsapp.com/ETMYyI2P1E83Tm7aGi5d4C', 'Technology', 'active', '2025-01-27 15:00:00', 6),
+('Book Club Enthusiasts', 'Monthly book discussions featuring classic literature and contemporary works. Share insights and make new friends through reading.', 'https://chat.whatsapp.com/FUNZzJ3Q2F94Un8bHj6e5D', 'Education', 'active', '2025-01-30 16:00:00', 6);
+
+-- Insert story-based tickets
+INSERT INTO tickets (user_id, assigned_to, subject, description, priority, category, status) VALUES
+(4, 11, 'Question about payment', 'Need help understanding the payment structure for caregiver services', 'medium', 'Billing', 'open'),
+(3, 11, 'App navigation help', 'Having trouble finding the local groups section in the app', 'low', 'Technical', 'open'),
+(5, 12, 'Profile update request', 'Would like to add new skills to my caregiver profile', 'low', 'Profile', 'in_progress');
+
+-- Insert story-based notifications
 INSERT INTO notifications (user_id, type, priority, body, is_read) VALUES
-(7, 'care_request', 'high', 'Your care request for tomorrow has been accepted by Test Caregiver One', false),
-(7, 'task', 'medium', 'New task assigned: Morning Medication Reminder', true),
-(7, 'interest_group', 'low', 'New member joined Morning Yoga & Wellness group', false),
-(8, 'care_request', 'high', 'Your care request for this evening has been accepted by Test Caregiver Two', false),
-(8, 'task', 'medium', 'Task completed: Evening Walk', true),
-(8, 'support_ticket', 'low', 'Your support ticket has been updated', false),
-(9, 'care_request', 'high', 'Care request accepted for your father', true),
-(9, 'relation', 'medium', 'New family member linked to your account', false),
-(10, 'care_request', 'high', 'Care request accepted for your mother', true),
-(10, 'task', 'medium', 'New task assigned: Home Safety Check', false),
-(5, 'care_request', 'high', 'New care request assigned to you', false),
-(5, 'task', 'medium', 'Task completed: Morning Medication Reminder', true),
-(6, 'care_request', 'high', 'New care request assigned to you', false),
-(6, 'task', 'medium', 'New task assigned: Doctor Appointment', false),
-(11, 'interest_group', 'medium', 'New member joined your Digital Learning Circle group', false),
-(12, 'interest_group', 'low', 'Activity reminder: Book Club meeting tomorrow', false),
-(11, 'support_ticket', 'high', 'New support ticket assigned to you', false),
-(12, 'support_ticket', 'medium', 'Support ticket updated: Profile not updating', true),
-(7, 'care_request', 'medium', 'New direct caregiver request created', false),
-(8, 'care_request', 'medium', 'New direct caregiver request created', false);
+(4, 'care_request', 'high', 'Your care request for Asha has been accepted by Priya', false),
+(4, 'task', 'medium', 'New task assigned: Morning Medicine Reminder', true),
+(4, 'interest_group', 'low', 'New member joined Sunrise Walkers Club', false),
+(3, 'care_request', 'high', 'Care request accepted for tomorrow morning', true),
+(3, 'task', 'medium', 'Task completed: Morning Medicine Reminder', true),
+(3, 'interest_group', 'low', 'New walking group available in your area: Sunrise Walkers Club', false),
+(5, 'care_request', 'high', 'New care request assigned to you for Asha', false),
+(5, 'task', 'medium', 'Care request accepted: Morning visit to Asha''s home', true),
+(6, 'interest_group', 'medium', 'New member joined your Sunrise Walkers Club group', false),
+(6, 'interest_group', 'low', 'Activity reminder: Laughter Yoga session tomorrow', false);

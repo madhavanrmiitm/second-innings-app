@@ -86,20 +86,37 @@ User logged in and redirected to dashboard
 
 | Role | Email | Status | Description |
 |------|-------|--------|-------------|
-| Admin | admin1@test.com | ACTIVE | Test Admin One |
-| Admin | admin2@test.com | ACTIVE | Test Admin Two |
+| Admin | 21f3001600@ds.study.iitm.ac.in | ACTIVE | Ashwin Narayanan S |
+| Admin | nakshatra.nsb@gmail.com | ACTIVE | Nakshatra Gupta |
 | Support | support1@test.com | ACTIVE | Test Support User One |
 | Support | support2@test.com | ACTIVE | Test Support User Two |
-| IGA | groupadmin1@test.com | ACTIVE | Test Group Admin One |
+| IGA | verma.groupadmin@example.com | ACTIVE | Mr. Verma - 70-year-old retired community leader |
 | IGA | groupadmin2@test.com | PENDING_APPROVAL | Test Group Admin Two |
-| Caregiver | caregiver1@test.com | ACTIVE | Test Caregiver One |
+| Caregiver | priya.caregiver@example.com | ACTIVE | Priya - 28-year-old physiotherapy specialist |
 | Caregiver | caregiver2@test.com | PENDING_APPROVAL | Test Caregiver Two |
-| Family | family1@test.com | ACTIVE | Test Family Member One |
+| Family | rohan.family@example.com | ACTIVE | Rohan - 45-year-old professional, Asha's son |
 | Family | family2@test.com | ACTIVE | Test Family Member Two |
-| Senior | senior1@test.com | ACTIVE | Test Senior Citizen One |
+| Senior | asha.senior@example.com | ACTIVE | Asha - 80-year-old Indian woman, enjoys gardening |
 | Senior | senior2@test.com | ACTIVE | Test Senior Citizen Two |
 | Unregistered | unregistered1@test.com | - | For testing registration |
 | Unregistered | unregistered2@test.com | - | For testing registration |
+
+### **Story-Based Test Characters**
+
+The test mode includes realistic story characters for comprehensive testing:
+
+#### **Asha & Rohan Family Story**
+- **Asha** (ID 3): 80-year-old Indian woman with kind eyes, short grey hair, and glasses. Enjoys gardening and staying active.
+- **Rohan** (ID 4): Her 45-year-old son, professional Indian man with short black hair and grey streaks at temples. Caring son managing his mother's care.
+- **Priya** (ID 5): 28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.
+- **Mr. Verma** (ID 6): 70-year-old retired Indian gentleman with cheerful demeanor, neat white mustache, and glasses. Community leader organizing activities for seniors.
+
+#### **Realistic Test Scenarios**
+- Family care management between Rohan and Asha
+- Caregiver services provided by Priya
+- Community groups organized by Mr. Verma (Sunrise Walkers Club, Laughter Yoga, Garden Lovers, etc.)
+- Support tickets and notifications for various scenarios
+- Interest group activities and member management
 
 ### **Test Mode Setup**
 

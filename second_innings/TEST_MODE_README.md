@@ -1,190 +1,220 @@
-# Test Mode Feature
+# Test Mode Configuration - Updated
+
+This document describes the updated test mode configuration for the Second Innings application, which now includes comprehensive test users based on the database schema and story characters.
 
 ## Overview
 
-The Test Mode feature allows developers to test the Second Innings Flutter app without requiring Firebase authentication or a running backend server. This is useful for:
+The test mode has been enhanced to include:
+- **Story Characters**: Main characters for testing the application flow
+- **All User Roles**: Complete coverage of all user types in the system
+- **Rich User Data**: Detailed descriptions, ages, and metadata for realistic testing
+- **Enhanced Filtering**: Better organization and filtering of test users
 
-- Local development and testing
-- UI/UX testing with different user roles
-- Quick feature testing without external dependencies
-- Demo purposes
+## Test Users
 
-## How to Enable Test Mode
+### Admin Users
+- **Ashwin Narayanan S** (`21f3001600@ds.study.iitm.ac.in`)
+  - Role: `admin`
+  - Status: `ACTIVE`
+  - Description: System administrator
 
-### 1. Enable Test Mode Flag
+- **Nakshatra Gupta** (`nakshatra.nsb@gmail.com`)
+  - Role: `admin`
+  - Status: `ACTIVE`
+  - Description: System administrator
 
-In `lib/config/test_mode_config.dart`, set the test mode flag:
+### Story Characters
 
+#### Senior Citizens
+- **Asha** (`asha.senior@example.com`)
+  - Role: `senior_citizen`
+  - Status: `ACTIVE`
+  - Age: 80 years (born 1945-03-15)
+  - Description: 80-year-old Indian woman with kind eyes, short grey hair, and glasses. Enjoys gardening and staying active.
+  - Tags: senior, indian, gardening, active
+
+- **Test Senior Citizen Two** (`senior2@test.com`)
+  - Role: `senior_citizen`
+  - Status: `ACTIVE`
+  - Age: 74 years (born 1950-09-30)
+  - Description: Former engineer with passion for gardening
+  - Tags: senior, engineer, gardening
+
+#### Family Members
+- **Rohan** (`rohan.family@example.com`)
+  - Role: `family_member`
+  - Status: `ACTIVE`
+  - Age: 44 years (born 1980-08-22)
+  - Description: 45-year-old professional Indian man with short black hair and grey streaks at temples. Caring son managing his mother Asha's care.
+  - Tags: family, professional, caring, indian
+
+- **Test Family Member Two** (`family2@test.com`)
+  - Role: `family_member`
+  - Status: `ACTIVE`
+  - Age: 36 years (born 1988-04-18)
+  - Description: Devoted child managing care for senior citizen
+  - Tags: family, devoted
+
+#### Caregivers
+- **Priya** (`priya.caregiver@example.com`)
+  - Role: `caregiver`
+  - Status: `ACTIVE`
+  - Age: 27 years (born 1997-11-08)
+  - Description: 28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.
+  - Tags: caregiver, physiotherapy, companionship, indian
+  - YouTube URL: `https://www.youtube.com/watch?v=priya_intro`
+
+- **Test Caregiver Two** (`caregiver2@test.com`)
+  - Role: `caregiver`
+  - Status: `PENDING_APPROVAL`
+  - Age: 34 years (born 1990-08-25)
+  - Description: Certified nurse with 5 years of experience in home care
+  - Tags: caregiver, nurse, home-care
+  - YouTube URL: `https://www.youtube.com/watch?v=test2`
+
+#### Interest Group Admins
+- **Mr. Verma** (`verma.groupadmin@example.com`)
+  - Role: `interest_group_admin`
+  - Status: `ACTIVE`
+  - Age: 69 years (born 1955-06-10)
+  - Description: 70-year-old retired Indian gentleman with cheerful demeanor, neat white mustache, and glasses. Community leader organizing activities for seniors.
+  - Tags: group-admin, retired, community, indian
+  - YouTube URL: `https://www.youtube.com/watch?v=verma_intro`
+
+- **Test Group Admin Two** (`groupadmin2@test.com`)
+  - Role: `interest_group_admin`
+  - Status: `PENDING_APPROVAL`
+  - Age: 52 years (born 1972-11-08)
+  - Description: Art therapist creating engaging programs for elderly
+  - Tags: group-admin, art-therapy, programs
+  - YouTube URL: `https://www.youtube.com/watch?v=testgroup2`
+
+### Support Users
+- **Test Support User One** (`support1@test.com`)
+  - Role: `support_user`
+  - Status: `ACTIVE`
+  - Age: 32 years (born 1992-01-12)
+  - Description: Support specialist helping users with platform issues
+  - Tags: support, specialist
+
+- **Test Support User Two** (`support2@test.com`)
+  - Role: `support_user`
+  - Status: `ACTIVE`
+  - Age: 37 years (born 1987-05-07)
+  - Description: Customer service representative for platform support
+  - Tags: support, customer-service
+
+### Legacy Test Users
+- **Test Caregiver One** (`caregiver1@test.com`)
+  - Role: `caregiver`
+  - Status: `ACTIVE`
+  - Description: Legacy test caregiver user
+  - Tags: caregiver, legacy
+
+- **Test Family Member One** (`family1@test.com`)
+  - Role: `family_member`
+  - Status: `ACTIVE`
+  - Description: Legacy test family member user
+  - Tags: family, legacy
+
+- **Test Senior Citizen One** (`senior1@test.com`)
+  - Role: `senior_citizen`
+  - Status: `ACTIVE`
+  - Description: Legacy test senior citizen user
+  - Tags: senior, legacy
+
+### Unregistered Users
+- **Test Unregistered User One** (`unregistered1@test.com`)
+  - Role: `unregistered`
+  - Status: `UNREGISTERED`
+  - Description: Unregistered test user
+  - Tags: unregistered, test
+
+- **Test Unregistered User Two** (`unregistered2@test.com`)
+  - Role: `unregistered`
+  - Status: `UNREGISTERED`
+  - Description: Unregistered test user
+  - Tags: unregistered, test
+
+## Features
+
+### Enhanced User Cards
+- **Story Character Indicator**: 🌟 icon for main story characters
+- **Age Display**: Calculated age from date of birth
+- **Rich Descriptions**: Detailed user descriptions and tags
+- **Status and Role Chips**: Visual indicators for user status and role
+
+### Advanced Filtering
+- **All Users**: Complete list of all test users
+- **Active Users**: Only active users
+- **Story Characters**: Main story characters (Asha, Rohan, Priya, Mr. Verma)
+- **Administrators**: Admin users
+- **Support Users**: Support team members
+- **Role-based Filters**: Filter by specific user roles
+- **Unregistered Users**: Users pending registration
+
+### Helper Methods
+- `getStoryCharacters()`: Get main story characters
+- `getAdminUsers()`: Get administrator users
+- `getSupportUsers()`: Get support team users
+- `isStoryCharacter`: Check if user is a story character
+- `age`: Calculate and display user age
+
+## Usage
+
+### In Test Mode
+1. Navigate to the test user selection screen
+2. Use filters to find specific user types
+3. Select a user to log in with their test credentials
+4. Story characters are marked with 🌟 for easy identification
+
+### For Developers
 ```dart
-static const bool isTestMode = true; // Set to false for production
+// Get story characters
+final storyUsers = TestModeConfig.getStoryCharacters();
+
+// Get users by role
+final caregivers = TestModeConfig.getTestUsersByRole('caregiver');
+
+// Check if user is a story character
+if (user.isStoryCharacter) {
+  // Handle story character specific logic
+}
+
+// Get user age
+final userAge = user.age; // Returns calculated age or null
 ```
 
-### 2. Backend Test Mode
+## Database Schema Alignment
 
-Ensure your backend is running in test mode by setting the environment variable:
+This test configuration aligns with the database schema including:
+- All user roles from the `user_role` ENUM
+- User statuses from the `user_status` ENUM
+- Additional fields like `date_of_birth`, `description`, `tags`, and `youtube_url`
+- Proper foreign key relationships and constraints
 
-```bash
-export TEST_MODE=true
-```
+## Testing Scenarios
 
-## Using Test Mode
+### Family Care Flow
+- **Rohan** (Family Member) → **Asha** (Senior Citizen)
+- Test task creation, care requests, and family management
 
-### 1. Launch the App
+### Caregiver Services
+- **Priya** (Caregiver) → **Asha** (Senior Citizen)
+- Test care request acceptance, task assignment, and service delivery
 
-When test mode is enabled, you'll see a "Test Mode" button below the "Continue With Google" button on the welcome screen.
+### Community Activities
+- **Mr. Verma** (Group Admin) → Interest Groups
+- Test group creation, member management, and activity coordination
 
-### 2. Select Test User
+### Support System
+- **Support Users** → User assistance
+- Test ticket creation, assignment, and resolution
 
-Tap the "Test Mode" button to open the test user selection screen. Here you can:
+## Notes
 
-- **Filter Users**: Use the filter chips to view users by role or status
-- **View User Details**: Each user card shows name, email, role, and status
-- **Select User**: Tap the login icon to authenticate as that user
-
-### 3. Available Test Users
-
-The app includes 8 predefined test users for the 3 main roles:
-
-#### Active Users
-- **Senior Citizens**: 2 users (senior1@test.com, senior2@test.com)
-- **Family Members**: 2 users (family1@test.com, family2@test.com)
-- **Caregivers**: 1 active user (caregiver1@test.com)
-
-#### Users with Special Status
-- **Pending Approval**: caregiver2@test.com
-- **Unregistered**: 2 users for testing registration flow
-
-### 4. Test Registration Flow
-
-To test the registration process:
-
-1. Select an "Unregistered" user from the test user selection screen
-2. Complete the registration form
-3. The app will simulate the registration process and navigate to the appropriate dashboard
-
-## Test Mode Features
-
-### Authentication Flow
-- Bypasses Firebase authentication
-- Uses predefined test tokens
-- Simulates API calls with realistic delays
-- Handles both existing and new user flows
-
-### User Management
-- Predefined test users with realistic data
-- Different user roles and statuses
-- Mock user data storage and retrieval
-
-### Registration Testing
-- Complete registration flow simulation
-- Role-specific form fields (caregiver, family, senior citizen)
-- Mock data persistence
-
-## Configuration
-
-### Test Users Configuration
-
-Test users are defined in `lib/config/test_mode_config.dart`:
-
-```dart
-static const List<TestUser> testUsers = [
-  // Caregiver Users
-  TestUser(
-    token: 'test_caregiver_token_001',
-    email: 'caregiver1@test.com',
-    name: 'Test Caregiver One',
-    firebaseUid: 'test_caregiver_uid_001',
-    status: 'ACTIVE',
-    role: 'caregiver',
-  ),
-  // Family Member Users
-  TestUser(
-    token: 'test_family_token_001',
-    email: 'family1@test.com',
-    name: 'Test Family Member One',
-    firebaseUid: 'test_family_uid_001',
-    status: 'ACTIVE',
-    role: 'family_member',
-  ),
-  // Senior Citizen Users
-  TestUser(
-    token: 'test_senior_token_001',
-    email: 'senior1@test.com',
-    name: 'Test Senior Citizen One',
-    firebaseUid: 'test_senior_uid_001',
-    status: 'ACTIVE',
-    role: 'senior_citizen',
-  ),
-  // ... more users
-];
-```
-
-### API Configuration
-
-The API configuration automatically detects test mode:
-
-```dart
-// In lib/config/api_config.dart
-static bool get isTestMode => TestModeConfig.isTestMode;
-```
-
-## Security Considerations
-
-⚠️ **Important**: Test mode should NEVER be enabled in production builds.
-
-1. **Disable for Production**: Set `isTestMode = false` before building for production
-2. **Test Tokens**: Test tokens are publicly known and should only be used in development
-3. **Backend Security**: Ensure your backend test mode is properly secured
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Test Mode Button Not Visible**
-   - Check that `TestModeConfig.isTestMode = true`
-   - Restart the app after changing the flag
-
-2. **Authentication Fails**
-   - Ensure backend is running in test mode
-   - Check that test tokens match backend configuration
-
-3. **Registration Issues**
-   - Verify test user tokens are correct
-   - Check form validation rules
-
-### Debug Information
-
-Test mode includes debug logging to help troubleshoot issues:
-
-```dart
-// Check test mode status
-print('Test mode enabled: ${TestModeConfig.isTestMode}');
-
-// List available test users
-print('Available test users: ${TestModeConfig.testUsers.length}');
-```
-
-## Development Workflow
-
-1. **Enable Test Mode**: Set `isTestMode = true`
-2. **Start Backend**: Ensure backend is running with `TEST_MODE=true`
-3. **Test Features**: Use test users to test different app features
-4. **Disable for Production**: Set `isTestMode = false` before release
-
-## File Structure
-
-```
-lib/
-├── config/
-│   ├── test_mode_config.dart      # Test mode configuration
-│   └── api_config.dart           # API configuration with test mode
-├── auth/
-│   ├── test_user_selection.dart  # Test user selection screen
-│   ├── welcome.dart              # Welcome screen with test mode button
-│   └── register.dart             # Registration screen (test mode support)
-└── services/
-    ├── user_service.dart         # User service with test mode
-    └── registration_service.dart # Registration service with test mode
-```
-
-This test mode implementation provides a comprehensive testing environment for the Second Innings app while maintaining security and production readiness.
+- All test users have realistic data for comprehensive testing
+- Story characters provide a narrative context for testing user interactions
+- Legacy test users maintain backward compatibility
+- Age calculations are dynamic based on current date
+- YouTube URLs are included for caregiver and group admin profiles

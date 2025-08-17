@@ -48,7 +48,8 @@ class _SeniorCitizenNewTaskPageState extends State<SeniorCitizenNewTaskPage> {
       String? assignedToFirebaseUid;
       if (widget.seniorCitizenData != null) {
         // Use the senior citizen ID from the data if available
-        final seniorCitizenId = widget.seniorCitizenData!['id']?.toString();
+        final seniorCitizenId = widget.seniorCitizenData!['firebase_uid']
+            ?.toString();
         if (seniorCitizenId != null) {
           // For now, we'll use the senior citizen ID as the assigned_to
           // In a real implementation, you might want to map this to a firebase UID
