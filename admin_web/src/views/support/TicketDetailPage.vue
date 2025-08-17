@@ -89,6 +89,13 @@
                   :disabled="ticketsStore.loading"
                 >
                   <option :value="null">Unassigned</option>
+                  <!-- Show current assigned user even if not in assignableUsers list yet -->
+                  <option 
+                    v-if="currentTicket.assignedTo && currentTicket.assignedToName && !assignableUsers.find(u => u.id === currentTicket.assignedTo)"
+                    :value="currentTicket.assignedTo"
+                  >
+                    {{ currentTicket.assignedToName }}
+                  </option>
                   <option v-for="user in assignableUsers" :key="user.id" :value="user.id">
                     {{ user.name }}
                   </option>

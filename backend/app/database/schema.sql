@@ -71,8 +71,10 @@ VALUES ('21f3001600@ds.study.iitm.ac.in', 'qEGg9NTOjfgSaw646IhSRCXKtaZ2', 'Ashwi
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
 VALUES ('nakshatra.nsb@gmail.com', '4N2P7ZAWGPgXXoQmp2YAKXJTw253', 'Nakshatra Gupta', 'admin', 'active');
 
--- Insert story characters
--- Asha - Senior Citizen (ID 3)
+
+
+-- Insert test mode users (2 per role)
+-- Admin users
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, date_of_birth, description, tags)
 VALUES ('asha.senior@example.com', 'story_asha_uid_001', 'Asha', 'senior_citizen', 'active', '1945-03-15', '80-year-old Indian woman with kind eyes, short grey hair, and glasses. Enjoys gardening and staying active.', 'senior,indian,gardening,active');
 

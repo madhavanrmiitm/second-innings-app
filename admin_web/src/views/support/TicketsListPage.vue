@@ -71,6 +71,10 @@
               {{ item.assignedToName || 'Unassigned' }}
             </template>
 
+            <template #cell-createdAt="{ item }">
+              {{ formatDate(item.createdAt) }}
+            </template>
+
             <template #cell-actions="{ item }">
               <router-link :to="`/tickets/${item.id}`" class="btn btn-sm btn-outline-primary">
                 View
@@ -198,6 +202,45 @@ const getPriorityColor = (priority) => {
     'high': 'danger'
   }
   return colors[priority] || 'secondary'
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return 'Invalid Date'
+  
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  const isYesterday = new Date(now.getTime() - 86400000).toDateString() === date.toDateString()
+  const isThisWeek = (now - date) < (7 * 24 * 60 * 60 * 1000)
+  
+  const timeString = date.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
+  
+  if (isToday) {
+    return `Today, ${timeString}`
+  } else if (isYesterday) {
+    return `Yesterday, ${timeString}`
+  } else if (isThisWeek) {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } else {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
 }
 
 const updateFilters = () => {
