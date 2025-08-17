@@ -1,7 +1,6 @@
 import { ApiService } from '@/services/apiService'
 
 export const ticketsAPI = {
-  // Get all tickets with optional filters
   async getAll(params = '') {
     try {
       const endpoint = params ? `/api/tickets?${params}` : '/api/tickets'
@@ -18,7 +17,6 @@ export const ticketsAPI = {
     }
   },
 
-  // Get single ticket by ID
   async getById(id) {
     try {
       const response = await ApiService.get(`/api/tickets/${id}`)
@@ -34,7 +32,6 @@ export const ticketsAPI = {
     }
   },
 
-  // Create new ticket
   async create(ticketData) {
     try {
       const response = await ApiService.post('/api/tickets', {
@@ -70,17 +67,14 @@ export const ticketsAPI = {
     }
   },
 
-  // Quick status update
   async updateStatus(id, status) {
     return this.update(id, { status })
   },
 
-  // Assign ticket to user
   async assign(id, userId) {
     return this.update(id, { assigned_to: userId })
   },
 
-  // Get users who can be assigned tickets
   async getAssignableUsers() {
     try {
       const response = await ApiService.get('/api/tickets/assignable-users')

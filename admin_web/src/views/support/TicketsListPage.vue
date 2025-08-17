@@ -252,7 +252,6 @@ const createTicket = async () => {
   if (result.success) {
     toast.success('Ticket created successfully')
     showCreateModal.value = false
-    // Reset form
     newTicket.value = {
       subject: '',
       description: '',

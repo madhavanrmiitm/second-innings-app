@@ -3,7 +3,6 @@
     <div class="container-fluid">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Notifications</h1>
-        <!-- Mark as read button removed - notifications auto-disappear when tasks completed -->
       </div>
 
       <div class="card">
@@ -101,7 +100,6 @@ const formatTime = (timestamp) => {
   return date.toLocaleDateString()
 }
 
-// Mark as read functionality removed - notifications auto-disappear when tasks completed
 
 onMounted(() => {
   notificationsStore.fetchNotifications()

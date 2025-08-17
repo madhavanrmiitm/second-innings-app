@@ -180,7 +180,6 @@ import interestGroupsService from '@/services/interestGroupsService'
 
 const toast = useToast()
 
-// State
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(null)
@@ -188,10 +187,8 @@ const groups = ref([])
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 
-// Get categories from service
 const categories = computed(() => interestGroupsService.getCategories())
 
-// Form data
 const formData = ref({
   id: null,
   title: '',
@@ -202,7 +199,6 @@ const formData = ref({
   status: 'active'
 })
 
-// Validation
 const whatsappLinkError = computed(() => {
   if (!formData.value.whatsapp_link) return null
   if (!interestGroupsService.validateWhatsAppLink(formData.value.whatsapp_link)) {
@@ -211,7 +207,6 @@ const whatsappLinkError = computed(() => {
   return null
 })
 
-// Helper functions
 const getCategoryIcon = (category) => {
   return interestGroupsService.getCategoryIcon(category)
 }
@@ -220,12 +215,10 @@ const formatTiming = (timing) => {
   return interestGroupsService.formatTiming(timing)
 }
 
-// Load groups from API
 const loadGroups = async () => {
   loading.value = true
   try {
     const response = await interestGroupsService.getInterestGroups()
-    // API returns { data: { interest_groups: [...] } }
     groups.value = response.data?.interest_groups || response.interest_groups || []
   } catch (error) {
     console.error('Failed to load groups:', error)
@@ -235,12 +228,10 @@ const loadGroups = async () => {
   }
 }
 
-// Initialize
 onMounted(() => {
   loadGroups()
 })
 
-// Modal functions
 const closeModal = () => {
   showAddModal.value = false
   showEditModal.value = false
@@ -255,7 +246,6 @@ const closeModal = () => {
   }
 }
 
-// CRUD Operations
 const editGroup = (group) => {
   formData.value = {
     id: group.id,
@@ -291,7 +281,6 @@ const saveGroup = async () => {
       await interestGroupsService.updateInterestGroup(formData.value.id, groupData)
       toast.success('Group updated successfully')
     } else {
-      // Create new group
       await interestGroupsService.createInterestGroup(groupData)
       toast.success('Group created successfully')
     }

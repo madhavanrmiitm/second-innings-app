@@ -121,7 +121,6 @@ const approve = async () => {
   if (result.success) {
     toast.success(`${selected.value.full_name} approved successfully`)
     closeModal()
-    // Refresh the caregivers list
     adminStore.fetchCaregivers()
   } else {
     toast.error(result.error || 'Failed to approve caregiver')
@@ -133,7 +132,6 @@ const reject = async () => {
   if (result.success) {
     toast.success(`${selected.value.full_name} rejected`)
     closeModal()
-    // Refresh the caregivers list
     adminStore.fetchCaregivers()
   } else {
     toast.error(result.error || 'Failed to reject caregiver')
@@ -141,7 +139,6 @@ const reject = async () => {
 }
 
 onMounted(async () => {
-  // Load caregivers data - authentication will be handled by API calls
   try {
     await adminStore.fetchCaregivers()
   } catch (error) {

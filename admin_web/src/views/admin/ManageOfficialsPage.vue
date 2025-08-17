@@ -210,7 +210,6 @@ const deleteUser = async (id) => {
 }
 
 onMounted(async () => {
-  // Load users data - authentication will be handled by API calls
   adminStore.fetchUsers()
 })
 </script>

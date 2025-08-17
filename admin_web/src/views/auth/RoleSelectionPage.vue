@@ -30,18 +30,15 @@ const router = useRouter()
 const authStore = useAuthStore()
 const toast = useToast()
 
-// Check if user is authenticated and has a role on mount
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
     router.push('/login')
     return
   }
 
-  // If user already has a role, redirect them immediately
   if (authStore.userRole && authStore.userRole !== '') {
     router.push(getRedirectRoute(authStore.userRole))
   } else {
-    // If no role found, redirect to login (shouldn't happen in normal flow)
     toast.warning('Please complete the sign-in process.')
     router.push('/login')
   }
@@ -60,12 +57,9 @@ const getRedirectRoute = (role) => {
   }
 }
 
-// This page now just redirects users to their appropriate dashboards
-// The actual role selection happens during registration
 </script>
 
 <style scoped>
-/* Minimal styling for redirect page */
 .spinner-border {
   border-width: 0.3rem;
 }

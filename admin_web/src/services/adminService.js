@@ -7,12 +7,9 @@ export class AdminService {
     return '/api/admin'
   }
 
-  // Helper method to get auth headers with Firebase ID token or test token
   static async getAuthHeaders() {
     try {
-      // Check if test mode is enabled
       if (TestAuthService.isTestModeEnabled()) {
-        // In test mode, we need to get the current test token from session/localStorage
         const testToken = localStorage.getItem('testToken') || sessionStorage.getItem('testToken')
         if (testToken) {
           return { Authorization: `Bearer ${testToken}` }
@@ -21,7 +18,6 @@ export class AdminService {
         return {}
       }
 
-      // Firebase mode - get ID token
       const idToken = await FirebaseAuthService.getCurrentUserIdToken()
       if (idToken) {
         return { Authorization: `Bearer ${idToken}` }
@@ -35,7 +31,6 @@ export class AdminService {
     }
   }
 
-  // Users Management
   static async getAllUsers() {
     try {
       const headers = await this.getAuthHeaders()
@@ -70,10 +65,8 @@ export class AdminService {
     try {
       let headers
       if (idToken) {
-        // Use the provided idToken
         headers = { Authorization: `Bearer ${idToken}` }
       } else {
-        // Fall back to getting auth headers
         headers = await this.getAuthHeaders()
       }
 
@@ -107,7 +100,6 @@ export class AdminService {
     }
   }
 
-  // Caregivers Management
   static async getCaregivers() {
     try {
       const headers = await this.getAuthHeaders()
@@ -169,7 +161,6 @@ export class AdminService {
     }
   }
 
-  // Interest Group Admins Management
   static async getInterestGroupAdmins() {
     try {
       const headers = await this.getAuthHeaders()
@@ -231,7 +222,6 @@ export class AdminService {
     }
   }
 
-  // Get admin statistics for dashboard
   static async getAdminStats() {
     try {
       const [usersResponse, caregiversResponse, interestGroupAdminsResponse] = await Promise.all([

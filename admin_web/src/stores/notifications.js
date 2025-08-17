@@ -31,7 +31,6 @@ export const useNotificationsStore = defineStore('notifications', {
       return grouped
     },
 
-    // Separate dynamic and static notifications
     dynamicNotifications: (state) => {
       return state.notifications.filter((n) => n.source === 'dynamic')
     },
@@ -47,7 +46,6 @@ export const useNotificationsStore = defineStore('notifications', {
       this.error = null
       try {
         const response = await notificationsAPI.getAll()
-        // Map backend response to frontend format
         this.notifications = response.map(notif => ({
           id: notif.id,
           title: this._generateTitle(notif),
@@ -67,7 +65,6 @@ export const useNotificationsStore = defineStore('notifications', {
     },
 
     _generateTitle(notif) {
-      // Generate appropriate titles based on notification type
       switch (notif.type) {
         case 'care_request':
           return 'Caregiver Approval Required'
@@ -83,12 +80,10 @@ export const useNotificationsStore = defineStore('notifications', {
     },
 
     async markAsRead(id) {
-      // Mark as read functionality disabled - notifications auto-disappear when tasks completed
       console.log('Mark as read disabled - notifications disappear when underlying task is completed')
     },
 
     async markAllAsRead() {
-      // Mark all as read functionality disabled - notifications auto-disappear when tasks completed
       console.log('Mark all as read disabled - notifications disappear when underlying tasks are completed')
     },
 
