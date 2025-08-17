@@ -36,4 +36,14 @@ tests {
       expect(member).to.have.property('relation');
     }
   });
+
+  test("Test data includes family members with required fields", function() {
+    const members = res.getBody().data.family_members;
+    if (members.length > 0) {
+      const member = members[0];
+      expect(member).to.have.property('id');
+      expect(member).to.have.property('full_name');
+      expect(member).to.have.property('relation');
+    }
+  });
 }

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizen_tasks_view.dart';
-import 'package:second_innings/dashboard/family/views/all_reminders_for_senior_view.dart';
 
 class SeniorCitizenDetailPage extends StatelessWidget {
   final String name;
   final String relation;
   final int selectedIndex;
+  final Map<String, dynamic>? seniorCitizenData;
 
   const SeniorCitizenDetailPage({
     super.key,
     required this.name,
     required this.relation,
     this.selectedIndex = 0,
+    this.seniorCitizenData,
   });
 
   @override
@@ -74,23 +75,7 @@ class SeniorCitizenDetailPage extends StatelessWidget {
                           builder: (context) => SeniorCitizenTasksPage(
                             name: name,
                             relation: relation,
-                          ),
-                        ),
-                      );
-                    },
-                    colorScheme: colorScheme,
-                  ),
-                  const SizedBox(height: 16),
-                  _FeatureCard(
-                    title: "Reminders",
-                    icon: Icons.notifications_active_outlined,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AllRemindersForSeniorPage(
-                            name: name,
-                            relation: relation,
+                            seniorCitizenData: seniorCitizenData,
                           ),
                         ),
                       );
@@ -159,10 +144,19 @@ class SeniorCitizenDetailPage extends StatelessWidget {
             label: 'Senior Citizens',
           ),
           NavigationDestination(
+            icon: Icon(Icons.task_alt_outlined),
+            label: 'My Tasks',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.notifications_outlined),
             label: 'Notifications',
           ),
           NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline_rounded),
+            selectedIcon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
         ],
       ),
     );

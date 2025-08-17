@@ -10,7 +10,7 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  Map<String, dynamic>? _userData;
+  User? _user;
   bool _isLoading = true;
   String? _error;
 
@@ -27,10 +27,10 @@ class _ProfileViewState extends State<ProfileView> {
     });
 
     try {
-      final response = await UserService.fetchUserProfile();
+      final response = await UserService.fetchUserProfileAsUser();
       if (response.statusCode == 200) {
         setState(() {
-          _userData = response.data?['data']?['user'];
+          _user = response.data;
           _isLoading = false;
         });
       } else {
@@ -76,7 +76,7 @@ class _ProfileViewState extends State<ProfileView> {
       );
     }
 
-    if (_userData == null) {
+    if (_user == null) {
       return const Scaffold(
         body: Center(child: Text('No user data available')),
       );
@@ -108,44 +108,38 @@ class _ProfileViewState extends State<ProfileView> {
 
                   // Profile Information
                   _buildProfileCard(context, 'Personal Information', [
-                    _buildInfoRow(
-                      'Full Name',
-                      _userData!['full_name'] ?? 'Not provided',
-                    ),
-                    _buildInfoRow(
-                      'Email',
-                      _userData!['gmail_id'] ?? 'Not provided',
-                    ),
-                    _buildInfoRow(
-                      'Date of Birth',
-                      _formatDate(_userData!['date_of_birth']),
-                    ),
-                    _buildInfoRow(
-                      'Role',
-                      _userData!['role']
-                              ?.toString()
-                              .replaceAll('_', ' ')
-                              .toUpperCase() ??
-                          'Not provided',
-                    ),
-                    _buildInfoRow(
-                      'Status',
-                      _formatStatus(_userData!['status']),
-                    ),
+                    _buildInfoRow('Full Name', _user!.fullName),
+                    _buildInfoRow('Email', _user!.gmailId),
+                    _buildInfoRow('Date of Birth', _user!.formattedDateOfBirth),
+                    _buildInfoRow('Role', _user!.formattedRole),
+                    _buildInfoRow('Status', _user!.formattedStatus),
                   ]),
+
+                  // Additional Senior Citizen Information
+                  if (_user!.description != null ||
+                      _user!.youtubeUrl != null ||
+                      _user!.tags != null)
+                    _buildProfileCard(context, 'Additional Information', [
+                      if (_user!.description != null)
+                        _buildInfoRow(
+                          'Description',
+                          _user!.description ?? 'Not provided',
+                        ),
+                      if (_user!.youtubeUrl != null)
+                        _buildInfoRow(
+                          'YouTube URL',
+                          _user!.youtubeUrl ?? 'Not provided',
+                        ),
+                      if (_user!.tags != null)
+                        _buildInfoRow('Tags', _user!.tags ?? 'Not provided'),
+                    ]),
 
                   const SizedBox(height: 24),
 
                   // Account Information
                   _buildProfileCard(context, 'Account Information', [
-                    _buildInfoRow(
-                      'Member Since',
-                      _formatDate(_userData!['created_at']),
-                    ),
-                    _buildInfoRow(
-                      'Last Updated',
-                      _formatDate(_userData!['updated_at']),
-                    ),
+                    _buildInfoRow('Member Since', _user!.formattedCreatedAt),
+                    _buildInfoRow('Last Updated', _user!.formattedUpdatedAt),
                   ]),
 
                   const SizedBox(height: 32),
@@ -212,30 +206,5 @@ class _ProfileViewState extends State<ProfileView> {
         ],
       ),
     );
-  }
-
-  String _formatDate(dynamic dateValue) {
-    if (dateValue == null) return 'Not provided';
-    try {
-      final date = DateTime.parse(dateValue.toString());
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (e) {
-      return dateValue.toString();
-    }
-  }
-
-  String _formatStatus(dynamic statusValue) {
-    if (statusValue == null) return 'Unknown';
-    final status = statusValue.toString().toLowerCase();
-    switch (status) {
-      case 'pending_approval':
-        return 'Pending Approval';
-      case 'active':
-        return 'Active';
-      case 'blocked':
-        return 'Blocked';
-      default:
-        return status.toUpperCase();
-    }
   }
 }

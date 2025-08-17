@@ -40,9 +40,21 @@ tests {
     }
   });
 
-  test("Care request statuses are valid", function() {
-    // This endpoint only returns pending requests, so we don't need to validate status
-    // as they are all pending by definition
-    expect(res.getBody().data.open_requests).to.be.an('array');
+  test("Test data includes care requests with locations", function() {
+    const requests = res.getBody().data.open_requests;
+    const requestsWithLocation = requests.filter(request => request.location);
+    expect(requestsWithLocation.length).to.be.greaterThan(0);
+  });
+
+  test("Test data includes care requests with timing", function() {
+    const requests = res.getBody().data.open_requests;
+    const requestsWithTiming = requests.filter(request => request.timing_to_visit);
+    expect(requestsWithTiming.length).to.be.greaterThan(0);
+  });
+
+  test("Test data includes care requests with senior citizen information", function() {
+    const requests = res.getBody().data.open_requests;
+    const requestsWithSeniorInfo = requests.filter(request => request.senior_citizen_name);
+    expect(requestsWithSeniorInfo.length).to.be.greaterThan(0);
   });
 }

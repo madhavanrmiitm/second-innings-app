@@ -1,0 +1,50 @@
+meta {
+  name: GET_CurrentHiredCaregiver_SeniorCitizen
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/me/current-caregiver
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{seniorCitizenToken}}
+}
+
+tests {
+  test("Status code is 200 for successful current caregiver retrieval or 404 for not found", function() {
+    const status = res.getStatus();
+    expect([200, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 200) {
+      expect(res.getBody().message).to.contain("successfully");
+    } else if (status === 404) {
+      expect(res.getBody().message).to.contain("No current caregiver found");
+    }
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+    if (res.getStatus() === 200) {
+      expect(res.getBody().data).to.have.property('id');
+      expect(res.getBody().data).to.have.property('full_name');
+      expect(res.getBody().data).to.have.property('description');
+      expect(res.getBody().data).to.have.property('tags');
+    }
+  });
+
+  test("Caregiver has required fields when found", function() {
+    if (res.getStatus() === 200) {
+      const caregiver = res.getBody().data;
+      expect(caregiver.id).to.be.a('number');
+      expect(caregiver.full_name).to.be.a('string');
+      expect(caregiver.tags).to.be.an('array');
+    }
+  });
+}

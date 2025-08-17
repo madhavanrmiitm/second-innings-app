@@ -23,35 +23,51 @@ When test mode is enabled:
 
 ## Available Test Users
 
-The system includes **14 predefined test users** across all roles:
+The system includes **14 predefined test users** across all roles, featuring story-based characters:
 
 ### Admin Users
-- **Test Admin One** (`admin1@test.com`) - ACTIVE
-- **Test Admin Two** (`admin2@test.com`) - ACTIVE
+- **Ashwin Narayanan S** (`21f3001600@ds.study.iitm.ac.in`) - ACTIVE
+- **Nakshatra Gupta** (`nakshatra.nsb@gmail.com`) - ACTIVE
 
 ### Support Users
 - **Test Support User One** (`support1@test.com`) - ACTIVE
 - **Test Support User Two** (`support2@test.com`) - ACTIVE
 
 ### Interest Group Admin Users
-- **Test Group Admin One** (`groupadmin1@test.com`) - ACTIVE
+- **Mr. Verma** (`verma.groupadmin@example.com`) - ACTIVE - 70-year-old retired Indian gentleman, community leader
 - **Test Group Admin Two** (`groupadmin2@test.com`) - PENDING_APPROVAL
 
 ### Caregiver Users
-- **Test Caregiver One** (`caregiver1@test.com`) - ACTIVE
+- **Priya** (`priya.caregiver@example.com`) - ACTIVE - 28-year-old Indian woman, physiotherapy specialist
 - **Test Caregiver Two** (`caregiver2@test.com`) - PENDING_APPROVAL
 
 ### Family Member Users
-- **Test Family Member One** (`family1@test.com`) - ACTIVE
+- **Rohan** (`rohan.family@example.com`) - ACTIVE - 45-year-old professional, Asha's caring son
 - **Test Family Member Two** (`family2@test.com`) - ACTIVE
 
 ### Senior Citizen Users
-- **Test Senior Citizen One** (`senior1@test.com`) - ACTIVE
+- **Asha** (`asha.senior@example.com`) - ACTIVE - 80-year-old Indian woman, enjoys gardening
 - **Test Senior Citizen Two** (`senior2@test.com`) - ACTIVE
 
 ### Unregistered Users
 - **Test Unregistered User One** (`unregistered1@test.com`) - For testing registration flow
 - **Test Unregistered User Two** (`unregistered2@test.com`) - For testing registration flow
+
+## Story-Based Test Users
+
+The test mode includes realistic story characters for comprehensive testing:
+
+### **Asha & Rohan Family Story**
+- **Asha** (ID 3): 80-year-old senior citizen with kind eyes, short grey hair, and glasses
+- **Rohan** (ID 4): Her 45-year-old son, professional Indian man managing her care
+- **Priya** (ID 5): 28-year-old caregiver specializing in physiotherapy and companionship
+- **Mr. Verma** (ID 6): 70-year-old retired community leader organizing senior activities
+
+### **Realistic Scenarios**
+- Family care management between Rohan and Asha
+- Caregiver services provided by Priya
+- Community groups organized by Mr. Verma
+- Support tickets and notifications for various scenarios
 
 ## User Roles and Features
 

@@ -11,16 +11,16 @@ post {
 }
 
 auth:bearer {
-  token: {{userToken}}
+  token: {{storyRohanToken}}
 }
 
 body:json {
   {
-    "id_token": "{{userToken}}",
-    "title": "Test Task",
-    "description": "This is a test task description",
-    "time_of_completion": "2024-12-31T15:00:00",
-    "assigned_to_firebase_uid": "test_senior_uid_002"
+    "id_token": "{{storyRohanToken}}",
+    "title": "Take Afternoon Medicine",
+    "description": "Amma, please don't forget to take medicine. Update in the app after taking medicine.",
+    "time_of_completion": "2025-08-16T14:00:00",
+    "assigned_to_firebase_uid": "story_asha_uid_001"
   }
 }
 

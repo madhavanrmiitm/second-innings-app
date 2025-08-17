@@ -1,0 +1,47 @@
+meta {
+  name: GET_TestDataValidation
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/tasks
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{userToken}}
+}
+
+tests {
+  test("Comprehensive test data validation - Tasks", function() {
+    const tasks = res.getBody().data.tasks;
+
+    // Test that we have tasks with required fields
+    if (tasks.length > 0) {
+      const task = tasks[0];
+      expect(task).to.have.property('id');
+      expect(task).to.have.property('title');
+      expect(task).to.have.property('description');
+      expect(task).to.have.property('status');
+      expect(task).to.have.property('created_by');
+      expect(task).to.have.property('assigned_to');
+      expect(task).to.have.property('created_at');
+      expect(task).to.have.property('updated_at');
+      expect(task).to.have.property('time_of_completion');
+    }
+  });
+
+  test("Test data includes tasks with valid structure", function() {
+    const tasks = res.getBody().data.tasks;
+
+    // Check that tasks have valid structure
+    tasks.forEach(task => {
+      expect(task).to.have.property('id');
+      expect(task).to.have.property('title');
+      expect(task).to.have.property('status');
+      expect(['pending', 'in_progress', 'completed', 'cancelled']).to.include(task.status);
+    });
+  });
+}

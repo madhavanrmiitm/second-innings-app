@@ -107,18 +107,18 @@ This document maps the user stories to the implemented APIs and external integra
 - Firebase Authentication (ID token verification)
 
 **APIs Created:**
-- `GET /tasks` - View health-related tasks and reminders for senior citizens
-- `POST /tasks` - Create health tracking tasks and reminders
+- `GET /tasks` - View health-related tasks for senior citizens
+- `POST /tasks` - Create health tracking tasks
 
-### 10. AI-Generated Conversation Reminders
-**User Story:** As a family member, I want to receive periodic reminders with AI-generated conversation ideas, so that I can engage my senior relatives more effectively and maintain a strong emotional connection.
+### 10. AI-Generated Conversation Tasks
+**User Story:** As a family member, I want to create tasks with AI-generated conversation ideas, so that I can engage my senior relatives more effectively and maintain a strong emotional connection.
 
 **External APIs Integrated:**
 - Firebase Authentication (ID token verification)
 
 **APIs Created:**
 - `GET /notifications` - Receive messages and updates from family members
-- `GET /reminders` - Get periodic engagement reminders (will be implemented in the next sprint)
+
 
 ### 11. Review and Select Caregivers
 **User Story:** As a family member, I want to review and select a caregiver based on ratings, location and profile video, so that I can make an informed decision and ensure the best care for my senior relatives.
@@ -164,14 +164,14 @@ This document maps the user stories to the implemented APIs and external integra
 - `GET /notifications` - Receive messages and updates from family members
 - `POST /notifications/{id}/read` - Mark family messages as read
 
-### 15. Medicine and Checkup Reminders
-**User Story:** As a senior citizen, I want to receive reminders from my family members to take medicine and attend checkups, so that I can maintain my health and follow my care routine effectively.
+### 15. Medicine and Checkup Tasks
+**User Story:** As a senior citizen, I want to receive tasks from my family members to take medicine and attend checkups, so that I can maintain my health and follow my care routine effectively.
 
 **External APIs Integrated:**
 - Firebase Authentication (ID token verification)
 
 **APIs Created:**
-- `GET /reminders` - Get medication and appointment reminders
+
 - `GET /tasks` - View health-related tasks set by family members
 - `POST /tasks/{id}/complete` - Mark tasks as completed
 
@@ -183,7 +183,7 @@ This document maps the user stories to the implemented APIs and external integra
 
 **APIs Created:**
 - `GET /tasks` - View medication tracking tasks
-- `POST /tasks` - Create personal medication reminders
+- `POST /tasks` - Create personal medication tasks
 - `POST /tasks/{id}/complete` - Log medication intake
 
 ## Senior Engagement Coordinator User Stories
@@ -228,5 +228,5 @@ This document maps the user stories to the implemented APIs and external integra
 - All authenticated endpoints use Bearer token authentication via Firebase ID tokens
 - The platform maintains role-based access control for different user types
 - **Gemini AI is currently only used for YouTube video analysis during registration** - conversation suggestions and activity recommendations are stretch goals as they can be implemented during integration with the frontend tailored for each user type.
-- Some functionality like detailed health tracking, reminders system, and AI-powered recommendations are stretch goals but not yet fully implemented
+- Some functionality like detailed health tracking and AI-powered recommendations are stretch goals but not yet fully implemented
 - The current API specification provides a solid foundation for the core user stories with room for future AI enhancements

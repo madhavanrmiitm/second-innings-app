@@ -1,0 +1,37 @@
+meta {
+  name: POST_RequestCaregiver
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/me/request-caregiver
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "caregiver_id": 5,
+    "message": "Need assistance with daily activities"
+  }
+}
+
+auth:bearer {
+  token: {{familyToken}}
+}
+
+tests {
+  test("Status code is 201 for successful caregiver request creation", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains request ID", function() {
+    expect(res.getBody().data).to.have.property('request_id');
+    expect(res.getBody().data.request_id).to.be.a('number');
+  });
+}

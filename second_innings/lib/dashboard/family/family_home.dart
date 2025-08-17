@@ -72,6 +72,8 @@ import 'package:second_innings/dashboard/family/views/notifications_view.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizens_view.dart';
 import 'package:second_innings/dashboard/family/views/link_new_senior_citizen_view.dart';
 import 'package:second_innings/dashboard/family/views/profile_view.dart';
+import 'package:second_innings/dashboard/family/views/family_tasks_view.dart';
+import 'package:second_innings/dashboard/family/views/create_family_task_page.dart';
 
 class FamilyHomePage extends StatefulWidget {
   final int selectedIndex;
@@ -101,6 +103,7 @@ class _FamilyHomePageState extends State<FamilyHomePage> {
   Widget build(BuildContext context) {
     final List<Widget> widgetOptions = <Widget>[
       const SeniorCitizensView(),
+      const FamilyTasksView(),
       const NotificationsView(),
       const CaregiversView(),
       const ProfileView(),
@@ -121,6 +124,19 @@ class _FamilyHomePageState extends State<FamilyHomePage> {
               label: const Text('Link New'),
               icon: const Icon(Icons.add),
             )
+          : _selectedIndex == 1
+          ? FloatingActionButton.extended(
+              heroTag: 'familyTasksFab',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CreateFamilyTaskPage(),
+                  ),
+                );
+              },
+              label: const Text('Create Task'),
+              icon: const Icon(Icons.add),
+            )
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
@@ -129,6 +145,10 @@ class _FamilyHomePageState extends State<FamilyHomePage> {
           NavigationDestination(
             icon: Icon(Icons.groups_outlined),
             label: 'Senior Citizens',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.task_alt_outlined),
+            label: 'My Tasks',
           ),
           NavigationDestination(
             icon: Icon(Icons.notifications_outlined),

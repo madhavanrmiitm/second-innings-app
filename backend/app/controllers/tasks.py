@@ -21,16 +21,47 @@ async def get_tasks(request):
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
+                # Get tasks created by and assigned to the user
                 cur.execute(
                     """SELECT id, title, description, time_of_completion, status, created_by, assigned_to, created_at, updated_at
                        FROM tasks
                        WHERE created_by = %s OR assigned_to = %s""",
-                    (
-                        user.id,
-                        user.id,
-                    ),
+                    (user.id, user.id),
                 )
-                tasks_data = cur.fetchall()
+                own_tasks = cur.fetchall()
+
+                # If user is a family member and senior_citizen_id is provided, get tasks for that specific senior citizen
+                linked_senior_tasks = []
+                senior_citizen_id = None
+                if user.role == UserRole.FAMILY_MEMBER:
+                    # Check if senior_citizen_id query parameter is provided
+                    senior_citizen_id = request.query_params.get("senior_citizen_id")
+                    if senior_citizen_id:
+                        try:
+                            senior_citizen_id = int(senior_citizen_id)
+                            # Verify the family member has a relationship with this senior citizen
+                            cur.execute(
+                                "SELECT 1 FROM relations WHERE family_member_id = %s AND senior_citizen_id = %s",
+                                (user.id, senior_citizen_id),
+                            )
+                            if cur.fetchone():
+                                # Get tasks for the specified senior citizen
+                                cur.execute(
+                                    """SELECT t.id, t.title, t.description, t.time_of_completion, t.status,
+                                              t.created_by, t.assigned_to, t.created_at, t.updated_at
+                                       FROM tasks t
+                                       WHERE t.created_by = %s OR t.assigned_to = %s""",
+                                    (senior_citizen_id, senior_citizen_id),
+                                )
+                                linked_senior_tasks = cur.fetchall()
+                        except ValueError:
+                            # Invalid senior_citizen_id parameter, ignore it
+                            senior_citizen_id = None
+
+                # Combine and format all tasks
+                all_tasks = own_tasks
+                if senior_citizen_id:
+                    all_tasks = linked_senior_tasks
 
                 tasks = [
                     {
@@ -44,7 +75,7 @@ async def get_tasks(request):
                         "created_at": task[7],
                         "updated_at": task[8],
                     }
-                    for task in tasks_data
+                    for task in all_tasks
                 ]
 
         return format_response(
@@ -96,6 +127,19 @@ async def create_task(request, validated_data):
                             status_code=404, message="Assigned user not found."
                         )
                     assigned_to_id = assigned_to_data[0]
+
+                    # If user is a family member, verify they can assign tasks to the senior citizen
+                    if user.role == UserRole.FAMILY_MEMBER and assigned_to_id:
+                        cur.execute(
+                            """SELECT 1 FROM relations
+                               WHERE family_member_id = %s AND senior_citizen_id = %s""",
+                            (user.id, assigned_to_id),
+                        )
+                        if not cur.fetchone():
+                            return format_response(
+                                status_code=403,
+                                message="You can only assign tasks to senior citizens linked to you.",
+                            )
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -155,13 +199,30 @@ async def get_task(request, taskId):
                 if not task_data:
                     return format_response(status_code=404, message="Task not found.")
 
-                # Check permissions
-                if (
-                    user.id != task_data[5] and user.id != task_data[6]
-                ):  # created_by and assigned_to
+                # Check permissions - user can view if they created, are assigned to, or are a family member linked to the senior citizen
+                created_by_id = task_data[5]
+                assigned_to_id = task_data[6]
+
+                has_access = False
+                if user.id == created_by_id or user.id == assigned_to_id:
+                    has_access = True
+                elif user.role == UserRole.FAMILY_MEMBER:
+                    # Check if user is linked to the senior citizen involved in the task
+                    senior_citizen_id = (
+                        created_by_id if created_by_id else assigned_to_id
+                    )
+                    if senior_citizen_id:
+                        cur.execute(
+                            """SELECT 1 FROM relations
+                               WHERE family_member_id = %s AND senior_citizen_id = %s""",
+                            (user.id, senior_citizen_id),
+                        )
+                        has_access = cur.fetchone() is not None
+
+                if not has_access:
                     return format_response(
                         status_code=403,
-                        message="Access denied. You can only view tasks you created or are assigned to.",
+                        message="Access denied. You can only view tasks you created, are assigned to, or are linked to as a family member.",
                     )
 
                 task = {
@@ -219,10 +280,27 @@ async def update_task(request, taskId, validated_data):
                 created_by_id = task_owner_data[0]
                 assigned_to_id = task_owner_data[1]
 
-                if user.id != created_by_id and user.id != assigned_to_id:
+                # Check permissions - user can update if they created, are assigned to, or are a family member linked to the senior citizen
+                has_access = False
+                if user.id == created_by_id or user.id == assigned_to_id:
+                    has_access = True
+                elif user.role == UserRole.FAMILY_MEMBER:
+                    # Check if user is linked to the senior citizen involved in the task
+                    senior_citizen_id = (
+                        created_by_id if created_by_id else assigned_to_id
+                    )
+                    if senior_citizen_id:
+                        cur.execute(
+                            """SELECT 1 FROM relations
+                               WHERE family_member_id = %s AND senior_citizen_id = %s""",
+                            (user.id, senior_citizen_id),
+                        )
+                        has_access = cur.fetchone() is not None
+
+                if not has_access:
                     return format_response(
                         status_code=403,
-                        message="Access denied. You can only update tasks you created or are assigned to.",
+                        message="Access denied. You can only update tasks you created, are assigned to, or are linked to as a family member.",
                     )
 
                 update_fields = []
@@ -250,6 +328,20 @@ async def update_task(request, taskId, validated_data):
                         return format_response(
                             status_code=404, message="New assigned user not found."
                         )
+
+                    # If user is a family member, verify they can assign tasks to the senior citizen
+                    if user.role == UserRole.FAMILY_MEMBER:
+                        cur.execute(
+                            """SELECT 1 FROM relations
+                               WHERE family_member_id = %s AND senior_citizen_id = %s""",
+                            (user.id, new_assigned_to_data[0]),
+                        )
+                        if not cur.fetchone():
+                            return format_response(
+                                status_code=403,
+                                message="You can only assign tasks to senior citizens linked to you.",
+                            )
+
                     update_fields.append("assigned_to = %s")
                     update_values.append(new_assigned_to_data[0])
 
@@ -308,10 +400,27 @@ async def mark_task_done(request, taskId, validated_data):
                 assigned_to_id = task_data[1]
                 current_status = task_data[2]
 
-                if user.id != created_by_id and user.id != assigned_to_id:
+                # Check permissions - user can mark as done if they created, are assigned to, or are a family member linked to the senior citizen
+                has_access = False
+                if user.id == created_by_id or user.id == assigned_to_id:
+                    has_access = True
+                elif user.role == UserRole.FAMILY_MEMBER:
+                    # Check if user is linked to the senior citizen involved in the task
+                    senior_citizen_id = (
+                        created_by_id if created_by_id else assigned_to_id
+                    )
+                    if senior_citizen_id:
+                        cur.execute(
+                            """SELECT 1 FROM relations
+                               WHERE family_member_id = %s AND senior_citizen_id = %s""",
+                            (user.id, senior_citizen_id),
+                        )
+                        has_access = cur.fetchone() is not None
+
+                if not has_access:
                     return format_response(
                         status_code=403,
-                        message="Access denied. You can only mark tasks as done that you created or are assigned to.",
+                        message="Access denied. You can only mark tasks as done that you created, are assigned to, or are linked to as a family member.",
                     )
 
                 if current_status == TaskStatus.COMPLETED.value:
@@ -369,10 +478,27 @@ async def delete_task(request, taskId, validated_data):
                 created_by_id = task_owner_data[0]
                 assigned_to_id = task_owner_data[1]
 
-                if user.id != created_by_id and user.id != assigned_to_id:
+                # Check permissions - user can delete if they created, are assigned to, or are a family member linked to the senior citizen
+                has_access = False
+                if user.id == created_by_id or user.id == assigned_to_id:
+                    has_access = True
+                elif user.role == UserRole.FAMILY_MEMBER:
+                    # Check if user is linked to the senior citizen involved in the task
+                    senior_citizen_id = (
+                        created_by_id if created_by_id else assigned_to_id
+                    )
+                    if senior_citizen_id:
+                        cur.execute(
+                            """SELECT 1 FROM relations
+                               WHERE family_member_id = %s AND senior_citizen_id = %s""",
+                            (user.id, senior_citizen_id),
+                        )
+                        has_access = cur.fetchone() is not None
+
+                if not has_access:
                     return format_response(
                         status_code=403,
-                        message="Access denied. You can only delete tasks you created or are assigned to.",
+                        message="Access denied. You can only delete tasks you created, are assigned to, or are linked to as a family member.",
                     )
 
                 cur.execute("DELETE FROM tasks WHERE id = %s", (taskId,))
@@ -391,62 +517,3 @@ async def delete_task(request, taskId, validated_data):
     except Exception as e:
         logger.error(f"Error deleting task: {e}")
         return format_response(status_code=500, message="Internal server error.")
-
-
-async def get_reminders(request):
-    logger.info("Executing get_reminders controller logic.")
-    try:
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return format_response(
-                status_code=401, message="Authorization header missing or invalid."
-            )
-        id_token = auth_header.split(" ")[1]
-
-        user, is_registered = auth_service.authenticate_user(id_token)
-        if not is_registered:
-            return format_response(status_code=401, message="User not registered.")
-
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                # Reminders are not in schema.sql, assuming they are part of tasks for now or a separate mechanism
-                # For now, returning a not implemented, as reminders are not directly mapped to a table.
-                return format_response(
-                    status_code=501,
-                    message="Reminders functionality not yet implemented in database schema.",
-                )
-
-    except ValueError as e:
-        logger.error(f"Authentication failed: {e}")
-        return format_response(
-            status_code=401, message="Authentication failed. Invalid token."
-        )
-    except Exception as e:
-        logger.error(f"Error retrieving reminders: {e}")
-        return format_response(status_code=500, message="Internal server error.")
-
-
-async def create_reminder(request, validated_data):
-    logger.info("Executing create_reminder controller logic.")
-    return format_response(status_code=501, message="Not Implemented")
-
-
-async def update_reminder(request, reminderId, validated_data):
-    logger.info(
-        f"Executing update_reminder controller logic for reminder ID: {reminderId}."
-    )
-    return format_response(status_code=501, message="Not Implemented")
-
-
-async def snooze_reminder(request, reminderId, validated_data):
-    logger.info(
-        f"Executing snooze_reminder controller logic for reminder ID: {reminderId}."
-    )
-    return format_response(status_code=501, message="Not Implemented")
-
-
-async def cancel_reminder(request, reminderId, validated_data):
-    logger.info(
-        f"Executing cancel_reminder controller logic for reminder ID: {reminderId}."
-    )
-    return format_response(status_code=501, message="Not Implemented")

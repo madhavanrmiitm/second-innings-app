@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/widgets/user_app_bar.dart';
 import 'package:second_innings/services/user_service.dart';
+import 'package:second_innings/services/care_service.dart';
 
 class JobsView extends StatefulWidget {
   const JobsView({super.key});
@@ -22,6 +23,7 @@ class _JobsViewState extends State<JobsView> {
   bool _isLoading = true;
   bool _isPendingApproval = false;
   String? _error;
+  List<Map<String, dynamic>> _careRequests = [];
 
   @override
   void initState() {
@@ -43,6 +45,10 @@ class _JobsViewState extends State<JobsView> {
           _isPendingApproval = status == 'pending_approval';
           _isLoading = false;
         });
+
+        if (!_isPendingApproval) {
+          _loadCareRequests();
+        }
       } else {
         setState(() {
           _error = 'Unable to load user data';
@@ -54,6 +60,66 @@ class _JobsViewState extends State<JobsView> {
         _error = 'Error checking user status: $e';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadCareRequests() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await CareService.getCareRequests();
+
+      if (response.statusCode == 200) {
+        final requestsData = response.data?['data']?['care_requests'] as List?;
+        if (requestsData != null) {
+          setState(() {
+            _careRequests = requestsData.cast<Map<String, dynamic>>();
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _careRequests = [];
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _error = response.error ?? 'Failed to load care requests';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error loading care requests: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _applyForRequest(String requestId) async {
+    try {
+      final response = await CareService.applyForRequest(requestId: requestId);
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Application submitted successfully')),
+        );
+        // Reload requests to reflect the change
+        await _loadCareRequests();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.error ?? 'Failed to apply for request'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error applying for request: $e')));
     }
   }
 
@@ -172,7 +238,7 @@ class _JobsViewState extends State<JobsView> {
       );
     }
 
-    // Original job listing view for approved caregivers
+    // Job listing view for approved caregivers
     return CustomScrollView(
       slivers: [
         const UserAppBar(title: '2nd Innings'),
@@ -243,29 +309,39 @@ class _JobsViewState extends State<JobsView> {
   }
 
   Widget _buildJobList(ColorScheme colorScheme, TextTheme textTheme) {
-    final jobs = [
-      {
-        'name': 'Ram Kumar',
-        'age': '65 yrs',
-        'gender': 'Male',
-        'desc':
-            'Take him for daily checkups everyday. Physiotherapist will come, get him ready for that. Give water periodically. 10 AM to 6 PM',
-        'tags': ['Physio', 'Car Drives', 'Checkups'],
-      },
-      {
-        'name': 'Amrita',
-        'age': '70 yrs',
-        'gender': 'Female',
-        'desc':
-            'Take her for daily checkups everyday. Take care of her everyday. 11 AM to 3 PM',
-        'tags': ['Half Day', 'Checkups'],
-      },
-    ];
+    if (_careRequests.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.work_outline, size: 64, color: colorScheme.outline),
+              const SizedBox(height: 16),
+              Text(
+                'No care requests available',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Check back later for new opportunities',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return SliverList.builder(
-      itemCount: jobs.length,
+      itemCount: _careRequests.length,
       itemBuilder: (context, index) {
-        final job = jobs[index];
+        final request = _careRequests[index];
+        final status = request['status'] ?? 'pending';
+        final isPending = status == 'pending';
+
         return Card(
           elevation: 0,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -278,33 +354,92 @@ class _JobsViewState extends State<JobsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${job['name']}',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${job['age']} . ${job['gender']}',
-                  style: textTheme.titleSmall,
-                ),
-                const SizedBox(height: 12),
-                Text(job['desc'].toString(), style: textTheme.bodyMedium),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8.0,
-                  children: (job['tags'] as List<String>)
-                      .map(
-                        (tag) => Chip(
-                          label: Text(tag),
-                          backgroundColor: colorScheme.surface.withValues(
-                            alpha: 0.5,
-                          ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        request['title'] ?? 'Untitled Request',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                      )
-                      .toList(),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isPending
+                            ? colorScheme.primary
+                            : colorScheme.surfaceVariant,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        status.toUpperCase(),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isPending
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  request['description'] ?? 'No description available',
+                  style: textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                if (request['location'] != null) ...[
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        request['location'],
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                ],
+                if (request['timing'] != null) ...[
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        request['timing'],
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (isPending)
+                  ElevatedButton(
+                    onPressed: () => _applyForRequest(request['id'].toString()),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                    ),
+                    child: const Text('Apply for this job'),
+                  ),
               ],
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/services/task_service.dart';
 
 class CreateNewTaskPage extends StatefulWidget {
   const CreateNewTaskPage({super.key});
@@ -10,14 +11,61 @@ class CreateNewTaskPage extends StatefulWidget {
 class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
   bool _isVoiceInput = true;
   final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
   final _dateController = TextEditingController();
   final _descriptionController = TextEditingController();
 
   @override
   void dispose() {
+    _titleController.dispose();
     _dateController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _createTask() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      String? formattedDate;
+      if (_dateController.text.isNotEmpty) {
+        // Parse the date from the form format
+        final dateParts = _dateController.text.split(' / ');
+        if (dateParts.length == 3) {
+          final day = int.parse(dateParts[0]);
+          final month = int.parse(dateParts[1]);
+          final year = int.parse(dateParts[2]);
+          final taskDate = DateTime(year, month, day);
+
+          // Format date for API (YYYY-MM-DD)
+          formattedDate =
+              "${taskDate.year.toString().padLeft(4, '0')}-"
+              "${taskDate.month.toString().padLeft(2, '0')}-"
+              "${taskDate.day.toString().padLeft(2, '0')}";
+        }
+      }
+
+      final response = await TaskService.createTask(
+        title: _titleController.text,
+        description: _descriptionController.text,
+        timeOfCompletion: formattedDate,
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Task created successfully')),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to create task')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error creating task: $e')));
+    }
   }
 
   @override
@@ -92,14 +140,17 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
                       : _buildManualInputUI(context),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_isVoiceInput) {
                         // TODO: Implement voice log creation
-                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Voice input not implemented yet'),
+                          ),
+                        );
                       } else {
                         if (_formKey.currentState!.validate()) {
-                          // TODO: Implement manual log creation
-                          Navigator.pop(context);
+                          await _createTask();
                         }
                       }
                     },
@@ -157,6 +208,24 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
       child: Column(
         children: [
           TextFormField(
+            controller: _titleController,
+            decoration: InputDecoration(
+              labelText: 'Task Title',
+              hintText: 'Enter task title',
+              prefixIcon: const Icon(Icons.task_alt_outlined),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Task title is required.';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
             controller: _dateController,
             readOnly: true,
             onTap: () async {
@@ -173,19 +242,13 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
               }
             },
             decoration: InputDecoration(
-              labelText: 'Date',
+              labelText: 'Due Date (Optional)',
               hintText: 'DD / MM / YYYY',
               prefixIcon: const Icon(Icons.calendar_today_outlined),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Date is required.';
-              }
-              return null;
-            },
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -194,12 +257,13 @@ class _CreateNewTaskPageState extends State<CreateNewTaskPage> {
             decoration: InputDecoration(
               labelText: 'Description',
               hintText: 'Enter the task details',
+              prefixIcon: const Icon(Icons.description_outlined),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
+              if (value == null || value.trim().isEmpty) {
                 return 'Description is required.';
               }
               return null;

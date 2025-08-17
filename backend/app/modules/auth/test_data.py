@@ -3,56 +3,104 @@ from typing import Dict, List
 
 from app.payloads import UnregisteredUser, User, UserRole, UserStatus
 
-# Predefined test users for each role (2 per role)
+# Predefined test users for each role (including story characters)
 # These users will be used in test mode to bypass Firebase authentication
 
 TEST_USERS: List[User] = [
-    # ADMIN users (IDs 3-4 to match database)
+    # ADMIN users (IDs 1-2 to match database)
+    User(
+        id=1,
+        gmail_id="21f3001600@ds.study.iitm.ac.in",
+        firebase_uid="qEGg9NTOjfgSaw646IhSRCXKtaZ2",
+        full_name="Ashwin Narayanan S",
+        role=UserRole.ADMIN,
+        status=UserStatus.ACTIVE,
+        youtube_url=None,
+        date_of_birth=None,
+        description=None,
+        tags=None,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    ),
+    User(
+        id=2,
+        gmail_id="nakshatra.nsb@gmail.com",
+        firebase_uid="4N2P7ZAWGPgXXoQmp2YAKXJTw253",
+        full_name="Nakshatra Gupta",
+        role=UserRole.ADMIN,
+        status=UserStatus.ACTIVE,
+        youtube_url=None,
+        date_of_birth=None,
+        description=None,
+        tags=None,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    ),
+    # STORY CHARACTERS
+    # Asha - Senior Citizen (ID 3)
     User(
         id=3,
-        gmail_id="admin1@test.com",
-        firebase_uid="test_admin_uid_001",
-        full_name="Test Admin One",
-        role=UserRole.ADMIN,
+        gmail_id="asha.senior@example.com",
+        firebase_uid="story_asha_uid_001",
+        full_name="Asha",
+        role=UserRole.SENIOR_CITIZEN,
         status=UserStatus.ACTIVE,
         youtube_url=None,
-        date_of_birth=date(1970, 1, 15),
-        description="Test admin user for development",
-        tags="admin,test",
+        date_of_birth=date(1945, 3, 15),
+        description="80-year-old Indian woman with kind eyes, short grey hair, and glasses. Enjoys gardening and staying active.",
+        tags="senior,indian,gardening,active",
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
+    # Rohan - Family Member (ID 4) - Asha's son
     User(
         id=4,
-        gmail_id="admin2@test.com",
-        firebase_uid="test_admin_uid_002",
-        full_name="Test Admin Two",
-        role=UserRole.ADMIN,
+        gmail_id="rohan.family@example.com",
+        firebase_uid="story_rohan_uid_001",
+        full_name="Rohan",
+        role=UserRole.FAMILY_MEMBER,
         status=UserStatus.ACTIVE,
         youtube_url=None,
-        date_of_birth=date(1975, 3, 20),
-        description="Second test admin user for development",
-        tags="admin,test",
+        date_of_birth=date(1980, 8, 22),
+        description="45-year-old professional Indian man with short black hair and grey streaks at temples. Caring son managing his mother Asha's care.",
+        tags="family,professional,caring,indian",
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # CAREGIVER users (IDs 5-6 to match database)
+    # Priya - Caregiver (ID 5)
     User(
         id=5,
-        gmail_id="caregiver1@test.com",
-        firebase_uid="test_caregiver_uid_001",
-        full_name="Test Caregiver One",
+        gmail_id="priya.caregiver@example.com",
+        firebase_uid="story_priya_uid_001",
+        full_name="Priya",
         role=UserRole.CAREGIVER,
         status=UserStatus.ACTIVE,
-        youtube_url="https://www.youtube.com/watch?v=test1",
-        date_of_birth=date(1985, 6, 10),
-        description="Experienced caregiver specializing in elderly care",
-        tags="caregiver,elderly,compassionate",
+        youtube_url="https://www.youtube.com/watch?v=priya_intro",
+        date_of_birth=date(1997, 11, 8),
+        description="28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.",
+        tags="caregiver,physiotherapy,companionship,indian",
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
+    # Mr. Verma - Interest Group Admin (ID 6)
     User(
         id=6,
+        gmail_id="verma.groupadmin@example.com",
+        firebase_uid="story_verma_uid_001",
+        full_name="Mr. Verma",
+        role=UserRole.INTEREST_GROUP_ADMIN,
+        status=UserStatus.ACTIVE,
+        youtube_url="https://www.youtube.com/watch?v=verma_intro",
+        date_of_birth=date(1955, 6, 10),
+        description="70-year-old retired Indian gentleman with cheerful demeanor, neat white mustache, and glasses. Community leader organizing activities for seniors.",
+        tags="group-admin,retired,community,indian",
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    ),
+    # Additional test users for variety
+    # Test Caregiver Two (ID 7)
+    User(
+        id=7,
         gmail_id="caregiver2@test.com",
         firebase_uid="test_caregiver_uid_002",
         full_name="Test Caregiver Two",
@@ -65,21 +113,7 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # FAMILY_MEMBER users (IDs 7-8 to match database)
-    User(
-        id=7,
-        gmail_id="family1@test.com",
-        firebase_uid="test_family_uid_001",
-        full_name="Test Family Member One",
-        role=UserRole.FAMILY_MEMBER,
-        status=UserStatus.ACTIVE,
-        youtube_url=None,
-        date_of_birth=date(1980, 12, 5),
-        description="Caring family member looking after elderly parent",
-        tags="family,caring",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-    ),
+    # Test Family Member Two (ID 8)
     User(
         id=8,
         gmail_id="family2@test.com",
@@ -94,23 +128,9 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # SENIOR_CITIZEN users (IDs 9-10 to match database)
+    # Test Senior Citizen Two (ID 9)
     User(
         id=9,
-        gmail_id="senior1@test.com",
-        firebase_uid="test_senior_uid_001",
-        full_name="Test Senior Citizen One",
-        role=UserRole.SENIOR_CITIZEN,
-        status=UserStatus.ACTIVE,
-        youtube_url=None,
-        date_of_birth=date(1945, 2, 14),
-        description="Retired teacher enjoying second innings of life",
-        tags="senior,retired,teacher",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-    ),
-    User(
-        id=10,
         gmail_id="senior2@test.com",
         firebase_uid="test_senior_uid_002",
         full_name="Test Senior Citizen Two",
@@ -123,23 +143,9 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # INTEREST_GROUP_ADMIN users (IDs 11-12 to match database)
+    # Test Group Admin Two (ID 10)
     User(
-        id=11,
-        gmail_id="groupadmin1@test.com",
-        firebase_uid="test_groupadmin_uid_001",
-        full_name="Test Group Admin One",
-        role=UserRole.INTEREST_GROUP_ADMIN,
-        status=UserStatus.ACTIVE,
-        youtube_url="https://www.youtube.com/watch?v=testgroup1",
-        date_of_birth=date(1965, 7, 22),
-        description="Community leader organizing activities for seniors",
-        tags="group-admin,community,activities",
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-    ),
-    User(
-        id=12,
+        id=10,
         gmail_id="groupadmin2@test.com",
         firebase_uid="test_groupadmin_uid_002",
         full_name="Test Group Admin Two",
@@ -152,9 +158,9 @@ TEST_USERS: List[User] = [
         created_at=datetime.now(),
         updated_at=datetime.now(),
     ),
-    # SUPPORT_USER users (IDs 13-14 to match database)
+    # Support users (IDs 11-12)
     User(
-        id=13,
+        id=11,
         gmail_id="support1@test.com",
         firebase_uid="test_support_uid_001",
         full_name="Test Support User One",
@@ -168,7 +174,7 @@ TEST_USERS: List[User] = [
         updated_at=datetime.now(),
     ),
     User(
-        id=14,
+        id=12,
         gmail_id="support2@test.com",
         firebase_uid="test_support_uid_002",
         full_name="Test Support User Two",
@@ -187,24 +193,25 @@ TEST_USERS: List[User] = [
 TEST_USERS_BY_UID: Dict[str, User] = {user.firebase_uid: user for user in TEST_USERS}
 TEST_USERS_BY_EMAIL: Dict[str, User] = {user.gmail_id: user for user in TEST_USERS}
 
-# Test tokens that map to test users (simple format for testing)
+# Test tokens that map to test users (including story character tokens)
 TEST_TOKENS = {
     # Admin tokens
-    "test_admin_token_001": "test_admin_uid_001",
-    "test_admin_token_002": "test_admin_uid_002",
-    # Caregiver tokens
-    "test_caregiver_token_001": "test_caregiver_uid_001",
+    "test_admin_token_001": "qEGg9NTOjfgSaw646IhSRCXKtaZ2",
+    "test_admin_token_002": "4N2P7ZAWGPgXXoQmp2YAKXJTw253",
+    # Story character tokens
+    "story_asha_token_001": "story_asha_uid_001",
+    "story_rohan_token_001": "story_rohan_uid_001",
+    "story_priya_token_001": "story_priya_uid_001",
+    "story_verma_token_001": "story_verma_uid_001",
+    # Additional test user tokens (including backward compatibility)
+    "test_caregiver_token_001": "story_priya_uid_001",  # Maps to Priya for backward compatibility
     "test_caregiver_token_002": "test_caregiver_uid_002",
-    # Family member tokens
-    "test_family_token_001": "test_family_uid_001",
+    "test_family_token_001": "story_rohan_uid_001",  # Maps to Rohan for backward compatibility
     "test_family_token_002": "test_family_uid_002",
-    # Senior citizen tokens
-    "test_senior_token_001": "test_senior_uid_001",
+    "test_senior_token_001": "story_asha_uid_001",  # Maps to Asha for backward compatibility
     "test_senior_token_002": "test_senior_uid_002",
-    # Interest group admin tokens
-    "test_groupadmin_token_001": "test_groupadmin_uid_001",
+    "test_groupadmin_token_001": "story_verma_uid_001",  # Maps to Mr. Verma for backward compatibility
     "test_groupadmin_token_002": "test_groupadmin_uid_002",
-    # Support user tokens
     "test_support_token_001": "test_support_uid_001",
     "test_support_token_002": "test_support_uid_002",
 }

@@ -1,13 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/services/interest_group_service.dart';
 
-class CreateNewLocalGroupView extends StatelessWidget {
+class CreateNewLocalGroupView extends StatefulWidget {
   const CreateNewLocalGroupView({super.key});
+
+  @override
+  State<CreateNewLocalGroupView> createState() =>
+      _CreateNewLocalGroupViewState();
+}
+
+class _CreateNewLocalGroupViewState extends State<CreateNewLocalGroupView> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _linksController = TextEditingController();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _linksController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _createGroup() async {
+    try {
+      final response = await InterestGroupService.createInterestGroup(
+        title: _titleController.text,
+        description: _descriptionController.text,
+        links: _linksController.text.isNotEmpty ? _linksController.text : null,
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Group created successfully')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to create group')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error creating group: $e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final formKey = GlobalKey<FormState>();
 
     return Scaffold(
       body: CustomScrollView(
@@ -31,11 +75,12 @@ class CreateNewLocalGroupView extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
-                key: formKey,
+                key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     TextFormField(
+                      controller: _titleController,
                       decoration: InputDecoration(
                         labelText: 'Group Name',
                         border: OutlineInputBorder(
@@ -47,6 +92,7 @@ class CreateNewLocalGroupView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
+                      controller: _descriptionController,
                       decoration: InputDecoration(
                         labelText: 'Description',
                         border: OutlineInputBorder(
@@ -59,6 +105,7 @@ class CreateNewLocalGroupView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
+                      controller: _linksController,
                       decoration: InputDecoration(
                         labelText: 'WhatsApp Group Link (Optional)',
                         border: OutlineInputBorder(
@@ -68,17 +115,9 @@ class CreateNewLocalGroupView extends StatelessWidget {
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton(
-                      onPressed: () {
-                        if (formKey.currentState!.validate()) {
-                          // Handle creation and submission for review
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Group submitted for admin approval!',
-                              ),
-                            ),
-                          );
-                          Navigator.pop(context);
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          await _createGroup();
                         }
                       },
                       style: ElevatedButton.styleFrom(

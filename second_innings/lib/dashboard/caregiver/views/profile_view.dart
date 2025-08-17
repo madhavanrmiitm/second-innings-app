@@ -10,7 +10,7 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  Map<String, dynamic>? _userData;
+  User? _user;
   bool _isLoading = true;
   String? _error;
 
@@ -27,10 +27,10 @@ class _ProfileViewState extends State<ProfileView> {
     });
 
     try {
-      final response = await UserService.fetchUserProfile();
+      final response = await UserService.fetchUserProfileAsUser();
       if (response.statusCode == 200) {
         setState(() {
-          _userData = response.data?['data']?['user'];
+          _user = response.data;
           _isLoading = false;
         });
       } else {
@@ -76,13 +76,13 @@ class _ProfileViewState extends State<ProfileView> {
       );
     }
 
-    if (_userData == null) {
+    if (_user == null) {
       return const Scaffold(
         body: Center(child: Text('No user data available')),
       );
     }
 
-    final userStatus = _userData!['status']?.toString().toLowerCase();
+    final userStatus = _user!.status.toLowerCase();
     final isPendingApproval = userStatus == 'pending_approval';
 
     return Scaffold(
@@ -150,49 +150,30 @@ class _ProfileViewState extends State<ProfileView> {
 
                   // Profile Information
                   _buildProfileCard(context, 'Personal Information', [
-                    _buildInfoRow(
-                      'Full Name',
-                      _userData!['full_name'] ?? 'Not provided',
-                    ),
-                    _buildInfoRow(
-                      'Email',
-                      _userData!['gmail_id'] ?? 'Not provided',
-                    ),
-                    _buildInfoRow(
-                      'Date of Birth',
-                      _formatDate(_userData!['date_of_birth']),
-                    ),
-                    _buildInfoRow(
-                      'Role',
-                      _userData!['role']
-                              ?.toString()
-                              .replaceAll('_', ' ')
-                              .toUpperCase() ??
-                          'Not provided',
-                    ),
-                    _buildInfoRow(
-                      'Status',
-                      _formatStatus(_userData!['status']),
-                    ),
+                    _buildInfoRow('Full Name', _user!.fullName),
+                    _buildInfoRow('Email', _user!.gmailId),
+                    _buildInfoRow('Date of Birth', _user!.formattedDateOfBirth),
+                    _buildInfoRow('Role', _user!.formattedRole),
+                    _buildInfoRow('Status', _user!.formattedStatus),
                   ]),
 
                   const SizedBox(height: 16),
 
                   // YouTube URL (Caregiver specific)
-                  if (_userData!['youtube_url'] != null &&
-                      _userData!['youtube_url'].toString().isNotEmpty)
+                  if (_user!.youtubeUrl != null &&
+                      _user!.youtubeUrl!.toString().isNotEmpty)
                     _buildProfileCard(context, 'Professional Information', [
                       _buildInfoRow(
                         'YouTube Profile',
-                        _userData!['youtube_url'] ?? 'Not provided',
+                        _user!.youtubeUrl ?? 'Not provided',
                       ),
                     ]),
 
                   const SizedBox(height: 16),
 
                   // Description (Caregiver specific)
-                  if (_userData!['description'] != null &&
-                      _userData!['description'].toString().isNotEmpty)
+                  if (_user!.description != null &&
+                      _user!.description!.toString().isNotEmpty)
                     _buildProfileCard(context, 'About Me', [
                       Container(
                         width: double.infinity,
@@ -202,8 +183,7 @@ class _ProfileViewState extends State<ProfileView> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          _userData!['description'] ??
-                              'No description provided',
+                          _user!.description ?? 'No description provided',
                           style: textTheme.bodyMedium,
                         ),
                       ),
@@ -212,13 +192,12 @@ class _ProfileViewState extends State<ProfileView> {
                   const SizedBox(height: 16),
 
                   // Tags (Caregiver specific)
-                  if (_userData!['tags'] != null &&
-                      _userData!['tags'].toString().isNotEmpty)
+                  if (_user!.tags != null && _user!.tags!.toString().isNotEmpty)
                     _buildProfileCard(context, 'Skills & Specializations', [
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _userData!['tags']
+                        children: _user!.tags!
                             .toString()
                             .split(',')
                             .map<Widget>(
@@ -236,14 +215,8 @@ class _ProfileViewState extends State<ProfileView> {
 
                   // Account Information
                   _buildProfileCard(context, 'Account Information', [
-                    _buildInfoRow(
-                      'Member Since',
-                      _formatDate(_userData!['created_at']),
-                    ),
-                    _buildInfoRow(
-                      'Last Updated',
-                      _formatDate(_userData!['updated_at']),
-                    ),
+                    _buildInfoRow('Member Since', _user!.formattedCreatedAt),
+                    _buildInfoRow('Last Updated', _user!.formattedUpdatedAt),
                   ]),
 
                   const SizedBox(height: 32),
@@ -310,30 +283,5 @@ class _ProfileViewState extends State<ProfileView> {
         ],
       ),
     );
-  }
-
-  String _formatDate(dynamic dateValue) {
-    if (dateValue == null) return 'Not provided';
-    try {
-      final date = DateTime.parse(dateValue.toString());
-      return '${date.day}/${date.month}/${date.year}';
-    } catch (e) {
-      return dateValue.toString();
-    }
-  }
-
-  String _formatStatus(dynamic statusValue) {
-    if (statusValue == null) return 'Unknown';
-    final status = statusValue.toString().toLowerCase();
-    switch (status) {
-      case 'pending_approval':
-        return 'Pending Approval';
-      case 'active':
-        return 'Active';
-      case 'blocked':
-        return 'Blocked';
-      default:
-        return status.toUpperCase();
-    }
   }
 }

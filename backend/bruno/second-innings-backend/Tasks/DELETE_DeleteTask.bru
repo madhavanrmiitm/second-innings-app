@@ -1,0 +1,39 @@
+meta {
+  name: DELETE_DeleteTask
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}{{apiPrefix}}/tasks/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{familyToken}}
+}
+
+body:json {
+  {
+    "id_token": "{{familyToken}}"
+  }
+}
+
+tests {
+  test("Status code is 200, 400, 403, or 404", function() {
+    const status = res.getStatus();
+    expect([200, 400, 403, 404]).to.include(status);
+  });
+
+  test("Response has appropriate message", function() {
+    const status = res.getStatus();
+    if (status === 200) {
+      expect(res.getBody().message).to.contain("successfully");
+    }
+  });
+
+  test("Response structure is correct", function() {
+    expect(res.getBody()).to.have.property('message');
+  });
+}

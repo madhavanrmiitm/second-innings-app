@@ -33,7 +33,44 @@ tests {
       const group = res.getBody().data.interest_groups[0];
       expect(group).to.have.property('id');
       expect(group).to.have.property('title');
+      expect(group).to.have.property('description');
+      expect(group).to.have.property('links');
+      expect(group).to.have.property('status');
+      expect(group).to.have.property('created_by');
       expect(group).to.have.property('created_at');
+      expect(group).to.have.property('updated_at');
+      expect(group).to.have.property('timing');
     }
+  });
+
+  test("Test data includes interest groups with descriptions", function() {
+    const groups = res.getBody().data.interest_groups;
+    const groupsWithDescription = groups.filter(group => group.description);
+    expect(groupsWithDescription.length).to.be.greaterThan(0);
+  });
+
+  test("Test data includes interest groups with links", function() {
+    const groups = res.getBody().data.interest_groups;
+    const groupsWithLinks = groups.filter(group => group.links);
+    expect(groupsWithLinks.length).to.be.greaterThan(0);
+  });
+
+  test("Test data includes interest groups with different statuses", function() {
+    const groups = res.getBody().data.interest_groups;
+    const statuses = groups.map(group => group.status);
+    expect(statuses).to.include('active');
+    expect(statuses).to.include('inactive');
+  });
+
+  test("Test data includes interest groups with timing", function() {
+    const groups = res.getBody().data.interest_groups;
+    const groupsWithTiming = groups.filter(group => group.timing);
+    expect(groupsWithTiming.length).to.be.greaterThan(0);
+  });
+
+  test("Test data includes interest groups without timing", function() {
+    const groups = res.getBody().data.interest_groups;
+    const groupsWithoutTiming = groups.filter(group => !group.timing);
+    expect(groupsWithoutTiming.length).to.be.greaterThan(0);
   });
 }

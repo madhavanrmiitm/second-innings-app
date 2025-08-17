@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:second_innings/services/family_service.dart';
+import 'package:second_innings/services/user_service.dart';
 
 class LinkNewFamilyMemberPage extends StatefulWidget {
   const LinkNewFamilyMemberPage({super.key});
@@ -20,6 +22,37 @@ class _LinkNewFamilyMemberPageState extends State<LinkNewFamilyMemberPage> {
     _relationshipController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _linkFamilyMember() async {
+    try {
+      // First, we need to get the Firebase UID of the family member
+      // This would typically be done by looking up the user by email
+      // For now, we'll use the email as a placeholder
+      final familyMemberFirebaseUid = _emailController.text;
+
+      final response = await FamilyService.addFamilyMember(
+        familyMemberFirebaseUid: familyMemberFirebaseUid,
+        relationship: _relationshipController.text,
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Family member linked successfully')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.error ?? 'Failed to link family member'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error linking family member: $e')),
+      );
+    }
   }
 
   @override
@@ -135,11 +168,9 @@ class _LinkNewFamilyMemberPageState extends State<LinkNewFamilyMemberPage> {
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // TODO: Implement logic to save the new family member
-                          // and potentially navigate back or show a confirmation.
-                          Navigator.pop(context);
+                          await _linkFamilyMember();
                         }
                       },
                       icon: const Icon(Icons.link_rounded),

@@ -1,0 +1,51 @@
+meta {
+  name: GET_LinkedSeniorCitizens
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/family-members/me/linked-senior-citizens
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{familyToken}}
+}
+
+tests {
+  test("Status code is 200 for successful linked senior citizens retrieval", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains linked senior citizens data", function() {
+    expect(res.getBody().data).to.have.property('linked_senior_citizens');
+    expect(res.getBody().data.linked_senior_citizens).to.be.an('array');
+  });
+
+  test("Each linked senior citizen has required fields", function() {
+    if (res.getBody().data.linked_senior_citizens.length > 0) {
+      const seniorCitizen = res.getBody().data.linked_senior_citizens[0];
+      expect(seniorCitizen).to.have.property('id');
+      expect(seniorCitizen).to.have.property('full_name');
+      expect(seniorCitizen).to.have.property('relation');
+      expect(seniorCitizen).to.have.property('status');
+    }
+  });
+
+  test("Test data includes linked senior citizens with required fields", function() {
+    const seniorCitizens = res.getBody().data.linked_senior_citizens;
+    if (seniorCitizens.length > 0) {
+      const seniorCitizen = seniorCitizens[0];
+      expect(seniorCitizen).to.have.property('id');
+      expect(seniorCitizen).to.have.property('full_name');
+      expect(seniorCitizen).to.have.property('relation');
+      expect(seniorCitizen).to.have.property('status');
+    }
+  });
+}

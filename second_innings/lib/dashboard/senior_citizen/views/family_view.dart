@@ -1,56 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/link_new_family_member_page.dart';
+import 'package:second_innings/widgets/user_app_bar.dart';
+import 'package:second_innings/services/family_service.dart';
 
-class FamilyView extends StatelessWidget {
+class FamilyView extends StatefulWidget {
   const FamilyView({super.key});
 
-  // Sample data for family members
-  final List<Map<String, String>> familyMembers = const [
-    {'name': 'John Doe', 'relationship': 'Son'},
-    {'name': 'Jane Doe', 'relationship': 'Daughter'},
-    {'name': 'Peter Smith', 'relationship': 'Grandson'},
-    {'name': 'Mary Smith', 'relationship': 'Granddaughter'},
-  ];
+  @override
+  State<FamilyView> createState() => _FamilyViewState();
+}
+
+class _FamilyViewState extends State<FamilyView> {
+  List<Map<String, dynamic>> _familyMembers = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFamilyMembers();
+  }
+
+  Future<void> _loadFamilyMembers() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await FamilyService.getFamilyMembers();
+
+      if (response.statusCode == 200) {
+        final membersData = response.data?['data']?['family_members'] as List?;
+        if (membersData != null) {
+          setState(() {
+            _familyMembers = membersData.cast<Map<String, dynamic>>();
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _familyMembers = [];
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _error = response.error ?? 'Failed to load family members';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error loading family members: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _deleteFamilyMember(String memberId) async {
+    try {
+      final response = await FamilyService.deleteFamilyMember(memberId);
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Family member removed successfully')),
+        );
+        // Reload family members to reflect the change
+        await _loadFamilyMembers();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.error ?? 'Failed to remove family member'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error removing family member: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            pinned: true,
-            floating: true,
-            snap: false,
-            elevation: 0,
-            backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Family Members',
-                    style: textTheme.titleLarge?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Your linked family members',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
-              ),
-              titlePadding: const EdgeInsets.only(bottom: 16),
-            ),
-          ),
+          const UserAppBar(title: 'Family'),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -58,48 +97,110 @@ class FamilyView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 32),
-                  Text(
-                    "Linked Members",
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Your Family",
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const LinkNewFamilyMemberPage(),
+                            ),
+                          );
+                          // Reload family members if a new member was added
+                          if (result == true) {
+                            await _loadFamilyMembers();
+                          }
+                        },
+                        icon: const Icon(Icons.person_add),
+                        label: const Text('Add Member'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            sliver: _buildFamilyMemberList(context, colorScheme),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: "senior_citizen_family_fab",
-        onPressed: () {
-          // Navigate to the LinkNewFamilyMemberPage
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LinkNewFamilyMemberPage(),
+          if (_isLoading)
+            const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_error != null)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(_error!, style: textTheme.bodyLarge),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadFamilyMembers,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              sliver: _buildFamilyMembersList(colorScheme, textTheme),
             ),
-          );
-        },
-        label: const Text('Link New'),
-        icon: const Icon(Icons.add),
+        ],
       ),
     );
   }
 
-  SliverList _buildFamilyMemberList(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildFamilyMembersList(ColorScheme colorScheme, TextTheme textTheme) {
+    if (_familyMembers.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.family_restroom, size: 64, color: colorScheme.outline),
+              const SizedBox(height: 16),
+              Text(
+                'No family members linked yet',
+                style: textTheme.titleMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Add family members to stay connected',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return SliverList.builder(
-      itemCount: familyMembers.length,
+      itemCount: _familyMembers.length,
       itemBuilder: (context, index) {
-        final member = familyMembers[index];
+        final member = _familyMembers[index];
+
         return Card(
           elevation: 0,
           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -108,31 +209,75 @@ class FamilyView extends StatelessWidget {
           ),
           color: colorScheme.primaryContainer.withAlpha(51),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
                 CircleAvatar(
                   backgroundColor: colorScheme.primaryContainer.withAlpha(204),
-                  child: Text(
-                    member['name']![0],
-                    style: TextStyle(color: colorScheme.onPrimaryContainer),
+                  child: Icon(
+                    Icons.person_outline,
+                    color: colorScheme.onPrimaryContainer,
                   ),
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      member['name']!,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        member['full_name'] ?? 'Unknown',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      member['relationship']!,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        member['relationship'] ?? 'Family Member',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.outline,
+                        ),
+                      ),
+                      if (member['email'] != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          member['email'],
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Remove Family Member'),
+                        content: Text(
+                          'Are you sure you want to remove ${member['full_name'] ?? 'this family member'}?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _deleteFamilyMember(member['id'].toString());
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: colorScheme.error,
+                            ),
+                            child: const Text('Remove'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.delete_outline, color: colorScheme.error),
                 ),
               ],
             ),

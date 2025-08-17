@@ -63,9 +63,27 @@ A comprehensive Vue.js 3 admin web application for the Second Innings project, f
 ### 🧪 Testing & Development
 
 - **Test Mode**: Bypass Firebase authentication with predefined test users
-- **14 Predefined Test Users**: Covering all roles and statuses
+- **14 Predefined Test Users**: Covering all roles and statuses with story-based characters
+- **Story-Based Scenarios**: Realistic family care management, caregiver services, and community activities
 - **Development Workflow**: Easy testing of different user scenarios
 - **Environment Configuration**: Simple test mode activation
+
+### 🎭 Story-Based Test Characters
+
+The test mode includes realistic story characters for comprehensive testing:
+
+#### **Asha & Rohan Family Story**
+- **Asha** (ID 3): 80-year-old Indian woman with kind eyes, short grey hair, and glasses. Enjoys gardening and staying active.
+- **Rohan** (ID 4): Her 45-year-old son, professional Indian man with short black hair and grey streaks at temples. Caring son managing his mother's care.
+- **Priya** (ID 5): 28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.
+- **Mr. Verma** (ID 6): 70-year-old retired Indian gentleman with cheerful demeanor, neat white mustache, and glasses. Community leader organizing activities for seniors.
+
+#### **Realistic Test Scenarios**
+- Family care management between Rohan and Asha
+- Caregiver services provided by Priya
+- Community groups organized by Mr. Verma (Sunrise Walkers Club, Laughter Yoga, Garden Lovers, etc.)
+- Support tickets and notifications for various scenarios
+- Interest group activities and member management
 
 ### 🎨 User Interface & Experience
 

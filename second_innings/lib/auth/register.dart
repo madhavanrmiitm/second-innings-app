@@ -11,12 +11,14 @@ class RegisterScreen extends StatefulWidget {
   final String googleAccountId;
   final String? idToken;
   final String? googleDisplayName;
+  final bool isTestMode;
 
   const RegisterScreen({
     super.key,
     required this.googleAccountId,
     this.idToken,
     this.googleDisplayName,
+    this.isTestMode = false,
   });
 
   @override
@@ -331,6 +333,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         youtubeUrl: _selectedUserType == UserType.caregiver
             ? _youtubeController.text
             : null,
+        isTestMode: widget.isTestMode,
       );
 
       if (mounted) {

@@ -71,6 +71,12 @@ class RemoveFamilyMemberRequest(BaseModel):
     family_member_firebase_uid: str
 
 
+class LinkSeniorCitizenRequest(BaseModel):
+    id_token: str
+    senior_citizen_email: str
+    relation: str
+
+
 class CreateCareRequest(BaseModel):
     id_token: str
     caregiver_firebase_uid: str
@@ -97,6 +103,19 @@ class DeclineEngagement(BaseModel):
     id_token: str
 
 
+class RequestCaregiver(BaseModel):
+    caregiver_id: int
+    message: Optional[str] = None
+
+
+class AcceptCaregiverRequest(BaseModel):
+    request_id: int
+
+
+class RejectCaregiverRequest(BaseModel):
+    request_id: int
+
+
 class CreateTask(BaseModel):
     id_token: str
     title: str
@@ -112,20 +131,6 @@ class UpdateTask(BaseModel):
     time_of_completion: Optional[datetime] = None
     status: Optional[TaskStatus] = None
     assigned_to_firebase_uid: Optional[str] = None
-
-
-class CreateReminder(BaseModel):
-    id_token: str
-    title: str
-    description: Optional[str] = None
-    time: datetime
-
-
-class UpdateReminder(BaseModel):
-    id_token: str
-    title: Optional[str] = None
-    description: Optional[str] = None
-    time: Optional[datetime] = None
 
 
 class CreateInterestGroup(BaseModel):
@@ -148,14 +153,14 @@ class UpdateInterestGroup(BaseModel):
 class CreateTicket(BaseModel):
     subject: str
     description: Optional[str] = None
-    priority: Optional[str] = 'medium'  # Add this
-    category: Optional[str] = None      # Add this
-    
+    priority: Optional[str] = "medium"  # Add this
+    category: Optional[str] = None  # Add this
+
     # Add validation if needed
     @field_validator("priority")
     @classmethod
     def validate_priority(cls, v):
-        if v and v not in ['low', 'medium', 'high']:
+        if v and v not in ["low", "medium", "high"]:
             raise ValueError("Priority must be low, medium, or high")
         return v
 
@@ -167,18 +172,18 @@ class UpdateTicket(BaseModel):
     priority: Optional[str] = None  # Add this
     category: Optional[str] = None  # Add this
     assigned_to: Optional[int] = None  # Add this
-    
+
     @field_validator("status")
     @classmethod
     def validate_status(cls, v):
-        if v and v not in ['open', 'in_progress', 'closed']:
+        if v and v not in ["open", "in_progress", "closed"]:
             raise ValueError("Status must be open, in_progress, or closed")
         return v
-    
+
     @field_validator("priority")
     @classmethod
     def validate_priority(cls, v):
-        if v and v not in ['low', 'medium', 'high']:
+        if v and v not in ["low", "medium", "high"]:
             raise ValueError("Priority must be low, medium, or high")
         return v
 

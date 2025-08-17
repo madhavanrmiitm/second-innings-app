@@ -1,9 +1,12 @@
 from app.controllers import care as care_controller
 from app.payloads import (
+    AcceptCaregiverRequest,
     AcceptEngagement,
     ApplyCareRequest,
     CreateCareRequest,
     DeclineEngagement,
+    RejectCaregiverRequest,
+    RequestCaregiver,
     UpdateCareRequest,
 )
 from app.utils.request_validator import validate_body
@@ -73,3 +76,36 @@ async def decline_engagement(
     request: Request, requestId: int, validated_data: DeclineEngagement
 ):
     return await care_controller.decline_engagement(request, requestId, validated_data)
+
+
+# Caregiver request endpoints for family members and senior citizens
+@router.get("/me/caregiver-requests")
+async def get_caregiver_requests(request: Request):
+    return await care_controller.get_caregiver_requests(request)
+
+
+@router.post("/me/request-caregiver")
+@validate_body(RequestCaregiver)
+async def request_caregiver(request: Request, validated_data: RequestCaregiver):
+    return await care_controller.request_caregiver(request, validated_data)
+
+
+@router.post("/me/accept-caregiver-request")
+@validate_body(AcceptCaregiverRequest)
+async def accept_caregiver_request(
+    request: Request, validated_data: AcceptCaregiverRequest
+):
+    return await care_controller.accept_caregiver_request(request, validated_data)
+
+
+@router.post("/me/reject-caregiver-request")
+@validate_body(RejectCaregiverRequest)
+async def reject_caregiver_request(
+    request: Request, validated_data: RejectCaregiverRequest
+):
+    return await care_controller.reject_caregiver_request(request, validated_data)
+
+
+@router.get("/me/current-caregiver")
+async def get_current_caregiver(request: Request):
+    return await care_controller.get_current_caregiver(request)

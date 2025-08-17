@@ -1,0 +1,63 @@
+meta {
+  name: GET_Tasks_WithSeniorCitizen
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/tasks?senior_citizen_id=3
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{storyRohanToken}}
+}
+
+tests {
+  test("Status code is 200 for successful tasks retrieval with senior_citizen_id", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has success message", function() {
+    expect(res.getBody().message).to.contain("successfully");
+  });
+
+  test("Response contains tasks data", function() {
+    expect(res.getBody().data).to.have.property('tasks');
+    expect(res.getBody().data.tasks).to.be.an('array');
+  });
+
+  test("Tasks are related to the specified senior citizen (Asha)", function() {
+    const tasks = res.getBody().data.tasks;
+    if (tasks.length > 0) {
+      // All tasks should be either created by or assigned to Asha (ID 3)
+      tasks.forEach(task => {
+        const isRelated = task.created_by === 3 || task.assigned_to === 3;
+        expect(isRelated).to.be.true;
+      });
+    }
+  });
+
+  test("Each task has required fields", function() {
+    if (res.getBody().data.tasks.length > 0) {
+      const task = res.getBody().data.tasks[0];
+      expect(task).to.have.property('id');
+      expect(task).to.have.property('title');
+      expect(task).to.have.property('description');
+      expect(task).to.have.property('status');
+      expect(task).to.have.property('created_by');
+      expect(task).to.have.property('assigned_to');
+      expect(task).to.have.property('created_at');
+      expect(task).to.have.property('updated_at');
+      expect(task).to.have.property('time_of_completion');
+    }
+  });
+
+  test("Task statuses are valid", function() {
+    const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+    res.getBody().data.tasks.forEach(task => {
+      expect(validStatuses).to.include(task.status);
+    });
+  });
+}

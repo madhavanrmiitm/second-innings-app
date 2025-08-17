@@ -5,43 +5,106 @@ export class TestAuthService {
   // Test Users Data from Backend Documentation
   static get testUsers() {
     return {
-      // Admin Users
+      // Admin Users (Story Characters)
       test_admin_token_001: {
         token: 'test_admin_token_001',
-        email: 'admin1@test.com',
-        name: 'Test Admin One',
-        firebase_uid: 'test_admin_uid_001',
+        email: '21f3001600@ds.study.iitm.ac.in',
+        name: 'Ashwin Narayanan S',
+        firebase_uid: 'qEGg9NTOjfgSaw646IhSRCXKtaZ2',
         role: 'admin',
         status: 'ACTIVE',
         id: 1,
-        full_name: 'Test Admin One',
+        full_name: 'Ashwin Narayanan S',
         date_of_birth: '1980-01-01',
         created_at: '2024-01-01T00:00:00Z'
       },
       test_admin_token_002: {
         token: 'test_admin_token_002',
-        email: 'admin2@test.com',
-        name: 'Test Admin Two',
-        firebase_uid: 'test_admin_uid_002',
+        email: 'nakshatra.nsb@gmail.com',
+        name: 'Nakshatra Gupta',
+        firebase_uid: '4N2P7ZAWGPgXXoQmp2YAKXJTw253',
         role: 'admin',
         status: 'ACTIVE',
         id: 2,
-        full_name: 'Test Admin Two',
+        full_name: 'Nakshatra Gupta',
         date_of_birth: '1981-01-01',
         created_at: '2024-01-01T00:00:00Z'
       },
 
-      // Caregiver Users
-      test_caregiver_token_001: {
-        token: 'test_caregiver_token_001',
-        email: 'caregiver1@test.com',
-        name: 'Test Caregiver One',
-        firebase_uid: 'test_caregiver_uid_001',
-        role: 'caregiver',
+      // Senior Citizen Users (Story Characters)
+      test_senior_token_001: {
+        token: 'test_senior_token_001',
+        email: 'asha.senior@example.com',
+        name: 'Asha',
+        firebase_uid: 'story_asha_uid_001',
+        role: 'senior_citizen',
         status: 'ACTIVE',
         id: 3,
-        full_name: 'Test Caregiver One',
-        date_of_birth: '1985-01-01',
+        full_name: 'Asha',
+        date_of_birth: '1945-03-15',
+        description: '80-year-old Indian woman with kind eyes, short grey hair, and glasses. Enjoys gardening and staying active.',
+        tags: 'senior,indian,gardening,active',
+        created_at: '2024-01-01T00:00:00Z'
+      },
+      test_senior_token_002: {
+        token: 'test_senior_token_002',
+        email: 'senior2@test.com',
+        name: 'Test Senior Citizen Two',
+        firebase_uid: 'test_senior_uid_002',
+        role: 'senior_citizen',
+        status: 'ACTIVE',
+        id: 9,
+        full_name: 'Test Senior Citizen Two',
+        date_of_birth: '1950-09-30',
+        description: 'Former engineer with passion for gardening',
+        tags: 'senior,engineer,gardening',
+        created_at: '2024-01-01T00:00:00Z'
+      },
+
+      // Family Member Users (Story Characters)
+      test_family_token_001: {
+        token: 'test_family_token_001',
+        email: 'rohan.family@example.com',
+        name: 'Rohan',
+        firebase_uid: 'story_rohan_uid_001',
+        role: 'family_member',
+        status: 'ACTIVE',
+        id: 4,
+        full_name: 'Rohan',
+        date_of_birth: '1980-08-22',
+        description: '45-year-old professional Indian man with short black hair and grey streaks at temples. Caring son managing his mother Asha\'s care.',
+        tags: 'family,professional,caring,indian',
+        created_at: '2024-01-01T00:00:00Z'
+      },
+      test_family_token_002: {
+        token: 'test_family_token_002',
+        email: 'family2@test.com',
+        name: 'Test Family Member Two',
+        firebase_uid: 'test_family_uid_002',
+        role: 'family_member',
+        status: 'ACTIVE',
+        id: 8,
+        full_name: 'Test Family Member Two',
+        date_of_birth: '1988-04-18',
+        description: 'Devoted child managing care for senior citizen',
+        tags: 'family,devoted',
+        created_at: '2024-01-01T00:00:00Z'
+      },
+
+      // Caregiver Users (Story Characters)
+      test_caregiver_token_001: {
+        token: 'test_caregiver_token_001',
+        email: 'priya.caregiver@example.com',
+        name: 'Priya',
+        firebase_uid: 'story_priya_uid_001',
+        role: 'caregiver',
+        status: 'ACTIVE',
+        id: 5,
+        full_name: 'Priya',
+        date_of_birth: '1997-11-08',
+        description: '28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.',
+        tags: 'caregiver,physiotherapy,companionship,indian',
+        youtube_url: 'https://www.youtube.com/watch?v=priya_intro',
         created_at: '2024-01-01T00:00:00Z'
       },
       test_caregiver_token_002: {
@@ -51,25 +114,29 @@ export class TestAuthService {
         firebase_uid: 'test_caregiver_uid_002',
         role: 'caregiver',
         status: 'PENDING_APPROVAL',
-        id: 4,
+        id: 7,
         full_name: 'Test Caregiver Two',
-        date_of_birth: '1986-01-01',
+        date_of_birth: '1990-08-25',
+        description: 'Certified nurse with 5 years of experience in home care',
+        tags: 'caregiver,nurse,home-care',
+        youtube_url: 'https://www.youtube.com/watch?v=test2',
         created_at: '2024-01-01T00:00:00Z'
       },
 
-
-
-      // Interest Group Admin Users
+      // Interest Group Admin Users (Story Characters)
       test_groupadmin_token_001: {
         token: 'test_groupadmin_token_001',
-        email: 'groupadmin1@test.com',
-        name: 'Test Group Admin One',
-        firebase_uid: 'test_groupadmin_uid_001',
+        email: 'verma.groupadmin@example.com',
+        name: 'Mr. Verma',
+        firebase_uid: 'story_verma_uid_001',
         role: 'interest_group_admin',
         status: 'ACTIVE',
-        id: 9,
-        full_name: 'Test Group Admin One',
-        date_of_birth: '1975-01-01',
+        id: 6,
+        full_name: 'Mr. Verma',
+        date_of_birth: '1955-06-10',
+        description: '70-year-old retired Indian gentleman with cheerful demeanor, neat white mustache, and glasses. Community leader organizing activities for seniors.',
+        tags: 'group-admin,retired,community,indian',
+        youtube_url: 'https://www.youtube.com/watch?v=verma_intro',
         created_at: '2024-01-01T00:00:00Z'
       },
       test_groupadmin_token_002: {
@@ -81,11 +148,14 @@ export class TestAuthService {
         status: 'PENDING_APPROVAL',
         id: 10,
         full_name: 'Test Group Admin Two',
-        date_of_birth: '1976-01-01',
+        date_of_birth: '1972-11-08',
+        description: 'Art therapist creating engaging programs for elderly',
+        tags: 'group-admin,art-therapy,programs',
+        youtube_url: 'https://www.youtube.com/watch?v=testgroup2',
         created_at: '2024-01-01T00:00:00Z'
       },
 
-      // Support User Users
+      // Support User Users (Story Characters)
       test_support_token_001: {
         token: 'test_support_token_001',
         email: 'support1@test.com',
@@ -95,7 +165,9 @@ export class TestAuthService {
         status: 'ACTIVE',
         id: 11,
         full_name: 'Test Support User One',
-        date_of_birth: '1988-01-01',
+        date_of_birth: '1992-01-12',
+        description: 'Support specialist helping users with platform issues',
+        tags: 'support,specialist',
         created_at: '2024-01-01T00:00:00Z'
       },
       test_support_token_002: {
@@ -107,7 +179,9 @@ export class TestAuthService {
         status: 'ACTIVE',
         id: 12,
         full_name: 'Test Support User Two',
-        date_of_birth: '1989-01-01',
+        date_of_birth: '1987-05-07',
+        description: 'Customer service representative for platform support',
+        tags: 'support,customer-service',
         created_at: '2024-01-01T00:00:00Z'
       },
 

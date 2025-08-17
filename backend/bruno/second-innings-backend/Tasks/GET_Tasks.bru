@@ -2,6 +2,7 @@ meta {
   name: GET_Tasks
   type: http
   seq: 1
+  description: "Get tasks for the authenticated user. For family members, optionally use ?senior_citizen_id=X to get tasks for a specific senior citizen."
 }
 
 get {
@@ -35,7 +36,11 @@ tests {
       expect(task).to.have.property('title');
       expect(task).to.have.property('description');
       expect(task).to.have.property('status');
+      expect(task).to.have.property('created_by');
+      expect(task).to.have.property('assigned_to');
       expect(task).to.have.property('created_at');
+      expect(task).to.have.property('updated_at');
+      expect(task).to.have.property('time_of_completion');
     }
   });
 
@@ -44,5 +49,21 @@ tests {
     res.getBody().data.tasks.forEach(task => {
       expect(validStatuses).to.include(task.status);
     });
+  });
+
+  test("Test data includes tasks with required fields", function() {
+    const tasks = res.getBody().data.tasks;
+    if (tasks.length > 0) {
+      const task = tasks[0];
+      expect(task).to.have.property('id');
+      expect(task).to.have.property('title');
+      expect(task).to.have.property('description');
+      expect(task).to.have.property('status');
+      expect(task).to.have.property('created_by');
+      expect(task).to.have.property('assigned_to');
+      expect(task).to.have.property('created_at');
+      expect(task).to.have.property('updated_at');
+      expect(task).to.have.property('time_of_completion');
+    }
   });
 }

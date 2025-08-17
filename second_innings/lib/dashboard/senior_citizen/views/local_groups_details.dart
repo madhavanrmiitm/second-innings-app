@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LocalGroupDetailsView extends StatelessWidget {
-  final Map<String, String> group;
+  final Map<String, dynamic> group;
 
   const LocalGroupDetailsView({required this.group, super.key});
 
@@ -31,11 +31,11 @@ class LocalGroupDetailsView extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     // Add a placeholder for the WhatsApp link if it doesn't exist in the data
-    final whatsappLink = group['whatsapp_link'] ?? '';
+    final whatsappLink = group['whatsapp_link']?.toString() ?? '';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(group['name']!),
+        title: Text(group['title']?.toString() ?? 'Group Details'),
         backgroundColor: colorScheme.primaryContainer.withAlpha(204),
         elevation: 0,
       ),
@@ -45,7 +45,7 @@ class LocalGroupDetailsView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              group['name']!,
+              group['title']?.toString() ?? 'Untitled Group',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
@@ -61,7 +61,8 @@ class LocalGroupDetailsView extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  group['description']!,
+                  group['description']?.toString() ??
+                      'No description available',
                   style: textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     height: 1.5,
@@ -76,7 +77,7 @@ class LocalGroupDetailsView extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => _launchUrl(context, whatsappLink),
                   icon: const Icon(Icons.group_add_rounded),
-                  label: const Text('Join WhatsApp Group'),
+                  label: const Text('Join Group Link'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: colorScheme.primary,

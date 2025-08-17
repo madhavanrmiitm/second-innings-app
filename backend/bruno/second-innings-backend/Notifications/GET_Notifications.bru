@@ -32,7 +32,22 @@ tests {
     if (res.getBody().data.notifications.length > 0) {
       const notification = res.getBody().data.notifications[0];
       expect(notification).to.have.property('id');
-      expect(notification).to.have.property('message');
+      expect(notification).to.have.property('user_id');
+      expect(notification).to.have.property('body');
+      expect(notification).to.have.property('type');
+      expect(notification).to.have.property('priority');
+      expect(notification).to.have.property('is_read');
+      expect(notification).to.have.property('created_at');
+    }
+  });
+
+  test("Test data includes notifications with required fields", function() {
+    const notifications = res.getBody().data.notifications;
+    if (notifications.length > 0) {
+      const notification = notifications[0];
+      expect(notification).to.have.property('id');
+      expect(notification).to.have.property('user_id');
+      expect(notification).to.have.property('body');
       expect(notification).to.have.property('type');
       expect(notification).to.have.property('priority');
       expect(notification).to.have.property('is_read');

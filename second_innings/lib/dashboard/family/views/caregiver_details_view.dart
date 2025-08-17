@@ -4,6 +4,7 @@ import 'package:second_innings/dashboard/family/views/caregivers_view.dart';
 import 'package:second_innings/dashboard/family/views/notifications_view.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizens_view.dart';
 import 'package:second_innings/widgets/user_app_bar.dart';
+import 'package:second_innings/services/care_service.dart';
 
 class CaregiverDetailsView extends StatefulWidget {
   final String name;
@@ -11,6 +12,7 @@ class CaregiverDetailsView extends StatefulWidget {
   final String gender;
   final String desc;
   final List<String> tags;
+  final int? caregiverId;
 
   const CaregiverDetailsView({
     super.key,
@@ -19,6 +21,7 @@ class CaregiverDetailsView extends StatefulWidget {
     required this.gender,
     required this.desc,
     required this.tags,
+    this.caregiverId,
   });
 
   @override
@@ -27,12 +30,52 @@ class CaregiverDetailsView extends StatefulWidget {
 
 class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
   final int _selectedIndex = 2;
+  bool _isHiring = false;
 
   final List<Widget> _widgetOptions = <Widget>[
     const SeniorCitizensView(),
     const NotificationsView(),
     const CaregiversView(),
   ];
+
+  Future<void> _hireCaregiver() async {
+    if (widget.caregiverId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Caregiver ID not available')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isHiring = true;
+    });
+
+    try {
+      final response = await CareService.requestCaregiver(
+        caregiverId: widget.caregiverId!,
+        message: 'Interested in hiring this caregiver',
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Caregiver request sent successfully!')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.error ?? 'Failed to send request')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error sending request: $e')));
+    } finally {
+      setState(() {
+        _isHiring = false;
+      });
+    }
+  }
 
   void _onItemTapped(int index) {
     Navigator.of(context).pushReplacement(
@@ -97,13 +140,21 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Caregiver hired successfully!"),
-                      ),
-                    );
-                  },
+                  onPressed: _isHiring ? null : _hireCaregiver,
+                  icon: _isHiring
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.play_arrow, size: 20),
+                  label: Text(
+                    _isHiring ? 'Sending Request...' : 'Hire this Caregiver',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFB5E5C1),
                     foregroundColor: Colors.black,
@@ -111,11 +162,6 @@ class _CaregiverDetailsViewState extends State<CaregiverDetailsView> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                  icon: const Icon(Icons.play_arrow, size: 20),
-                  label: const Text(
-                    'Hire this Caregiver',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
               ),

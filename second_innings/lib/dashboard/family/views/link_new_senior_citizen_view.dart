@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/family/family_home.dart';
+import 'package:second_innings/services/family_service.dart';
 
 class LinkNewSeniorCitizenPage extends StatefulWidget {
   final int selectedIndex;
@@ -133,19 +134,9 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Senior citizen linked!'),
-                            ),
-                          );
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const FamilyHomePage(),
-                            ),
-                          );
+                          await _linkSeniorCitizen();
                         }
                       },
                       icon: const Icon(Icons.link_rounded),
@@ -196,6 +187,35 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
     _emailController.dispose();
     _relationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _linkSeniorCitizen() async {
+    try {
+      final response = await FamilyService.linkSeniorCitizen(
+        seniorCitizenEmail: _emailController.text,
+        relation: _relationController.text,
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Senior citizen linked successfully')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const FamilyHomePage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.error ?? 'Failed to link senior citizen'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error linking senior citizen: $e')),
+      );
+    }
   }
 }
 
