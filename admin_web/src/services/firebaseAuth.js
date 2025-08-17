@@ -2,13 +2,11 @@ import { signInWithPopup, signOut, onAuthStateChanged, getIdToken } from 'fireba
 import { auth, googleProvider } from '@/config/firebase'
 
 export class FirebaseAuthService {
-  // Sign in with Google
   static async signInWithGoogle() {
     try {
       const result = await signInWithPopup(auth, googleProvider)
       const user = result.user
 
-      // Get the ID token
       const idToken = await getIdToken(user)
 
       return {
@@ -30,7 +28,6 @@ export class FirebaseAuthService {
     }
   }
 
-  // Sign out
   static async signOut() {
     try {
       await signOut(auth)
@@ -44,7 +41,6 @@ export class FirebaseAuthService {
     }
   }
 
-  // Get current user ID token
   static async getCurrentUserIdToken() {
     try {
       const user = auth.currentUser
@@ -58,22 +54,18 @@ export class FirebaseAuthService {
     }
   }
 
-  // Get current user
   static getCurrentUser() {
     return auth.currentUser
   }
 
-  // Listen to auth state changes
   static onAuthStateChanged(callback) {
     return onAuthStateChanged(auth, callback)
   }
 
-  // Check if user is signed in
   static isSignedIn() {
     return !!auth.currentUser
   }
 
-  // Get user info
   static getCurrentUserInfo() {
     const user = auth.currentUser
     if (user) {
@@ -88,7 +80,6 @@ export class FirebaseAuthService {
     return null
   }
 
-  // Private method to format error messages
   static _getErrorMessage(error) {
     switch (error.code) {
       case 'auth/popup-closed-by-user':

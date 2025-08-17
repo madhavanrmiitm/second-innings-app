@@ -161,7 +161,6 @@ const updateStatus = async () => {
     toast.success('Status updated')
   } else {
     toast.error('Failed to update status')
-    // Revert on failure
     localStatus.value = currentTicket.value.status
   }
 }
@@ -174,7 +173,6 @@ const updatePriority = async () => {
     toast.success('Priority updated')
   } else {
     toast.error('Failed to update priority')
-    // Revert on failure
     localPriority.value = currentTicket.value.priority
   }
 }
@@ -185,7 +183,6 @@ const updateAssignment = async () => {
     toast.success('Assignment updated')
   } else {
     toast.error('Failed to update assignment')
-    // Revert on failure
     localAssignedTo.value = currentTicket.value.assignedTo
   }
 }

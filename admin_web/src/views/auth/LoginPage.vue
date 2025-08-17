@@ -85,19 +85,15 @@ const authStore = useAuthStore()
 const toast = useToast()
 const loading = ref(false)
 
-// Test mode variables
 const selectedTestUser = ref('')
 const testUsers = ref([])
 
-// Check if user is already authenticated on component mount
 onMounted(async () => {
   if (authStore.isAuthenticated) {
-    // User is already logged in, redirect to appropriate dashboard
     const redirectRoute = await SessionManager.getRedirectRouteForRole()
     router.push(redirectRoute)
   }
 
-  // Load test users if test mode is enabled
   if (authStore.isTestModeEnabled) {
     testUsers.value = TestAuthService.getTestUsersForSelection()
   }
@@ -112,11 +108,9 @@ const handleGoogleLogin = async () => {
     if (result.success) {
       if (result.type === 'existing_user') {
         toast.success('Welcome back!')
-        // Use the redirect route from the auth store result
         router.push(result.redirectTo)
       } else if (result.type === 'new_user') {
         toast.info('Welcome! Please complete your Interest Group Admin registration.')
-        // Redirect to registration page with user info
         router.push({
           name: 'Registration',
           query: {
@@ -151,11 +145,9 @@ const handleTestLogin = async () => {
     if (result.success) {
       if (result.type === 'existing_user') {
         toast.success('Welcome back! (Test Mode)')
-        // Use the redirect route from the auth store result
         router.push(result.redirectTo)
       } else if (result.type === 'new_user') {
         toast.info('Welcome! Please complete your Interest Group Admin registration. (Test Mode)')
-        // Redirect to registration page with user info
         router.push({
           name: 'Registration',
           query: {

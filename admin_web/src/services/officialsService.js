@@ -37,7 +37,6 @@ export class OfficialsService {
     }
   }
 
-  // Create new official
   static async create(officialData) {
     try {
       const response = await ApiService.post(this.apiPrefix, {
@@ -55,7 +54,6 @@ export class OfficialsService {
     }
   }
 
-  // Update official
   static async update(id, data) {
     try {
       const response = await ApiService.put(`${this.apiPrefix}/${id}`, {

@@ -405,7 +405,6 @@ export const AuthFlowType = {
   ERROR: 'error',
 }
 
-// Registration result class
 export class RegistrationResult {
   constructor({ type, userData = null, error = null, message = null }) {
     this.type = type

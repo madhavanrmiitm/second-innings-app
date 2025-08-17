@@ -3,7 +3,6 @@ import { ApiResponse } from '@/utils/apiResponse'
 import { ApiConfig } from '@/config/api'
 import { FirebaseAuthService } from '@/services/firebaseAuth'
 
-// Create axios instance with interceptors
 const axiosInstance = axios.create({
   baseURL: ApiConfig.currentBaseUrl,
   timeout: ApiConfig.requestTimeout,
@@ -13,17 +12,14 @@ const axiosInstance = axios.create({
   }
 })
 
-// Request interceptor to add auth token
 axiosInstance.interceptors.request.use(
   async (config) => {
-    // Check for test token first
     const testToken = localStorage.getItem('testToken')
     if (testToken) {
       config.headers['Authorization'] = `Bearer ${testToken}`
       return config
     }
     
-    // Otherwise use Firebase token
     try {
       const idToken = await FirebaseAuthService.getCurrentUserIdToken()
       if (idToken) {
@@ -38,12 +34,9 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor for 401 handling
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Don't automatically clear session on 401 - let the app handle it
-    // This prevents premature logout during page loads
     if (error.response?.status === 401) {
       console.warn('401 Unauthorized received:', error.config?.url)
     }
@@ -60,7 +53,6 @@ export class ApiService {
     return ApiConfig.requestTimeout
   }
 
-  // Default headers for all requests
   static get _defaultHeaders() {
     return {
       'Content-Type': 'application/json',
@@ -68,19 +60,16 @@ export class ApiService {
     }
   }
 
-  // GET Request
   static async get(endpoint, { headers = {}, queryParams = {} } = {}) {
     try {
       const url = new URL(endpoint, this.baseUrl)
 
-      // Add query parameters
       Object.keys(queryParams).forEach((key) => {
         if (queryParams[key] !== null && queryParams[key] !== undefined) {
           url.searchParams.append(key, queryParams[key])
         }
       })
 
-      // Changed: axios.get → axiosInstance.get
       const response = await axiosInstance.get(url.toString(), {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
@@ -92,10 +81,8 @@ export class ApiService {
     }
   }
 
-  // POST Request
   static async post(endpoint, { body = null, headers = {} } = {}) {
     try {
-      // Changed: axios.post → axiosInstance.post
       const response = await axiosInstance.post(`${this.baseUrl}${endpoint}`, body, {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
@@ -107,10 +94,8 @@ export class ApiService {
     }
   }
 
-  // PUT Request
   static async put(endpoint, { body = null, headers = {} } = {}) {
     try {
-      // Changed: axios.put → axiosInstance.put
       const response = await axiosInstance.put(`${this.baseUrl}${endpoint}`, body, {
         headers: { ...this._defaultHeaders, ...headers },
         timeout: this.timeout,
@@ -122,7 +107,6 @@ export class ApiService {
     }
   }
 
-  // DELETE Request
   static async delete(endpoint, { headers = {}, body = null } = {}) {
     try {
       const config = {
@@ -130,12 +114,10 @@ export class ApiService {
         timeout: this.timeout,
       }
 
-      // Add data if body is provided
       if (body) {
         config.data = body
       }
 
-      // Changed: axios.delete → axiosInstance.delete
       const response = await axiosInstance.delete(`${this.baseUrl}${endpoint}`, config)
 
       return this._handleResponse(response)
@@ -144,7 +126,6 @@ export class ApiService {
     }
   }
 
-  // Handle HTTP Response
   static _handleResponse(response) {
     const { status: statusCode, data } = response
 
@@ -184,10 +165,8 @@ export class ApiService {
         })
 
       case 422:
-        // Handle validation errors with detailed messages
         let validationError = 'Validation failed'
         if (data?.data && Array.isArray(data.data)) {
-          // Format Pydantic validation errors
           const errors = data.data.map(err => `${err.loc?.join('.')} ${err.msg}`).join(', ')
           validationError = `Validation errors: ${errors}`
         } else if (data?.message) {
@@ -224,13 +203,10 @@ export class ApiService {
     }
   }
 
-  // Handle Errors (Network, Timeout, etc.)
   static _handleError(error) {
     if (error.response) {
-      // Server responded with error status
       return this._handleResponse(error.response)
     } else if (error.request) {
-      // Network error
       if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
         return ApiResponse.error({
           statusCode: 0,

@@ -119,7 +119,6 @@ const approve = async () => {
   if (result.success) {
     toast.success(`${selected.value.full_name} approved successfully`)
     closeModal()
-    // Refresh the interest group admins list
     adminStore.fetchInterestGroupAdmins()
   } else {
     toast.error(result.error || 'Failed to approve interest group admin')
