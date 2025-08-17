@@ -49,20 +49,13 @@
                 </span>
               </div>
 
-              <div v-if="group.timing" class="mb-3">
-                <small class="text-muted">
-                  <i class="bi bi-calendar-event me-1"></i>
-                  {{ formatTiming(group.timing) }}
-                </small>
-              </div>
-
               <div v-if="group.whatsapp_link" class="mb-3">
                 <a 
                   :href="group.whatsapp_link" 
                   target="_blank" 
                   class="btn btn-sm btn-success w-100"
                 >
-                  <i class="bi bi-whatsapp me-1"></i>Join WhatsApp Group
+                  <i class="bi bi-whatsapp me-1"></i>WhatsApp Group
                 </a>
               </div>
 
@@ -144,18 +137,6 @@
                 </div>
                 <div v-if="whatsappLinkError" class="text-danger small">
                   {{ whatsappLinkError }}
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Next Event/Meeting Time</label>
-                <input 
-                  v-model="formData.timing" 
-                  type="datetime-local" 
-                  class="form-control" 
-                />
-                <div class="form-text">
-                  Optional: When is the next scheduled activity?
                 </div>
               </div>
 

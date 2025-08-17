@@ -38,8 +38,8 @@ const menuItems = computed(() => {
         { name: 'Manage Officials', path: '/officials', icon: 'bi bi-people' },
         { name: 'View Tickets', path: '/tickets', icon: 'bi bi-ticket-perforated' },
         { name: 'Interest Groups', path: '/admin/interest-groups', icon: 'bi bi-collection' },
-        { name: 'Caregivers', path: '/caregivers', icon: 'bi bi-heart' },
-        { name: 'Interest Group Admins', path: '/admin/interest-group-admins', icon: 'bi bi-people-fill' },
+        { name: 'Approve Caregivers', path: '/caregivers/approvals', icon: 'bi bi-heart' },
+        { name: 'Interest Group Admins', path: '/admin/interest-group-admins/approvals', icon: 'bi bi-people-fill' },
         { name: 'Notifications', path: '/notifications', icon: 'bi bi-bell' },
         { name: 'Profile', path: '/profile', icon: 'bi bi-person' },
       ]

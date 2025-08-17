@@ -48,8 +48,6 @@
           <div class="modal-body">
             <p><strong>Name:</strong> {{ selected.full_name }}</p>
             <p><strong>Email:</strong> {{ selected.gmail_id }}</p>
-            <p><strong>Description:</strong> {{ selected.description }}</p>
-            <p><strong>Tags:</strong> {{ selected.tags }}</p>
             <p>
               <strong>YouTube URL:</strong>
               <a :href="selected.youtube_url" target="_blank">{{ selected.youtube_url }}</a>
