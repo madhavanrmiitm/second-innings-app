@@ -57,6 +57,8 @@ VALUES ('21f3001600@ds.study.iitm.ac.in', 'qEGg9NTOjfgSaw646IhSRCXKtaZ2', 'Ashwi
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
 VALUES ('nakshatra.nsb@gmail.com', '4N2P7ZAWGPgXXoQmp2YAKXJTw253', 'Nakshatra Gupta', 'admin', 'active');
 
+INSERT INTO users (gmail_id, firebase_uid, full_name, role, status)
+VALUES ('nakshatragupta732@gmail.com', 'baaivVN6bXhd7BJ9ffYntcXx4hz1', 'Nakshatra Support', 'support_user', 'active');
 
 
 -- Insert test mode users (2 per role)
