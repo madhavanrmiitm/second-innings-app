@@ -42,3 +42,28 @@ async def update_interest_group(
 @router.delete("/interest-groups/{groupId}")
 async def delete_interest_group(request: Request, groupId: int):
     return await interest_groups_controller.delete_interest_group(request, groupId)
+
+
+@router.post("/interest-groups/{groupId}/join")
+async def join_interest_group(request: Request, groupId: int):
+    return await interest_groups_controller.join_group(request, groupId)
+
+
+@router.delete("/interest-groups/{groupId}/leave")
+async def leave_interest_group(request: Request, groupId: int):
+    return await interest_groups_controller.leave_group(request, groupId)
+
+
+@router.get("/interest-group/my-groups")
+async def get_my_interest_groups(request: Request):
+    return await interest_groups_controller.get_my_groups(request)
+
+
+@router.get("/interest-group/my-created-groups")
+async def get_my_created_interest_groups(request: Request):
+    return await interest_groups_controller.get_my_created_groups(request)
+
+
+@router.get("/interest-groups/{groupId}/members")
+async def get_interest_group_members(request: Request, groupId: int):
+    return await interest_groups_controller.get_group_members(request, groupId)

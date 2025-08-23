@@ -13,9 +13,9 @@ class InterestGroupService {
   static Future<ApiResponse<Map<String, dynamic>>> createInterestGroup({
     required String title,
     required String description,
-    String? location,
+    String? whatsappLink,
+    String? category,
     String? timing,
-    String? links,
   }) async {
     // Get the stored ID token
     final idToken = await ApiService.getIdToken();
@@ -26,15 +26,17 @@ class InterestGroupService {
       );
     }
 
-    final body = {
-      'id_token': idToken,
-      'title': title,
-      'description': description,
-    };
+    final body = {'title': title, 'description': description};
 
-    if (location != null) body['location'] = location;
-    if (timing != null) body['timing'] = timing;
-    if (links != null) body['links'] = links;
+    if (whatsappLink != null && whatsappLink.isNotEmpty) {
+      body['whatsapp_link'] = whatsappLink;
+    }
+    if (category != null && category.isNotEmpty) {
+      body['category'] = category;
+    }
+    if (timing != null && timing.isNotEmpty) {
+      body['timing'] = timing;
+    }
 
     return await ApiService.post('/api/interest-groups', body: body);
   }
@@ -44,9 +46,10 @@ class InterestGroupService {
     required String groupId,
     String? title,
     String? description,
-    String? location,
+    String? whatsappLink,
+    String? category,
+    String? status,
     String? timing,
-    String? links,
   }) async {
     // Get the stored ID token
     final idToken = await ApiService.getIdToken();
@@ -57,13 +60,14 @@ class InterestGroupService {
       );
     }
 
-    final body = {'id_token': idToken};
+    final Map<String, dynamic> body = {};
 
     if (title != null) body['title'] = title;
     if (description != null) body['description'] = description;
-    if (location != null) body['location'] = location;
+    if (whatsappLink != null) body['whatsapp_link'] = whatsappLink;
+    if (category != null) body['category'] = category;
+    if (status != null) body['status'] = status;
     if (timing != null) body['timing'] = timing;
-    if (links != null) body['links'] = links;
 
     return await ApiService.put('/api/interest-groups/$groupId', body: body);
   }
@@ -100,9 +104,19 @@ class InterestGroupService {
       );
     }
 
-    return await ApiService.post(
+    return await ApiService.delete(
       '/api/interest-groups/$groupId/leave',
       body: {'id_token': idToken},
     );
+  }
+
+  // Get groups that the current user has joined
+  static Future<ApiResponse<Map<String, dynamic>>> getMyGroups() async {
+    return await ApiService.get('/api/interest-group/my-groups');
+  }
+
+  // Get groups that the current user has created
+  static Future<ApiResponse<Map<String, dynamic>>> getMyCreatedGroups() async {
+    return await ApiService.get('/api/interest-group/my-created-groups');
   }
 }

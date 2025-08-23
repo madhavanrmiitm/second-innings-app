@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/create_new_local_group_view.dart';
 import 'package:second_innings/dashboard/senior_citizen/views/local_groups_details.dart';
+import 'package:second_innings/dashboard/senior_citizen/views/my_local_groups_view.dart';
 import 'package:second_innings/widgets/user_app_bar.dart';
 import 'package:second_innings/services/interest_group_service.dart';
-import 'package:second_innings/services/user_service.dart';
-import 'package:second_innings/services/api_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LocalGroupsView extends StatefulWidget {
   const LocalGroupsView({super.key});
@@ -15,13 +15,16 @@ class LocalGroupsView extends StatefulWidget {
 
 class _LocalGroupsViewState extends State<LocalGroupsView> {
   List<Map<String, dynamic>> _interestGroups = [];
+  List<Map<String, dynamic>> _myGroups = [];
   bool _isLoading = true;
+  bool _isLoadingMyGroups = true;
   String? _error;
 
   @override
   void initState() {
     super.initState();
     _loadInterestGroups();
+    _loadMyGroups();
   }
 
   Future<void> _loadInterestGroups() async {
@@ -60,6 +63,41 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
     }
   }
 
+  Future<void> _loadMyGroups() async {
+    setState(() {
+      _isLoadingMyGroups = true;
+    });
+
+    try {
+      final response = await InterestGroupService.getMyGroups();
+
+      if (response.statusCode == 200) {
+        final groupsData = response.data?['data']?['groups'] as List?;
+        if (groupsData != null) {
+          setState(() {
+            _myGroups = groupsData.cast<Map<String, dynamic>>();
+            _isLoadingMyGroups = false;
+          });
+        } else {
+          setState(() {
+            _myGroups = [];
+            _isLoadingMyGroups = false;
+          });
+        }
+      } else {
+        setState(() {
+          _myGroups = [];
+          _isLoadingMyGroups = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _myGroups = [];
+        _isLoadingMyGroups = false;
+      });
+    }
+  }
+
   Future<void> _joinGroup(String groupId) async {
     try {
       final response = await InterestGroupService.joinGroup(groupId: groupId);
@@ -68,8 +106,9 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Successfully joined the group')),
         );
-        // Reload groups to reflect the change
+        // Reload both lists to reflect the change
         await _loadInterestGroups();
+        await _loadMyGroups();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(response.error ?? 'Failed to join group')),
@@ -82,12 +121,99 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
     }
   }
 
+  Future<void> _launchWhatsAppLink(String whatsappLink) async {
+    try {
+      final Uri url = Uri.parse(whatsappLink);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open WhatsApp link')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening WhatsApp link: $e')),
+      );
+    }
+  }
+
+  String _formatDateTime(String? dateTimeString) {
+    if (dateTimeString == null) return 'No timing specified';
+
+    try {
+      final DateTime dateTime = DateTime.parse(dateTimeString);
+      final now = DateTime.now();
+      final difference = dateTime.difference(now);
+
+      if (difference.inDays > 0) {
+        return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} on ${dateTime.day}/${dateTime.month}/${dateTime.year} (in ${difference.inDays} days)';
+      } else if (difference.inHours > 0) {
+        return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} on ${dateTime.day}/${dateTime.month}/${dateTime.year} (in ${difference.inHours} hours)';
+      } else if (difference.inMinutes > 0) {
+        return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} on ${dateTime.day}/${dateTime.month}/${dateTime.year} (in ${difference.inMinutes} minutes)';
+      } else {
+        return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} on ${dateTime.day}/${dateTime.month}/${dateTime.year} (now)';
+      }
+    } catch (e) {
+      return dateTimeString;
+    }
+  }
+
+  String _formatCreationDate(String? dateTimeString) {
+    if (dateTimeString == null) return 'Unknown';
+
+    try {
+      final DateTime dateTime = DateTime.parse(dateTimeString);
+      final now = DateTime.now();
+      final difference = now.difference(dateTime);
+
+      if (difference.inDays > 365) {
+        return '${(difference.inDays / 365).floor()} years ago';
+      } else if (difference.inDays > 30) {
+        return '${(difference.inDays / 30).floor()} months ago';
+      } else if (difference.inDays > 0) {
+        return '${difference.inDays} days ago';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours} hours ago';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes} minutes ago';
+      } else {
+        return 'Just now';
+      }
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
+
+  bool _isUserMember(String groupId) {
+    return _myGroups.any((group) => group['id'].toString() == groupId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreateNewLocalGroupView(),
+            ),
+          );
+          // Reload groups if a new group was created
+          if (result == true) {
+            await _loadInterestGroups();
+          }
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Create Group'),
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+      ),
       body: CustomScrollView(
         slivers: [
           const UserAppBar(title: 'Local Groups'),
@@ -107,26 +233,51 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const CreateNewLocalGroupView(),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () async {
+                              // Show loading indicator
+                              setState(() {
+                                _isLoading = true;
+                                _isLoadingMyGroups = true;
+                              });
+                              // Refresh both lists
+                              await Future.wait([
+                                _loadInterestGroups(),
+                                _loadMyGroups(),
+                              ]);
+                            },
+                            icon: const Icon(Icons.refresh),
+                            tooltip: 'Refresh Groups',
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  colorScheme.surfaceContainerHighest,
+                              foregroundColor: colorScheme.onSurface,
                             ),
-                          );
-                          // Reload groups if a new group was created
-                          if (result == true) {
-                            await _loadInterestGroups();
-                          }
-                        },
-                        icon: const Icon(Icons.add),
-                        label: const Text('Create Group'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                        ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const MyLocalGroupsView(),
+                                ),
+                              );
+                              // Reload groups when returning to refresh join status
+                              await _loadInterestGroups();
+                              await _loadMyGroups();
+                            },
+                            icon: const Icon(Icons.group),
+                            label: const Text('My Groups'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colorScheme.secondary,
+                              foregroundColor: colorScheme.onSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -201,8 +352,11 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
       itemCount: _interestGroups.length,
       itemBuilder: (context, index) {
         final group = _interestGroups[index];
-        final isActive = group['is_active'] == true;
-        final isMember = group['is_member'] == true;
+        final isActive = group['status'] == 'active';
+        final isMember = _isUserMember(group['id'].toString());
+
+        // Format the timing using helper method
+        final formattedTiming = _formatDateTime(group['timing']);
 
         return Card(
           elevation: 0,
@@ -244,15 +398,15 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
                         decoration: BoxDecoration(
                           color: isActive
                               ? colorScheme.primary
-                              : colorScheme.surfaceVariant,
+                              : colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          !isActive ? 'ACTIVE' : 'INACTIVE',
+                          isActive ? 'ACTIVE' : 'INACTIVE',
                           style: textTheme.bodySmall?.copyWith(
                             color: isActive
                                 ? colorScheme.onPrimary
-                                : colorScheme.onSurfaceVariant,
+                                : colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -260,58 +414,165 @@ class _LocalGroupsViewState extends State<LocalGroupsView> {
                     ],
                   ),
                   const SizedBox(height: 8),
+                  // Category badge
+                  if (group['category'] != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        group['category'],
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSecondaryContainer,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   Text(
                     group['description'] ?? 'No description available',
                     style: textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 12),
-                  if (group['location'] != null) ...[
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          size: 16,
-                          color: colorScheme.outline,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          group['location'],
+                  // Timing information
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          formattedTiming,
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.outline,
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                  ],
-                  if (group['timing'] != null) ...[
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Member count
+                  if (group['member_count'] != null) ...[
                     Row(
                       children: [
                         Icon(
-                          Icons.access_time,
+                          Icons.people,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${group['member_count']} members',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  // WhatsApp link
+                  if (group['whatsapp_link'] != null) ...[
+                    Row(
+                      children: [
+                        Icon(Icons.message, size: 16, color: Colors.green),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () =>
+                                _launchWhatsAppLink(group['whatsapp_link']),
+                            child: Text(
+                              'Join WhatsApp Group',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Colors.green,
+                                decoration: TextDecoration.underline,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  // Creation date
+                  if (group['created_at'] != null) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
                           size: 16,
                           color: colorScheme.outline,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          group['timing'],
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.outline,
+                        Expanded(
+                          child: Text(
+                            'Created: ${_formatCreationDate(group['created_at'])}',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.outline,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
                   ],
-                  if (!isMember && isActive)
-                    ElevatedButton(
-                      onPressed: () => _joinGroup(group['id'].toString()),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                      ),
-                      child: const Text('Join Group'),
+                  // Action buttons
+                  if (isActive) ...[
+                    Row(
+                      children: [
+                        if (!isMember) ...[
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await _joinGroup(group['id'].toString());
+                                // Reload both lists to update membership status
+                                await _loadMyGroups();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                              ),
+                              child: const Text('Join Group'),
+                            ),
+                          ),
+                        ] else ...[
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () async {
+                                // Navigate to My Groups to leave
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const MyLocalGroupsView(),
+                                  ),
+                                );
+                                // Reload both lists when returning
+                                await _loadInterestGroups();
+                                await _loadMyGroups();
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: colorScheme.primary,
+                                side: BorderSide(color: colorScheme.primary),
+                              ),
+                              child: const Text('View in My Groups'),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
+                  ],
                 ],
               ),
             ),
