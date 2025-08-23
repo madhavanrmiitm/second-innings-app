@@ -14,60 +14,6 @@
         </div>
       </div>
 
-      <!-- Group Info Card -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-8">
-              <h5 class="card-title">{{ groupTitle }}</h5>
-              <p class="card-text text-muted">{{ groupDescription }}</p>
-              <div class="d-flex gap-3 mb-3">
-                <span class="badge bg-light text-dark">
-                  <i :class="`bi bi-${getCategoryIcon(groupCategory)} me-1`"></i>
-                  {{ groupCategory }}
-                </span>
-                <span :class="`badge bg-${groupStatus === 'active' ? 'success' : 'secondary'}`">
-                  {{ groupStatus === 'active' ? 'Active' : 'Inactive' }}
-                </span>
-                <span class="badge bg-info">
-                  <i class="bi bi-people me-1"></i>
-                  {{ members.length }} members
-                </span>
-              </div>
-              <div v-if="groupTiming" class="mb-2">
-                <small class="text-muted">
-                  <i class="bi bi-calendar me-1"></i>
-                  Next Event: {{ formatTiming(groupTiming) }}
-                </small>
-              </div>
-            </div>
-            <div class="col-md-4 text-md-end">
-              <div v-if="groupWhatsAppLink" class="mb-2">
-                <a
-                  :href="groupWhatsAppLink"
-                  target="_blank"
-                  class="btn btn-success btn-sm"
-                >
-                  <i class="bi bi-whatsapp me-1"></i>WhatsApp Group
-                </a>
-              </div>
-              <div class="mb-2">
-                <small class="text-muted">
-                  <i class="bi bi-calendar-plus me-1"></i>
-                  Created: {{ formatDate(groupCreatedAt) }}
-                </small>
-              </div>
-              <div v-if="groupUpdatedAt && groupUpdatedAt !== groupCreatedAt">
-                <small class="text-muted">
-                  <i class="bi bi-calendar-check me-1"></i>
-                  Updated: {{ formatDate(groupUpdatedAt) }}
-                </small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border" role="status">
@@ -100,21 +46,9 @@
                 </div>
               </div>
             </template>
-            <template #cell-role="{ item }">
-              <span :class="`badge bg-${getRoleBadgeClass(item.role)}`">
-                {{ formatRole(item.role) }}
-              </span>
-            </template>
-            <template #cell-status="{ item }">
-              <span :class="`badge bg-${getStatusBadgeClass(item.status)}`">
-                {{ formatStatus(item.status) }}
-              </span>
-            </template>
+
             <template #cell-joined="{ item }">
               {{ formatDate(item.joined_at) }}
-            </template>
-            <template #cell-actions="{ item }">
-              <!-- No actions available yet -->
             </template>
           </DataTable>
         </div>
@@ -154,21 +88,11 @@ const groupWhatsAppLink = computed(() => groupInfo.value.group_whatsapp_link)
 const groupCreatedAt = computed(() => groupInfo.value.group_created_at)
 const groupUpdatedAt = computed(() => groupInfo.value.group_updated_at)
 const groupTiming = computed(() => groupInfo.value.group_timing)
-const currentUserId = computed(() => authStore.user?.id)
-
-// Check if current user can manage this group
-const canManageGroup = computed(() => {
-  return authStore.userRole === 'admin' ||
-         (authStore.userRole === 'iga' && groupInfo.value.created_by === currentUserId.value)
-})
 
 // Table columns
 const columns = [
   { key: 'member', label: 'Member' },
-  { key: 'role', label: 'Role' },
-  { key: 'status', label: 'Status' },
   { key: 'joined', label: 'Joined Date' },
-  { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
 
 // Helper functions
@@ -181,48 +105,10 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-const formatRole = (role) => {
-  const roleMap = {
-    'admin': 'Admin',
-    'iga': 'Interest Group Admin',
-    'support': 'Support',
-    'user': 'User'
-  }
-  return roleMap[role] || role
-}
-
-const formatStatus = (status) => {
-  const statusMap = {
-    'active': 'Active',
-    'pending_approval': 'Pending',
-    'blocked': 'Blocked'
-  }
-  return statusMap[status] || status
-}
-
 const formatTiming = (timing) => {
   if (!timing) return 'N/A'
   const [date, time] = timing.split('T')
   return `${date} at ${time}`
-}
-
-const getRoleBadgeClass = (role) => {
-  const classes = {
-    'admin': 'danger',
-    'iga': 'purple',
-    'support': 'secondary',
-    'user': 'primary'
-  }
-  return classes[role] || 'secondary'
-}
-
-const getStatusBadgeClass = (status) => {
-  const classes = {
-    'active': 'success',
-    'pending_approval': 'warning',
-    'blocked': 'danger'
-  }
-  return classes[status] || 'secondary'
 }
 
 // Load group members

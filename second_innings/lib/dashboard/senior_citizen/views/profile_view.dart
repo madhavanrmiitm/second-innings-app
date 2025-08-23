@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/services/user_service.dart';
 import 'package:second_innings/widgets/user_app_bar.dart';
+import 'package:second_innings/auth/feedback_query_help_page.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -85,7 +86,22 @@ class _ProfileViewState extends State<ProfileView> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const UserAppBar(title: 'My Profile'),
+          UserAppBar(
+            title: 'My Profile',
+            additionalActions: [
+              IconButton(
+                icon: const Icon(Icons.help_outline),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const FeedbackQueryHelpPage(),
+                    ),
+                  );
+                },
+                tooltip: 'Feedback & Help',
+              ),
+            ],
+          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

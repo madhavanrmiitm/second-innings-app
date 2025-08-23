@@ -28,8 +28,8 @@ async def get_tickets(request):
             with conn.cursor() as cur:
                 # Base query with user details
                 query = """
-                    SELECT 
-                        t.id, t.user_id, t.assigned_to, t.subject, t.description, 
+                    SELECT
+                        t.id, t.user_id, t.assigned_to, t.subject, t.description,
                         t.priority, t.category, t.status, t.created_at, t.updated_at, t.resolved_at,
                         u1.full_name as created_by_name, u2.full_name as assigned_to_name
                     FROM tickets t
@@ -40,7 +40,10 @@ async def get_tickets(request):
                 params = []
 
                 # Role-based filtering
-                if user.role == UserRole.ADMIN.value or user.role == UserRole.SUPPORT_USER.value:
+                if (
+                    user.role == UserRole.ADMIN.value
+                    or user.role == UserRole.SUPPORT_USER.value
+                ):
                     # Admin and support see all tickets
                     pass
                 else:
@@ -52,17 +55,17 @@ async def get_tickets(request):
                 if status_filter:
                     query += " AND t.status = %s"
                     params.append(status_filter)
-                
+
                 if priority_filter:
                     query += " AND t.priority = %s"
                     params.append(priority_filter)
-                
+
                 if assigned_to_filter:
                     query += " AND t.assigned_to = %s"
                     params.append(int(assigned_to_filter))
 
                 query += " ORDER BY t.created_at DESC"
-                
+
                 cur.execute(query, params)
                 tickets_data = cur.fetchall()
 
@@ -117,23 +120,47 @@ async def create_ticket(request, validated_data):
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
+                # Auto-assign ticket to a support user with balanced workload
+                assigned_to_id = _get_balanced_assignment(cur)
+
+                if assigned_to_id:
+                    logger.info(
+                        f"Auto-assigned ticket to support user ID: {assigned_to_id} (balanced workload)"
+                    )
+                else:
+                    logger.warning("No active support users found for auto-assignment")
+
                 cur.execute(
-                    """INSERT INTO tickets (user_id, subject, description, priority, category)
-                       VALUES (%s, %s, %s, %s, %s) RETURNING id""",
+                    """INSERT INTO tickets (user_id, subject, description, priority, category, assigned_to)
+                       VALUES (%s, %s, %s, %s, %s, %s) RETURNING id""",
                     (
                         user.id,
                         validated_data.subject,
                         validated_data.description,
-                        getattr(validated_data, 'priority', 'medium'),
-                        getattr(validated_data, 'category', None),
+                        getattr(validated_data, "priority", "medium"),
+                        getattr(validated_data, "category", None),
+                        assigned_to_id,
                     ),
                 )
                 ticket_id = cur.fetchone()[0]
 
+        # Prepare response data
+        response_data = {"ticket_id": ticket_id}
+        if assigned_to_id:
+            response_data["auto_assigned_to"] = assigned_to_id
+            response_data["message"] = (
+                "Ticket created and auto-assigned to support team"
+            )
+        else:
+            response_data["message"] = (
+                "Ticket created (no support users available for assignment)"
+            )
+
         return format_response(
             status_code=201,
-            message="Ticket created successfully.",
-            data={"ticket_id": ticket_id},
+            message="Ticket created successfully."
+            + (" (Auto-assigned)" if assigned_to_id else ""),
+            data=response_data,
         )
 
     except ValueError as e:
@@ -163,8 +190,8 @@ async def get_ticket(request, ticketId):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    """SELECT 
-                        t.id, t.user_id, t.assigned_to, t.subject, t.description, 
+                    """SELECT
+                        t.id, t.user_id, t.assigned_to, t.subject, t.description,
                         t.priority, t.category, t.status, t.created_at, t.updated_at, t.resolved_at,
                         u1.full_name as created_by_name, u2.full_name as assigned_to_name
                     FROM tickets t
@@ -235,11 +262,13 @@ async def update_ticket(request, ticketId, validated_data):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 # Verify ticket exists and check permissions
-                cur.execute("SELECT user_id, status FROM tickets WHERE id = %s", (ticketId,))
+                cur.execute(
+                    "SELECT user_id, status FROM tickets WHERE id = %s", (ticketId,)
+                )
                 ticket_data = cur.fetchone()
                 if not ticket_data:
                     return format_response(status_code=404, message="Ticket not found.")
-                
+
                 # Permission check - admin/support can update any, others only their own
                 if user.role not in [UserRole.ADMIN.value, UserRole.SUPPORT_USER.value]:
                     if ticket_data[0] != user.id:
@@ -252,58 +281,76 @@ async def update_ticket(request, ticketId, validated_data):
                 update_values = []
 
                 # Handle subject update
-                if hasattr(validated_data, 'subject') and validated_data.subject is not None:
+                if (
+                    hasattr(validated_data, "subject")
+                    and validated_data.subject is not None
+                ):
                     update_fields.append("subject = %s")
                     update_values.append(validated_data.subject)
-                
+
                 # Handle description update
-                if hasattr(validated_data, 'description') and validated_data.description is not None:
+                if (
+                    hasattr(validated_data, "description")
+                    and validated_data.description is not None
+                ):
                     update_fields.append("description = %s")
                     update_values.append(validated_data.description)
-                
+
                 # Handle priority update with validation
-                if hasattr(validated_data, 'priority') and validated_data.priority is not None:
+                if (
+                    hasattr(validated_data, "priority")
+                    and validated_data.priority is not None
+                ):
                     # Validate priority value
-                    valid_priorities = ['low', 'medium', 'high']
+                    valid_priorities = ["low", "medium", "high"]
                     if validated_data.priority not in valid_priorities:
                         return format_response(
                             status_code=400,
-                            message=f"Invalid priority. Must be one of: {', '.join(valid_priorities)}"
+                            message=f"Invalid priority. Must be one of: {', '.join(valid_priorities)}",
                         )
                     update_fields.append("priority = %s")
                     update_values.append(validated_data.priority)
-                
+
                 # Handle category update
-                if hasattr(validated_data, 'category') and validated_data.category is not None:
+                if (
+                    hasattr(validated_data, "category")
+                    and validated_data.category is not None
+                ):
                     update_fields.append("category = %s")
                     update_values.append(validated_data.category)
-                
+
                 # Handle status update with validation - FIXED
-                if hasattr(validated_data, 'status') and validated_data.status is not None:
+                if (
+                    hasattr(validated_data, "status")
+                    and validated_data.status is not None
+                ):
                     # Validate status value
-                    valid_statuses = ['open', 'in_progress', 'closed']
+                    valid_statuses = ["open", "in_progress", "closed"]
                     status_value = validated_data.status
-                    
+
                     # Handle if it's an enum object with .value attribute or just a string
-                    if hasattr(status_value, 'value'):
+                    if hasattr(status_value, "value"):
                         status_value = status_value.value
-                    
+
                     # Validate the status value
                     if status_value not in valid_statuses:
                         return format_response(
-                            status_code=400, 
-                            message=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                            status_code=400,
+                            message=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
                         )
-                    
+
                     update_fields.append("status = %s")
                     update_values.append(status_value)
-                    
+
                     # Set resolved_at timestamp when closing ticket
-                    if status_value == 'closed':
+                    if status_value == "closed":
                         update_fields.append("resolved_at = CURRENT_TIMESTAMP")
-                
+
                 # Handle assigned_to update
-                if hasattr(validated_data, 'assigned_to') and validated_data.assigned_to is not None:
+                if (
+                    hasattr(validated_data, "assigned_to")
+                    and validated_data.assigned_to is not None
+                ):
                     # Verify assigned user exists and is support/admin
                     cur.execute(
                         "SELECT role FROM users WHERE id = %s",
@@ -314,10 +361,13 @@ async def update_ticket(request, ticketId, validated_data):
                         return format_response(
                             status_code=404, message="Assigned user not found."
                         )
-                    if assigned_user[0] not in [UserRole.ADMIN.value, UserRole.SUPPORT_USER.value]:
+                    if assigned_user[0] not in [
+                        UserRole.ADMIN.value,
+                        UserRole.SUPPORT_USER.value,
+                    ]:
                         return format_response(
-                            status_code=400, 
-                            message="Tickets can only be assigned to admin or support users."
+                            status_code=400,
+                            message="Tickets can only be assigned to admin or support users.",
                         )
                     update_fields.append("assigned_to = %s")
                     update_values.append(validated_data.assigned_to)
@@ -348,7 +398,6 @@ async def update_ticket(request, ticketId, validated_data):
     except Exception as e:
         logger.error(f"Error updating ticket: {e}")
         return format_response(status_code=500, message="Internal server error.")
-    
 
 
 async def get_assignable_users(request):
@@ -368,21 +417,19 @@ async def get_assignable_users(request):
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("""
-                    SELECT id, full_name, role 
-                    FROM users 
-                    WHERE role IN ('admin', 'support_user') 
+                cur.execute(
+                    """
+                    SELECT id, full_name, role
+                    FROM users
+                    WHERE role IN ('admin', 'support_user')
                     AND status = 'active'
                     ORDER BY full_name
-                """)
+                """
+                )
                 users_data = cur.fetchall()
-                
+
                 users = [
-                    {
-                        "id": user[0],
-                        "name": user[1],
-                        "role": user[2]
-                    }
+                    {"id": user[0], "name": user[1], "role": user[2]}
                     for user in users_data
                 ]
 
@@ -395,3 +442,100 @@ async def get_assignable_users(request):
     except Exception as e:
         logger.error(f"Error retrieving assignable users: {e}")
         return format_response(status_code=500, message="Internal server error.")
+
+
+async def get_support_workload_stats(request):
+    """Get workload statistics for support users to help with balanced auto-assignment"""
+    logger.info("Executing get_support_workload_stats controller logic.")
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return format_response(
+                status_code=401, message="Authorization header missing or invalid."
+            )
+        id_token = auth_header.split(" ")[1]
+
+        user, is_registered = auth_service.authenticate_user(id_token)
+        if not is_registered:
+            return format_response(status_code=401, message="User not registered.")
+
+        # Only admins can view workload statistics
+        if user.role != UserRole.ADMIN.value:
+            return format_response(
+                status_code=403,
+                message="Access denied. Only admins can view support workload statistics.",
+            )
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT
+                        u.id,
+                        u.full_name,
+                        u.role,
+                        COUNT(t.id) as total_tickets,
+                        COUNT(CASE WHEN t.status = 'open' THEN 1 END) as open_tickets,
+                        COUNT(CASE WHEN t.status = 'in_progress' THEN 1 END) as in_progress_tickets,
+                        COUNT(CASE WHEN t.status = 'closed' THEN 1 END) as closed_tickets,
+                        AVG(CASE WHEN t.resolved_at IS NOT NULL
+                            THEN EXTRACT(EPOCH FROM (t.resolved_at - t.created_at))/3600
+                            END) as avg_resolution_hours
+                    FROM users u
+                    LEFT JOIN tickets t ON u.id = t.assigned_to
+                    WHERE u.role IN ('support_user')
+                    AND u.status = 'active'
+                    GROUP BY u.id, u.full_name, u.role
+                    ORDER BY open_tickets DESC, total_tickets ASC
+                """
+                )
+                stats_data = cur.fetchall()
+
+                stats = [
+                    {
+                        "user_id": stat[0],
+                        "full_name": stat[1],
+                        "role": stat[2],
+                        "total_tickets": stat[3],
+                        "open_tickets": stat[4],
+                        "in_progress_tickets": stat[5],
+                        "closed_tickets": stat[6],
+                        "avg_resolution_hours": round(stat[7], 2) if stat[7] else None,
+                    }
+                    for stat in stats_data
+                ]
+
+        return format_response(
+            status_code=200,
+            message="Support workload statistics retrieved successfully.",
+            data={"workload_stats": stats},
+        )
+
+    except Exception as e:
+        logger.error(f"Error retrieving support workload statistics: {e}")
+        return format_response(status_code=500, message="Internal server error.")
+
+
+def _get_balanced_assignment(cursor):
+    """
+    Helper function to get balanced ticket assignment based on workload.
+    Returns the user ID of the support user with the least open tickets.
+    """
+    try:
+        cursor.execute(
+            """
+            SELECT u.id, COUNT(t.id) as open_tickets
+            FROM users u
+            LEFT JOIN tickets t ON u.id = t.assigned_to AND t.status IN ('open', 'in_progress')
+            WHERE u.role IN ('support_user')
+            AND u.status = 'active'
+            GROUP BY u.id
+            ORDER BY open_tickets ASC, RANDOM()
+            LIMIT 1
+        """
+        )
+        result = cursor.fetchone()
+        return result[0] if result else None
+    except Exception as e:
+        logger.error(f"Error in balanced assignment: {e}")
+        return None
