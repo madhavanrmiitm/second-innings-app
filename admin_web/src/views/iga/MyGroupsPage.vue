@@ -1,10 +1,14 @@
 <template>
-  <RoleBasedLayout>
+  <IgaLayout>
     <div class="container-fluid">
+      <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3">Manage Interest Groups</h1>
-        <button class="btn btn-success" @click="showAddModal = true" :disabled="loading">
-          <i class="bi bi-plus-circle me-2"></i>Add Group
+        <div>
+          <h1 class="h3 mb-0">My Created Groups</h1>
+          <p class="text-muted">Manage the interest groups you've created</p>
+        </div>
+        <button class="btn btn-success" @click="createGroup">
+          <i class="bi bi-plus-circle me-2"></i>Create New Group
         </button>
       </div>
 
@@ -17,20 +21,20 @@
 
       <!-- Groups Grid -->
       <div v-else class="row g-4">
-        <div v-if="groups.length === 0" class="col-12">
+        <div v-if="myGroups.length === 0" class="col-12">
           <div class="card">
             <div class="card-body text-center py-5">
               <i class="bi bi-collection text-muted" style="font-size: 3rem"></i>
-              <h5 class="mt-3 text-muted">No Interest Groups Found</h5>
-              <p class="text-muted">Create your first interest group to get started!</p>
+              <h5 class="mt-3 text-muted">No Groups Created Yet</h5>
+              <p class="text-muted">Create your first interest group to start building your community!</p>
               <button class="btn btn-success" @click="showAddModal = true">
-                <i class="bi bi-plus-circle me-2"></i>Add Your First Group
+                <i class="bi bi-plus-circle me-2"></i>Create Your First Group
               </button>
             </div>
           </div>
         </div>
 
-        <div v-for="group in groups" :key="group.id" class="col-12 col-md-6 col-lg-4">
+        <div v-for="group in myGroups" :key="group.id" class="col-12 col-md-6 col-lg-4">
           <div class="card h-100">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
@@ -88,6 +92,14 @@
                   <i class="bi bi-trash me-1"></i>Delete
                 </button>
               </div>
+            </div>
+            <div class="card-footer text-muted">
+              <small>
+                Created: {{ formatDate(group.created_at) }}
+                <span v-if="group.updated_at !== group.created_at">
+                  • Updated: {{ formatDate(group.updated_at) }}
+                </span>
+              </small>
             </div>
           </div>
         </div>
@@ -186,13 +198,13 @@
       class="modal-backdrop fade show"
       @click="closeModal"
     ></div>
-  </RoleBasedLayout>
+  </IgaLayout>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import RoleBasedLayout from '@/components/common/RoleBasedLayout.vue'
+import IgaLayout from '@/components/layouts/IgaLayout.vue'
 import { useToast } from 'vue-toast-notification'
 import interestGroupsService from '@/services/interestGroupsService'
 
@@ -201,14 +213,12 @@ const router = useRouter()
 
 // State
 const loading = ref(false)
-const saving = ref(false)
 const deleting = ref(null)
-const groups = ref([])
+const myGroups = ref([])
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-
-// Get categories from service
-const categories = computed(() => interestGroupsService.getCategories())
+const saving = ref(false)
+const whatsappLinkError = ref(null)
 
 // Form data
 const formData = ref({
@@ -217,32 +227,15 @@ const formData = ref({
   description: '',
   category: '',
   whatsapp_link: '',
-  timing: '',
   status: 'active'
 })
 
-// Validation
-const whatsappLinkError = computed(() => {
-  if (!formData.value.whatsapp_link) return null
-  if (!interestGroupsService.validateWhatsAppLink(formData.value.whatsapp_link)) {
-    return 'WhatsApp link must be in format: https://chat.whatsapp.com/...'
-  }
-  return null
-})
+// Categories for the modal
+const categories = computed(() => interestGroupsService.getCategories())
 
 // Helper functions
 const getCategoryIcon = (category) => {
   return interestGroupsService.getCategoryIcon(category)
-}
-
-const formatTiming = (timing) => {
-  if (!timing) return 'No specific time'
-  try {
-    const date = new Date(timing)
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  } catch (error) {
-    return 'Invalid date'
-  }
 }
 
 const formatDate = (dateString) => {
@@ -250,90 +243,49 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-// Load groups from API
-const loadGroups = async () => {
+const formatTiming = (timing) => {
+  if (!timing) return 'N/A'
+  const date = new Date(timing)
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
+}
+
+// Load my created groups from API
+const loadMyGroups = async () => {
   loading.value = true
   try {
-    const response = await interestGroupsService.getInterestGroups()
-    // API returns { data: { interest_groups: [...] } }
-    groups.value = response.data?.interest_groups || response.interest_groups || []
+    const response = await interestGroupsService.getMyCreatedGroups()
+    // API returns { data: { groups: [...] } }
+    myGroups.value = response.data?.groups || response.groups || []
   } catch (error) {
-    console.error('Failed to load groups:', error)
-    toast.error('Failed to load interest groups')
+    console.error('Failed to load my groups:', error)
+    toast.error('Failed to load your groups')
   } finally {
     loading.value = false
   }
 }
 
-// Initialize
-onMounted(() => {
-  loadGroups()
-})
-
-// Modal functions
-const closeModal = () => {
-  showAddModal.value = false
-  showEditModal.value = false
+// Navigation functions
+const createGroup = () => {
   formData.value = {
     id: null,
     title: '',
     description: '',
     category: '',
     whatsapp_link: '',
-    timing: '',
     status: 'active'
   }
+  showAddModal.value = true
+  whatsappLinkError.value = null
 }
 
-// CRUD Operations
 const editGroup = (group) => {
-  formData.value = {
-    id: group.id,
-    title: group.title,
-    description: group.description || '',
-    category: group.category || '',
-    whatsapp_link: group.whatsapp_link || '',
-    timing: group.timing ? new Date(group.timing).toISOString().slice(0, 16) : '',
-    status: group.status || 'active'
-  }
+  formData.value = { ...group }
   showEditModal.value = true
+  whatsappLinkError.value = null
 }
 
-const saveGroup = async () => {
-  if (whatsappLinkError.value) {
-    toast.error(whatsappLinkError.value)
-    return
-  }
-
-  saving.value = true
-  try {
-    const groupData = {
-      title: formData.value.title,
-      description: formData.value.description,
-      category: formData.value.category,
-      whatsapp_link: formData.value.whatsapp_link,
-      timing: formData.value.timing ? new Date(formData.value.timing).toISOString() : null,
-      status: formData.value.status
-    }
-
-    if (showEditModal.value) {
-      // Update existing group
-      await interestGroupsService.updateInterestGroup(formData.value.id, groupData)
-      toast.success('Group updated successfully')
-    } else {
-      // Create new group
-      await interestGroupsService.createInterestGroup(groupData)
-      toast.success('Group created successfully')
-    }
-
-    closeModal()
-    await loadGroups()
-  } catch (error) {
-    console.error('Failed to save group:', error)
-    toast.error(error.response?.data?.message || 'Failed to save group')
-  } finally {
-    saving.value = false
-  }
+const viewMembers = (group) => {
+  router.push(`/iga/groups/${group.id}/members`)
 }
 
 const deleteGroup = async (group) => {
@@ -345,7 +297,7 @@ const deleteGroup = async (group) => {
   try {
     await interestGroupsService.deleteInterestGroup(group.id)
     toast.success('Group deleted successfully')
-    await loadGroups()
+    await loadMyGroups()
   } catch (error) {
     console.error('Failed to delete group:', error)
     toast.error(error.response?.data?.message || 'Failed to delete group')
@@ -354,7 +306,44 @@ const deleteGroup = async (group) => {
   }
 }
 
-const viewMembers = (group) => {
-  router.push(`/iga/groups/${group.id}/members`)
+// Modal functions
+const closeModal = () => {
+  showAddModal.value = false
+  showEditModal.value = false
+  formData.value = {}
+  whatsappLinkError.value = null
 }
+
+const saveGroup = async () => {
+  if (!formData.value.title) {
+    toast.error('Group name is required')
+    return
+  }
+
+  saving.value = true
+  try {
+    if (formData.value.id) { // Editing existing group
+      await interestGroupsService.updateInterestGroup(formData.value.id, formData.value)
+      toast.success('Group updated successfully')
+    } else { // Creating new group
+      await interestGroupsService.createInterestGroup(formData.value)
+      toast.success('Group created successfully')
+    }
+    closeModal()
+    await loadMyGroups()
+  } catch (error) {
+    console.error('Failed to save group:', error)
+    toast.error(error.response?.data?.message || 'Failed to save group')
+    if (error.response?.data?.whatsapp_link) {
+      whatsappLinkError.value = error.response.data.whatsapp_link
+    }
+  } finally {
+    saving.value = false
+  }
+}
+
+// Initialize
+onMounted(() => {
+  loadMyGroups()
+})
 </script>

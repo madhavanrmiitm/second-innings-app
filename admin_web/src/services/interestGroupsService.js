@@ -99,7 +99,7 @@ class InterestGroupsService {
    */
   validateWhatsAppLink(link) {
     if (!link) return true // Optional field
-    
+
     const whatsappPattern = /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+$/
     return whatsappPattern.test(link)
   }
@@ -109,7 +109,7 @@ class InterestGroupsService {
    */
   formatTiming(timing) {
     if (!timing) return 'No specific time'
-    
+
     try {
       const date = new Date(timing)
       return date.toLocaleString('en-US', {
@@ -147,6 +147,32 @@ class InterestGroupsService {
    */
   getStatusClass(status) {
     return status === 'active' ? 'success' : 'secondary'
+  }
+
+  /**
+   * Get all groups that the current user has created
+   */
+  async getMyCreatedGroups() {
+    try {
+      const response = await ApiService.get('/api/interest-group/my-created-groups')
+      return response.data || response
+    } catch (error) {
+      console.error('Error fetching my created groups:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get all members of a specific group
+   */
+  async getGroupMembers(groupId) {
+    try {
+      const response = await ApiService.get(`/api/interest-groups/${groupId}/members`)
+      return response.data || response
+    } catch (error) {
+      console.error('Error fetching group members:', error)
+      throw error
+    }
   }
 }
 
