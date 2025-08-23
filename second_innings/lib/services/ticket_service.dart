@@ -14,24 +14,16 @@ class TicketService {
     required String subject,
     required String description,
     String? priority,
+    String? category,
   }) async {
-    // Get the stored ID token
-    final idToken = await ApiService.getIdToken();
-    if (idToken == null) {
-      return ApiResponse<Map<String, dynamic>>(
-        statusCode: 401,
-        error: 'Authentication token not found',
-      );
-    }
-
-    final body = {
-      'id_token': idToken,
-      'subject': subject,
-      'description': description,
-    };
+    final body = {'subject': subject, 'description': description};
 
     if (priority != null) {
       body['priority'] = priority;
+    }
+
+    if (category != null) {
+      body['category'] = category;
     }
 
     return await ApiService.post('/api/tickets', body: body);

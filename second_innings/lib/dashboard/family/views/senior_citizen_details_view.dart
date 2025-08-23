@@ -147,10 +147,6 @@ class SeniorCitizenDetailPage extends StatelessWidget {
             icon: Icon(Icons.task_alt_outlined),
             label: 'My Tasks',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            label: 'Notifications',
-          ),
           NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
           NavigationDestination(
             icon: Icon(Icons.person_outline_rounded),

@@ -1,33 +1,9 @@
 class TestModeConfig {
   // Test mode flag - set to false for production
-  static const bool isTestMode = true;
+  static const bool isTestMode = false;
 
   // Test users data - Based on story characters and additional test users
   static const List<TestUser> testUsers = [
-    // Admin Users
-    TestUser(
-      token: 'admin_ashwin_token_001',
-      email: '21f3001600@ds.study.iitm.ac.in',
-      name: 'Ashwin Narayanan S',
-      firebaseUid: 'qEGg9NTOjfgSaw646IhSRCXKtaZ2',
-      status: 'ACTIVE',
-      role: 'admin',
-      dateOfBirth: '1990-01-01',
-      description: 'System administrator',
-      tags: 'admin,system',
-    ),
-    TestUser(
-      token: 'admin_nakshatra_token_001',
-      email: 'nakshatra.nsb@gmail.com',
-      name: 'Nakshatra Gupta',
-      firebaseUid: '4N2P7ZAWGPgXXoQmp2YAKXJTw253',
-      status: 'ACTIVE',
-      role: 'admin',
-      dateOfBirth: '1990-01-01',
-      description: 'System administrator',
-      tags: 'admin,system',
-    ),
-
     // Story Characters - Senior Citizens
     TestUser(
       token: 'story_asha_token_001',
@@ -103,57 +79,6 @@ class TestModeConfig {
       description: 'Certified nurse with 5 years of experience in home care',
       tags: 'caregiver,nurse,home-care',
       youtubeUrl: 'https://www.youtube.com/watch?v=test2',
-    ),
-
-    // Story Characters - Interest Group Admins
-    TestUser(
-      token: 'story_verma_token_001',
-      email: 'verma.groupadmin@example.com',
-      name: 'Mr. Verma',
-      firebaseUid: 'story_verma_uid_001',
-      status: 'ACTIVE',
-      role: 'interest_group_admin',
-      dateOfBirth: '1955-06-10',
-      description:
-          '70-year-old retired Indian gentleman with cheerful demeanor, neat white mustache, and glasses. Community leader organizing activities for seniors.',
-      tags: 'group-admin,retired,community,indian',
-      youtubeUrl: 'https://www.youtube.com/watch?v=verma_intro',
-    ),
-    TestUser(
-      token: 'test_groupadmin_token_002',
-      email: 'groupadmin2@test.com',
-      name: 'Test Group Admin Two',
-      firebaseUid: 'test_groupadmin_uid_002',
-      status: 'PENDING_APPROVAL',
-      role: 'interest_group_admin',
-      dateOfBirth: '1972-11-08',
-      description: 'Art therapist creating engaging programs for elderly',
-      tags: 'group-admin,art-therapy,programs',
-      youtubeUrl: 'https://www.youtube.com/watch?v=testgroup2',
-    ),
-
-    // Support Users
-    TestUser(
-      token: 'test_support_token_001',
-      email: 'support1@test.com',
-      name: 'Test Support User One',
-      firebaseUid: 'test_support_uid_001',
-      status: 'ACTIVE',
-      role: 'support_user',
-      dateOfBirth: '1992-01-12',
-      description: 'Support specialist helping users with platform issues',
-      tags: 'support,specialist',
-    ),
-    TestUser(
-      token: 'test_support_token_002',
-      email: 'support2@test.com',
-      name: 'Test Support User Two',
-      firebaseUid: 'test_support_uid_002',
-      status: 'ACTIVE',
-      role: 'support_user',
-      dateOfBirth: '1987-05-07',
-      description: 'Customer service representative for platform support',
-      tags: 'support,customer-service',
     ),
 
     // Legacy test users for backward compatibility
@@ -317,18 +242,12 @@ class TestUser {
   // Get role display name
   String get roleDisplayName {
     switch (role) {
-      case 'admin':
-        return 'Administrator';
       case 'caregiver':
         return 'Caregiver';
       case 'family_member':
         return 'Family Member';
       case 'senior_citizen':
         return 'Senior Citizen';
-      case 'interest_group_admin':
-        return 'Interest Group Admin';
-      case 'support_user':
-        return 'Support User';
       case 'unregistered':
         return 'Unregistered User';
       default:

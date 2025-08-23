@@ -109,3 +109,38 @@ async def reject_caregiver_request(
 @router.get("/me/current-caregiver")
 async def get_current_caregiver(request: Request):
     return await care_controller.get_current_caregiver(request)
+
+
+@router.get("/senior-citizens/{senior_citizen_id}/caregivers")
+async def get_caregivers_for_senior_citizen(request: Request, senior_citizen_id: int):
+    return await care_controller.get_caregivers_for_senior_citizen(
+        request, senior_citizen_id
+    )
+
+
+@router.get("/senior-citizens/{senior_citizen_id}/current-caregiver")
+async def get_current_caregiver_for_senior_citizen(
+    request: Request, senior_citizen_id: int
+):
+    return await care_controller.get_current_caregiver_for_senior_citizen(
+        request, senior_citizen_id
+    )
+
+
+@router.get("/senior-citizens/{senior_citizen_id}/caregiver-requests")
+async def get_caregiver_requests_for_senior_citizen(
+    request: Request, senior_citizen_id: int
+):
+    return await care_controller.get_caregiver_requests_for_senior_citizen(
+        request, senior_citizen_id
+    )
+
+
+@router.post("/senior-citizens/{senior_citizen_id}/request-caregiver")
+@validate_body(RequestCaregiver)
+async def request_caregiver_for_senior_citizen(
+    request: Request, senior_citizen_id: int, validated_data: RequestCaregiver
+):
+    return await care_controller.request_caregiver_for_senior_citizen(
+        request, senior_citizen_id, validated_data
+    )

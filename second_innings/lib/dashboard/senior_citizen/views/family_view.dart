@@ -57,9 +57,18 @@ class _FamilyViewState extends State<FamilyView> {
     }
   }
 
-  Future<void> _deleteFamilyMember(String memberId) async {
+  Future<void> _deleteFamilyMember(
+    String memberUserId,
+    String memberFirebaseUid,
+  ) async {
     try {
-      final response = await FamilyService.deleteFamilyMember(memberId);
+      print(
+        'Deleting family member - User ID: $memberUserId, Firebase UID: $memberFirebaseUid',
+      ); // Debug log
+      final response = await FamilyService.deleteFamilyMember(
+        memberUserId,
+        memberFirebaseUid,
+      );
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,6 +77,9 @@ class _FamilyViewState extends State<FamilyView> {
         // Reload family members to reflect the change
         await _loadFamilyMembers();
       } else {
+        print(
+          'Delete failed with status: ${response.statusCode}, error: ${response.error}',
+        ); // Debug log
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response.error ?? 'Failed to remove family member'),
@@ -75,6 +87,7 @@ class _FamilyViewState extends State<FamilyView> {
         );
       }
     } catch (e) {
+      print('Delete error: $e'); // Debug log
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error removing family member: $e')),
       );
@@ -106,26 +119,41 @@ class _FamilyViewState extends State<FamilyView> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const LinkNewFamilyMemberPage(),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: _loadFamilyMembers,
+                            icon: const Icon(Icons.refresh),
+                            tooltip: 'Refresh Family Members',
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  colorScheme.surfaceContainerHighest,
+                              foregroundColor: colorScheme.onSurfaceVariant,
                             ),
-                          );
-                          // Reload family members if a new member was added
-                          if (result == true) {
-                            await _loadFamilyMembers();
-                          }
-                        },
-                        icon: const Icon(Icons.person_add),
-                        label: const Text('Add Member'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                        ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const LinkNewFamilyMemberPage(),
+                                ),
+                              );
+                              // Reload family members if a new member was added
+                              if (result == true) {
+                                await _loadFamilyMembers();
+                              }
+                            },
+                            icon: const Icon(Icons.person_add),
+                            label: const Text('Add Member'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -246,6 +274,18 @@ class _FamilyViewState extends State<FamilyView> {
                           ),
                         ),
                       ],
+                      // Debug: Show available fields
+                      if (member['firebase_uid'] != null ||
+                          member['id'] != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'ID: ${member['id']} | UID: ${member['firebase_uid'] ?? 'N/A'}',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -266,7 +306,29 @@ class _FamilyViewState extends State<FamilyView> {
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              _deleteFamilyMember(member['id'].toString());
+                              // URL needs member's user ID, body needs Firebase UID
+                              final memberUserId =
+                                  member['id']?.toString() ?? '';
+                              final memberFirebaseUid =
+                                  member['firebase_uid']?.toString() ??
+                                  member['id']?.toString() ??
+                                  '';
+
+                              if (memberUserId.isNotEmpty &&
+                                  memberFirebaseUid.isNotEmpty) {
+                                _deleteFamilyMember(
+                                  memberUserId,
+                                  memberFirebaseUid,
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Missing member information for deletion',
+                                    ),
+                                  ),
+                                );
+                              }
                             },
                             style: TextButton.styleFrom(
                               foregroundColor: colorScheme.error,

@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:second_innings/auth/register.dart';
-import 'package:second_innings/auth/feedback_query_help_page.dart';
 import 'package:second_innings/auth/test_user_selection.dart';
 import 'package:second_innings/services/user_service.dart';
 import 'package:second_innings/dashboard/senior_citizen/senior_citizen_home.dart';
@@ -236,22 +235,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FeedbackQueryHelpPage(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

@@ -172,10 +172,6 @@ class _LinkNewSeniorCitizenPageState extends State<LinkNewSeniorCitizenPage> {
             icon: Icon(Icons.groups_outlined),
             label: 'Senior Citizens',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            label: 'Notifications',
-          ),
           NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
         ],
       ),

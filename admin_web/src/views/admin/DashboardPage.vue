@@ -48,6 +48,14 @@
             color="purple"
           />
         </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+          <StatCard
+            title="Interest Groups"
+            :value="adminStore.stats.interestGroups || 0"
+            icon="collection"
+            color="secondary"
+          />
+        </div>
       </div>
 
       <!-- Additional Stats Grid -->
@@ -182,8 +190,10 @@ import { computed, onMounted } from 'vue'
 import AppLayout from '@/components/common/AppLayout.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import { useAdminStore } from '@/stores/admin'
+import { useRouter } from 'vue-router'
 
 const adminStore = useAdminStore()
+const router = useRouter()
 
 const recentUsers = computed(() => adminStore.users.slice(0, 5))
 const recentCaregivers = computed(() => adminStore.pendingCaregivers.slice(0, 5))
@@ -205,6 +215,23 @@ const formatUserStatus = (status) => {
     blocked: 'Blocked',
   }
   return statusMap[status] || status
+}
+
+// Navigation functions
+const goToInterestGroups = () => {
+  router.push('/admin/interest-groups')
+}
+
+const goToIGAApprovals = () => {
+  router.push('/admin/interest-group-admins/approvals')
+}
+
+const goToCaregiverApprovals = () => {
+  router.push('/caregivers/approvals')
+}
+
+const goToNotifications = () => {
+  router.push('/notifications')
 }
 
 onMounted(async () => {

@@ -25,9 +25,6 @@ class ApiConfig {
   // Interest Group endpoints
   static const String interestGroupsEndpoint = '/api/interest-groups';
 
-  // Notification endpoints
-  static const String notificationsEndpoint = '/api/notifications';
-
   // Ticket endpoints
   static const String ticketsEndpoint = '/api/tickets';
 
@@ -38,7 +35,7 @@ class ApiConfig {
   static const String apiVersion = 'v1';
 
   // Environment-specific configurations
-  static const bool isDevelopment = true; // Set to false for production
+  static const bool isDevelopment = false; // Set to false for production
 
   // Development vs Production URLs
   static String get developmentUrl =>

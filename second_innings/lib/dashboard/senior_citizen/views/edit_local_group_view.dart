@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:second_innings/services/interest_group_service.dart';
 
 class EditLocalGroupView extends StatefulWidget {
-  final String groupId;
-  final Map<String, dynamic> groupData;
-  const EditLocalGroupView({
-    super.key,
-    required this.groupId,
-    required this.groupData,
-  });
+  final Map<String, dynamic> group;
+
+  const EditLocalGroupView({super.key, required this.group});
 
   @override
   State<EditLocalGroupView> createState() => _EditLocalGroupViewState();
@@ -16,39 +12,114 @@ class EditLocalGroupView extends StatefulWidget {
 
 class _EditLocalGroupViewState extends State<EditLocalGroupView> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _linkController;
+  late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _whatsappLinkController;
+  late final TextEditingController _categoryController;
+  late final TextEditingController _statusController;
+  DateTime? _selectedDateTime;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(
-      text: widget.groupData['title'] ?? '',
-    );
+    _titleController = TextEditingController(text: widget.group['title'] ?? '');
     _descriptionController = TextEditingController(
-      text: widget.groupData['description'] ?? '',
+      text: widget.group['description'] ?? '',
     );
-    _linkController = TextEditingController(
-      text: widget.groupData['links'] ?? '',
+    _whatsappLinkController = TextEditingController(
+      text: widget.group['whatsapp_link'] ?? '',
     );
+    _categoryController = TextEditingController(
+      text: widget.group['category'] ?? '',
+    );
+    _statusController = TextEditingController(
+      text: widget.group['status'] ?? 'active',
+    );
+
+    // Parse existing timing if available
+    if (widget.group['timing'] != null) {
+      try {
+        _selectedDateTime = DateTime.parse(widget.group['timing']);
+      } catch (e) {
+        // If parsing fails, leave as null
+        _selectedDateTime = null;
+      }
+    }
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _titleController.dispose();
     _descriptionController.dispose();
-    _linkController.dispose();
+    _whatsappLinkController.dispose();
+    _categoryController.dispose();
+    _statusController.dispose();
     super.dispose();
   }
 
+  Future<void> _selectDateTime() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateTime ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          _selectedDateTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
+    }
+  }
+
+  String? _formatDateTimeForAPI() {
+    if (_selectedDateTime == null) return null;
+    // Format as PostgreSQL TIMESTAMP: YYYY-MM-DD HH:MM:SS
+    return _selectedDateTime!.toIso8601String().substring(0, 19);
+  }
+
+  String? _validateWhatsAppLink(String? value) {
+    if (value == null || value.isEmpty) return null;
+    if (!value.startsWith('https://chat.whatsapp.com/')) {
+      return 'WhatsApp link must start with "https://chat.whatsapp.com/"';
+    }
+    return null;
+  }
+
   Future<void> _updateGroup() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final response = await InterestGroupService.updateInterestGroup(
-        groupId: widget.groupId,
-        title: _nameController.text,
+        groupId: widget.group['id'].toString(),
+        title: _titleController.text,
         description: _descriptionController.text,
-        links: _linkController.text.isNotEmpty ? _linkController.text : null,
+        whatsappLink: _whatsappLinkController.text.isNotEmpty
+            ? _whatsappLinkController.text
+            : null,
+        category: _categoryController.text.isNotEmpty
+            ? _categoryController.text
+            : null,
+        status: _statusController.text,
+        timing: _formatDateTimeForAPI(),
       );
 
       if (response.statusCode == 200) {
@@ -65,6 +136,10 @@ class _EditLocalGroupViewState extends State<EditLocalGroupView> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error updating group: $e')));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -90,6 +165,19 @@ class _EditLocalGroupViewState extends State<EditLocalGroupView> {
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
             ),
+            actions: [
+              IconButton(
+                onPressed: _isLoading ? null : _updateGroup,
+                icon: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save),
+                tooltip: 'Save Changes',
+              ),
+            ],
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -100,12 +188,13 @@ class _EditLocalGroupViewState extends State<EditLocalGroupView> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     TextFormField(
-                      controller: _nameController,
+                      controller: _titleController,
                       decoration: InputDecoration(
-                        labelText: 'Group Name',
+                        labelText: 'Group Name *',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        hintText: 'Enter a descriptive name for your group',
                       ),
                       validator: (value) =>
                           value!.isEmpty ? 'Please enter a group name' : null,
@@ -114,10 +203,11 @@ class _EditLocalGroupViewState extends State<EditLocalGroupView> {
                     TextFormField(
                       controller: _descriptionController,
                       decoration: InputDecoration(
-                        labelText: 'Description',
+                        labelText: 'Description *',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        hintText: 'Describe what this group is about',
                       ),
                       maxLines: 4,
                       validator: (value) =>
@@ -125,28 +215,126 @@ class _EditLocalGroupViewState extends State<EditLocalGroupView> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      controller: _linkController,
+                      controller: _categoryController,
                       decoration: InputDecoration(
-                        labelText: 'WhatsApp Group Link (Optional)',
+                        labelText: 'Category',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        hintText: 'e.g., Sports, Music, Technology, etc.',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _statusController.text,
+                      decoration: InputDecoration(
+                        labelText: 'Status',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'active',
+                          child: Text('Active'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'inactive',
+                          child: Text('Inactive'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'archived',
+                          child: Text('Archived'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          _statusController.text = value;
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: _selectDateTime,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade400),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Meeting Time',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _selectedDateTime != null
+                                        ? '${_selectedDateTime!.day}/${_selectedDateTime!.month}/${_selectedDateTime!.year} at ${_selectedDateTime!.hour.toString().padLeft(2, '0')}:${_selectedDateTime!.minute.toString().padLeft(2, '0')}'
+                                        : 'Select meeting date and time',
+                                    style: TextStyle(
+                                      color: _selectedDateTime != null
+                                          ? Colors.black
+                                          : Colors.grey.shade500,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.grey.shade600,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _whatsappLinkController,
+                      decoration: InputDecoration(
+                        labelText: 'WhatsApp Group Link',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        hintText: 'https://chat.whatsapp.com/...',
+                        helperText: 'Optional: Add your WhatsApp group link',
+                      ),
+                      validator: _validateWhatsAppLink,
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          await _updateGroup();
-                        }
-                      },
+                      onPressed: _isLoading ? null : _updateGroup,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Save Changes'),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Update Group'),
                     ),
                   ],
                 ),

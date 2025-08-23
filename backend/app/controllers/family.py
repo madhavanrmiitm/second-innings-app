@@ -25,7 +25,7 @@ async def get_family_members(request):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    """SELECT u.id, u.full_name, u.gmail_id, r.family_member_relation
+                    """SELECT u.id, u.full_name, u.gmail_id, u.firebase_uid, r.family_member_relation
                        FROM relations r
                        JOIN users u ON r.family_member_id = u.id
                        WHERE r.senior_citizen_id = %s""",
@@ -38,7 +38,8 @@ async def get_family_members(request):
                         "id": fm[0],
                         "full_name": fm[1],
                         "gmail_id": fm[2],
-                        "relation": fm[3],
+                        "firebase_uid": fm[3],
+                        "relation": fm[4],
                     }
                     for fm in family_members_data
                 ]
@@ -84,7 +85,7 @@ async def add_family_member(request, validated_data):
             with conn.cursor() as cur:
                 # Get family member's user ID
                 cur.execute(
-                    "SELECT id FROM users WHERE firebase_uid = %s",
+                    "SELECT id FROM users WHERE gmail_id = %s",
                     (family_member_firebase_uid,),
                 )
                 family_member_data = cur.fetchone()

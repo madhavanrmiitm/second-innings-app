@@ -27,7 +27,7 @@ The application provides a comprehensive set of features tailored to three main 
 -   **Family Management**: Link new family members, view linked members, and manage relationships.
 -   **Caregiver Management**: Browse available caregivers, view their details, send hiring requests, and manage hired caregivers.
 -   **Local Interest Groups**: View, join, create, and manage local community groups.
--   **Notifications**: Receive updates and alerts.
+
 -   **🆕 Integrated Navigation**: Easy access to profile through dedicated navigation tab.
 
 ### For Family Members
@@ -38,7 +38,7 @@ The application provides a comprehensive set of features tailored to three main 
     -   View and manage linked senior citizens.
     -   View, create, and edit tasks and reminders on behalf of the senior citizen.
 -   **Caregiver Management**: Hire, view, and manage caregivers for their linked senior citizens.
--   **Notifications**: Receive updates related to their family members.
+
 -   **🆕 Integrated Navigation**: Easy access to profile through dedicated navigation tab.
 
 ### For Caregivers
@@ -54,7 +54,7 @@ The application provides a comprehensive set of features tailored to three main 
     -   Real-time status checking capabilities
 -   **🆕 Status-Based Access Control**: Job listings access restricted for pending approval accounts
 -   **Job Management**: View available job opportunities, apply for jobs, and manage current assignments (for approved caregivers).
--   **Notifications**: Receive job alerts and other notifications.
+
 
 ## Architecture & Session Management
 
