@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/caregiver/views/jobs_view.dart';
-import 'package:second_innings/dashboard/caregiver/views/notifications_view.dart';
 import 'package:second_innings/dashboard/caregiver/views/profile_view.dart';
 
 class CaregiverHomePage extends StatefulWidget {
@@ -15,7 +14,6 @@ class _CaregiverHomePageState extends State<CaregiverHomePage> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     JobsView(),
-    NotificationsView(),
     ProfileView(),
   ];
 
@@ -37,11 +35,6 @@ class _CaregiverHomePageState extends State<CaregiverHomePage> {
             icon: Icon(Icons.work_outline_rounded),
             selectedIcon: Icon(Icons.work_rounded),
             label: 'Jobs',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
-            label: 'Notifications',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline_rounded),

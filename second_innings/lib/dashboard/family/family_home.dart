@@ -68,7 +68,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:second_innings/dashboard/family/views/caregivers_view.dart';
-import 'package:second_innings/dashboard/family/views/notifications_view.dart';
 import 'package:second_innings/dashboard/family/views/senior_citizens_view.dart';
 import 'package:second_innings/dashboard/family/views/link_new_senior_citizen_view.dart';
 import 'package:second_innings/dashboard/family/views/profile_view.dart';
@@ -104,7 +103,6 @@ class _FamilyHomePageState extends State<FamilyHomePage> {
     final List<Widget> widgetOptions = <Widget>[
       const SeniorCitizensView(),
       const FamilyTasksView(),
-      const NotificationsView(),
       const CaregiversView(),
       const ProfileView(),
     ];
@@ -149,10 +147,6 @@ class _FamilyHomePageState extends State<FamilyHomePage> {
           NavigationDestination(
             icon: Icon(Icons.task_alt_outlined),
             label: 'My Tasks',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            label: 'Notifications',
           ),
           NavigationDestination(icon: Icon(Icons.search), label: 'Caregivers'),
           NavigationDestination(

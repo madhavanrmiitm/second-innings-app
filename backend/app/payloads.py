@@ -61,14 +61,14 @@ class TokenRequest(BaseModel):
 
 class AddFamilyMemberRequest(BaseModel):
     id_token: str
-    family_member_firebase_uid: str
+    family_member_firebase_uid: str  # Keep same param name but will use gmail_id
     senior_citizen_relation: str
     family_member_relation: str
 
 
 class RemoveFamilyMemberRequest(BaseModel):
     id_token: str
-    family_member_firebase_uid: str
+    family_member_firebase_uid: str  # Keep same param name but will use gmail_id
 
 
 class LinkSeniorCitizenRequest(BaseModel):

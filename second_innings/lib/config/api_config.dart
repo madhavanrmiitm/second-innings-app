@@ -25,9 +25,6 @@ class ApiConfig {
   // Interest Group endpoints
   static const String interestGroupsEndpoint = '/api/interest-groups';
 
-  // Notification endpoints
-  static const String notificationsEndpoint = '/api/notifications';
-
   // Ticket endpoints
   static const String ticketsEndpoint = '/api/tickets';
 
