@@ -85,7 +85,7 @@ VALUES ('rohan.family@example.com', 'story_rohan_uid_001', 'Rohan', 'family_memb
 
 -- Priya - Caregiver (ID 5)
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
-VALUES ('priya.caregiver@example.com', 'story_priya_uid_001', 'Priya', 'caregiver', 'active', 'https://www.youtube.com/watch?v=priya_intro', '1997-11-08', '28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.', 'caregiver,physiotherapy,companionship,indian');
+VALUES ('priya.caregiver@example.com', 'story_priya_uid_001', 'Priya', 'caregiver', 'active', 'https://youtu.be/h3G6x2CK-vg?si=IleeCVjfng-GlBue', '1997-11-08', '28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.', 'caregiver,physiotherapy,companionship,indian');
 
 -- Mr. Verma - Interest Group Admin (ID 6)
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
