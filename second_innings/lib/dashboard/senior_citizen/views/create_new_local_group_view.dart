@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/services/interest_group_service.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
 
 class CreateNewLocalGroupView extends StatefulWidget {
   const CreateNewLocalGroupView({super.key});
@@ -17,6 +19,17 @@ class _CreateNewLocalGroupViewState extends State<CreateNewLocalGroupView> {
   final _categoryController = TextEditingController();
   DateTime? _selectedDateTime;
 
+  // Speech-to-text variables
+  final SpeechToText _speechToText = SpeechToText();
+  bool _speechEnabled = false;
+  bool _isListening = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSpeech();
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -24,6 +37,80 @@ class _CreateNewLocalGroupViewState extends State<CreateNewLocalGroupView> {
     _whatsappLinkController.dispose();
     _categoryController.dispose();
     super.dispose();
+  }
+
+  /// Initialize speech recognition
+  void _initSpeech() async {
+    _speechEnabled = await _speechToText.initialize(
+      onError: (error) {
+        print('Speech recognition error: $error');
+        setState(() {
+          _isListening = false;
+        });
+      },
+      onStatus: (status) {
+        print('Speech recognition status: $status');
+        if (status == 'done' || status == 'notListening') {
+          setState(() {
+            _isListening = false;
+          });
+        }
+      },
+    );
+    setState(() {});
+  }
+
+  /// Start listening for speech
+  void _startListening() async {
+    if (!_speechEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Speech recognition not available')),
+      );
+      return;
+    }
+
+    await _speechToText.listen(
+      onResult: _onSpeechResult,
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 3),
+      partialResults: true,
+      localeId: 'en_US',
+    );
+    setState(() {
+      _isListening = true;
+    });
+  }
+
+  /// Stop listening for speech
+  void _stopListening() async {
+    await _speechToText.stop();
+    setState(() {
+      _isListening = false;
+    });
+  }
+
+  /// Handle speech recognition results
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    setState(() {
+      if (result.finalResult) {
+        // Append the recognized text to the current description
+        final currentText = _descriptionController.text;
+        final newText = currentText.isEmpty
+            ? result.recognizedWords
+            : '$currentText ${result.recognizedWords}';
+        _descriptionController.text = newText;
+
+        // Show brief success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Voice input added: "${result.recognizedWords}"'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    });
   }
 
   Future<void> _selectDateTime() async {
@@ -151,11 +238,88 @@ class _CreateNewLocalGroupViewState extends State<CreateNewLocalGroupView> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         hintText: 'Describe what this group is about',
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Voice input button
+                            IconButton(
+                              onPressed: _isListening
+                                  ? _stopListening
+                                  : _startListening,
+                              icon: Icon(
+                                _isListening ? Icons.stop : Icons.mic,
+                                color: _isListening
+                                    ? colorScheme.error
+                                    : colorScheme.primary,
+                              ),
+                              tooltip: _isListening
+                                  ? 'Stop voice input'
+                                  : 'Start voice input',
+                            ),
+                            // Clear text button
+                            if (_descriptionController.text.isNotEmpty)
+                              IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _descriptionController.clear();
+                                  });
+                                },
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                tooltip: 'Clear description',
+                              ),
+                          ],
+                        ),
+                        // Show listening indicator
+                        helperText: _isListening
+                            ? 'Listening... Speak now'
+                            : 'Type or use the microphone to describe your group',
                       ),
                       maxLines: 4,
                       validator: (value) =>
                           value!.isEmpty ? 'Please enter a description' : null,
                     ),
+                    // Voice input status indicator
+                    if (_isListening) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.errorContainer.withAlpha(100),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: colorScheme.error.withAlpha(100),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.mic, color: colorScheme.error, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Voice input active - Speak clearly into your microphone',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.error,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  colorScheme.error,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _categoryController,
