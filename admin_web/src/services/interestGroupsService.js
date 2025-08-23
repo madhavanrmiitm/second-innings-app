@@ -1,9 +1,7 @@
 import { ApiService } from './apiService'
 
 class InterestGroupsService {
-  /**
-   * Get all interest groups (for admins/IGAs) or public groups
-   */
+
   async getInterestGroups(isPublic = false) {
     try {
       const endpoint = isPublic ? '/api/interest-groups/public' : '/api/interest-groups'
@@ -16,9 +14,7 @@ class InterestGroupsService {
     }
   }
 
-  /**
-   * Get a specific interest group by ID
-   */
+
   async getInterestGroup(groupId) {
     try {
       const response = await ApiService.get(`/api/interest-groups/${groupId}`)
@@ -29,12 +25,9 @@ class InterestGroupsService {
     }
   }
 
-  /**
-   * Create a new interest group
-   */
+
   async createInterestGroup(groupData) {
     try {
-      // Validate WhatsApp link format
       if (groupData.whatsapp_link && !groupData.whatsapp_link.startsWith('https://chat.whatsapp.com/')) {
         throw new Error('WhatsApp link must start with "https://chat.whatsapp.com/"')
       }
@@ -47,12 +40,9 @@ class InterestGroupsService {
     }
   }
 
-  /**
-   * Update an existing interest group
-   */
+
   async updateInterestGroup(groupId, groupData) {
     try {
-      // Validate WhatsApp link format if provided
       if (groupData.whatsapp_link && !groupData.whatsapp_link.startsWith('https://chat.whatsapp.com/')) {
         throw new Error('WhatsApp link must start with "https://chat.whatsapp.com/"')
       }
@@ -65,9 +55,7 @@ class InterestGroupsService {
     }
   }
 
-  /**
-   * Delete an interest group
-   */
+
   async deleteInterestGroup(groupId) {
     try {
       const response = await ApiService.delete(`/api/interest-groups/${groupId}`)
@@ -78,9 +66,6 @@ class InterestGroupsService {
     }
   }
 
-  /**
-   * Get available categories for interest groups
-   */
   getCategories() {
     return [
       { value: 'Health', label: 'Health & Wellness' },
@@ -94,9 +79,7 @@ class InterestGroupsService {
     ]
   }
 
-  /**
-   * Validate WhatsApp link format
-   */
+
   validateWhatsAppLink(link) {
     if (!link) return true // Optional field
 
@@ -104,9 +87,7 @@ class InterestGroupsService {
     return whatsappPattern.test(link)
   }
 
-  /**
-   * Format timing for display
-   */
+
   formatTiming(timing) {
     if (!timing) return 'No specific time'
 
@@ -142,9 +123,7 @@ class InterestGroupsService {
     return icons[category] || 'circle'
   }
 
-  /**
-   * Get status badge class
-   */
+
   getStatusClass(status) {
     return status === 'active' ? 'success' : 'secondary'
   }

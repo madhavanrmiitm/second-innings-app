@@ -236,7 +236,6 @@ const rejectCaregiver = async (item) => {
       const result = await adminStore.verifyCaregiver(item.id, 'blocked')
       if (result.success) {
         toast.success(`${item.full_name} rejected`)
-        // Refresh the caregivers list
         await adminStore.fetchCaregivers()
       } else {
         toast.error(result.error || 'Failed to reject caregiver')
@@ -250,7 +249,6 @@ const rejectCaregiver = async (item) => {
 
 const confirmDelete = (item) => {
   if (confirm(`Delete ${item.full_name}?`)) {
-    // Note: Delete functionality would need to be implemented in the backend
     toast.error('Delete functionality not implemented yet')
   }
 }
@@ -279,7 +277,6 @@ const formatStatus = (status) => {
 }
 
 onMounted(async () => {
-  // Load caregivers data - authentication will be handled by API calls
   try {
     await adminStore.fetchCaregivers()
   } catch (error) {

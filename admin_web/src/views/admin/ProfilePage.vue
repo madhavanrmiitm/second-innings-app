@@ -303,7 +303,6 @@ const getStatusDisplayName = (status) => {
   }
 }
 
-// Get status badge class
 const getStatusBadgeClass = (status) => {
   switch (status?.toLowerCase()) {
     case 'active':
@@ -317,7 +316,6 @@ const getStatusBadgeClass = (status) => {
   }
 }
 
-// Get status icon
 const getStatusIcon = (status) => {
   switch (status?.toLowerCase()) {
     case 'active':
@@ -353,7 +351,6 @@ const updateProfile = async () => {
   saving.value = true
 
   try {
-    // Update only the basic editable fields
     const success = await authStore.updateProfile({
       full_name: profileForm.value.fullName,
       date_of_birth: profileForm.value.dateOfBirth,

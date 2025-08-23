@@ -201,10 +201,8 @@ const router = useRouter()
 const loading = ref(false)
 const myGroups = ref([])
 
-// User status from auth store
 const userStatus = computed(() => authStore.userStatus)
 
-// Check if user can manage groups (only active users)
 const canManageGroups = computed(() => {
   return authStore.canAccess && userStatus.value === 'active'
 })
@@ -219,7 +217,6 @@ const columns = [
 ]
 
 const totalMembers = computed(() => {
-  // For MVP, we don't track membership, so this is placeholder
   return myGroups.value.length * 15 // Estimated average
 })
 
@@ -271,9 +268,7 @@ const loadInterestGroups = async () => {
   }
 }
 
-// Initialize component and refresh user profile
 onMounted(async () => {
-  // Refresh user profile to get latest status
   loading.value = true
   try {
     await authStore.refreshUserProfile()
@@ -320,7 +315,6 @@ const toggleStatus = async (group) => {
     toast.success(`Group ${group.name} has been ${statusText}`)
   } catch (error) {
     console.error('Failed to toggle group status:', error)
-    // Show specific error message if available
     const errorMessage = error.response?.data?.message || 'Failed to update group status'
     toast.error(errorMessage)
   }

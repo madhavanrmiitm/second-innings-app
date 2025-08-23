@@ -145,11 +145,9 @@ const router = createRouter({
   routes,
 })
 
-// Navigation guard
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Special handling for root route - redirect authenticated users to their dashboard
   if (to.meta.isRoot && authStore.isAuthenticated) {
     const userRole = authStore.userRole
     switch (userRole) {
@@ -168,15 +166,12 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // If route requires auth and user is not authenticated
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
     return
   }
 
-  // If user is authenticated but trying to access login
   if (to.path === '/login' && authStore.isAuthenticated) {
-    // Redirect based on user role
     const userRole = authStore.userRole
     switch (userRole) {
       case 'admin':
@@ -194,31 +189,23 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Check role-based access
   const userRole = authStore.userRole
   const routeRole = to.meta.role
   const routeRoles = to.meta.roles
 
-  // If route requires specific role(s)
   if (routeRole || routeRoles) {
-    // Check if user status allows access
     if (authStore.isBlocked) {
-      // User is blocked, redirect to login and clear session
       await authStore.logout()
       next('/login')
       return
     }
 
-    // Allow both active and pending_approval users to access
-    // pending_approval users will have restricted functionality in UI
     if (!authStore.canAccess && !authStore.isPendingApproval) {
-      // User has invalid status, redirect to login
       await authStore.logout()
       next('/login')
       return
     }
 
-    // Check if user has the required role
     let hasAccess = false
     if (routeRole) {
       hasAccess = userRole === routeRole
@@ -227,7 +214,6 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (!hasAccess) {
-      // Redirect to appropriate dashboard based on user role
       if (userRole) {
         switch (userRole) {
           case 'admin':
@@ -244,7 +230,6 @@ router.beforeEach(async (to, from, next) => {
         }
         return
       }
-      // If no role, go to role selection
       next('/role-selection')
       return
     }

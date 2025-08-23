@@ -91,7 +91,6 @@ export class TestAuthService {
         created_at: '2024-01-01T00:00:00Z'
       },
 
-      // Caregiver Users (Story Characters)
       test_caregiver_token_001: {
         token: 'test_caregiver_token_001',
         email: 'priya.caregiver@example.com',
@@ -213,7 +212,6 @@ export class TestAuthService {
     }
   }
 
-  // Get test users grouped by role for UI display
   static get testUsersByRole() {
     const users = this.testUsers
     const grouped = {}
@@ -229,18 +227,14 @@ export class TestAuthService {
     return grouped
   }
 
-  // Get user by token
   static getUserByToken(token) {
     return this.testUsers[token] || null
   }
 
-  // Check if test mode is enabled
   static isTestModeEnabled() {
-    // Check for VITE_TEST_MODE environment variable
     return import.meta.env.VITE_TEST_MODE === 'true'
   }
 
-  // Simulate Firebase sign-in with test user
   static async signInWithTestUser(token) {
     try {
       const user = this.getUserByToken(token)
@@ -252,7 +246,6 @@ export class TestAuthService {
         }
       }
 
-      // Simulate Firebase user object
       return {
         success: true,
         user: {
@@ -261,7 +254,7 @@ export class TestAuthService {
           displayName: user.full_name,
           photoURL: null
         },
-        idToken: token // Use the test token as ID token
+        idToken: token 
       }
     } catch (error) {
       console.error('Test Sign-In Error:', error)

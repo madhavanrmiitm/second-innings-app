@@ -130,45 +130,38 @@ const authStore = useAuthStore()
 const loading = ref(false)
 const errors = ref({})
 
-// Form data - Role is fixed as 'interest_group_admin' for self-registration
 const formData = reactive({
   gmailId: '',
   fullName: '',
   dateOfBirth: '',
-  role: 'interest_group_admin', // Fixed role for IGA registration
+  role: 'interest_group_admin', 
   youtubeUrl: '',
 })
 
-// Get current date for max date validation
 const maxDate = computed(() => {
   const today = new Date()
   today.setFullYear(today.getFullYear() - 13) // Minimum age 13
   return today.toISOString().split('T')[0]
 })
 
-// Initialize form with user info from route params or Firebase
 onMounted(async () => {
-  // Get user info from route query params (passed from login)
   const { gmailId, fullName, firebaseUid } = route.query
 
   if (gmailId && fullName) {
     formData.gmailId = gmailId
     formData.fullName = fullName
   } else {
-    // Try to get from Firebase auth if available
     const firebaseUser = FirebaseAuthService.getCurrentUser()
     if (firebaseUser) {
       formData.gmailId = firebaseUser.email || ''
       formData.fullName = firebaseUser.displayName || ''
     } else {
-      // No user info available, redirect to login
       toast.error('Session expired. Please sign in again.')
       router.push('/login')
     }
   }
 })
 
-// Validate form
 const validateForm = () => {
   errors.value = {}
 
@@ -192,7 +185,6 @@ const validateForm = () => {
     }
   }
 
-  // Validate YouTube URL (required for Interest Group Admin)
   if (!formData.youtubeUrl.trim()) {
     errors.value.youtubeUrl = 'YouTube URL is required for Interest Group Admin registration'
   } else if (!isValidYouTubeUrl(formData.youtubeUrl)) {
@@ -202,12 +194,10 @@ const validateForm = () => {
   return Object.keys(errors.value).length === 0
 }
 
-// Validate YouTube URL - Enhanced format validation
 const isValidYouTubeUrl = (url) => {
   return url.startsWith('https://y')
 }
 
-// Handle registration
 const handleRegistration = async () => {
   if (!validateForm()) {
     return
@@ -216,14 +206,12 @@ const handleRegistration = async () => {
   loading.value = true
 
   try {
-    // Get fresh ID token from Firebase
     const idToken = await FirebaseAuthService.getCurrentUserIdToken()
 
     if (!idToken) {
       throw new Error('Authentication session expired. Please sign in again.')
     }
 
-    // Prepare registration data for Interest Group Admin
     const registrationData = {
       idToken,
       fullName: formData.fullName.trim(),
@@ -232,7 +220,6 @@ const handleRegistration = async () => {
       youtubeUrl: formData.youtubeUrl.trim(), // Always required for IGA
     }
 
-    // Complete registration and automatically log user in
     const result = await authStore.completeRegistration(registrationData)
 
     if (result.success) {
@@ -251,7 +238,6 @@ const handleRegistration = async () => {
   }
 }
 
-// Get redirect route based on role
 const getRedirectRoute = (role) => {
   switch (role) {
     case 'admin':
@@ -265,9 +251,7 @@ const getRedirectRoute = (role) => {
   }
 }
 
-// Go back to login
 const goBack = async () => {
-  // Sign out from Firebase to clear session
   await FirebaseAuthService.signOut()
   await authStore.clearSession()
   router.push('/login')

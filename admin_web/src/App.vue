@@ -9,7 +9,6 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 
 onMounted(() => {
-  // Initialize auth state from localStorage
   authStore.initializeAuth()
 })
 </script>

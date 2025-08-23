@@ -200,7 +200,6 @@ const filteredInterestGroupAdmins = computed(() => {
 })
 
 const updateFilters = () => {
-  // Filters are applied in computed property
 }
 
 const resetFilters = () => {
@@ -218,7 +217,6 @@ const approveInterestGroupAdmin = async (item) => {
       const result = await adminStore.verifyInterestGroupAdmin(item.id, 'active')
       if (result.success) {
         toast.success(`${item.full_name} approved successfully`)
-        // Refresh the interest group admins list
         await adminStore.fetchInterestGroupAdmins()
       } else {
         toast.error(result.error || 'Failed to approve interest group admin')
@@ -236,7 +234,6 @@ const rejectInterestGroupAdmin = async (item) => {
       const result = await adminStore.verifyInterestGroupAdmin(item.id, 'blocked')
       if (result.success) {
         toast.success(`${item.full_name} rejected`)
-        // Refresh the interest group admins list
         await adminStore.fetchInterestGroupAdmins()
       } else {
         toast.error(result.error || 'Failed to reject interest group admin')
@@ -250,7 +247,6 @@ const rejectInterestGroupAdmin = async (item) => {
 
 const confirmDelete = (item) => {
   if (confirm(`Delete ${item.full_name}?`)) {
-    // Note: Delete functionality would need to be implemented in the backend
     toast.error('Delete functionality not implemented yet')
   }
 }
@@ -279,7 +275,6 @@ const formatStatus = (status) => {
 }
 
 onMounted(async () => {
-  // Load interest group admins data - authentication will be handled by API calls
   try {
     await adminStore.fetchInterestGroupAdmins()
   } catch (error) {

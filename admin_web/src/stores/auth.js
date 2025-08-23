@@ -309,7 +309,6 @@ export const useAuthStore = defineStore('auth', {
         const result = await UserService.handleRegistration(registrationData)
 
         if (result.isSuccess) {
-          // User is now registered and logged in
           this.user = result.userData
           this.isAuthenticated = true
 
