@@ -725,29 +725,12 @@ class _CaregiversViewState extends State<CaregiversView> {
     BuildContext context,
     Map<String, dynamic> caregiver,
   ) {
-    final messageController = TextEditingController();
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Request ${caregiver['full_name']}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Would you like to send a request to ${caregiver['full_name']}?',
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: messageController,
-              decoration: InputDecoration(
-                labelText: 'Message (optional)',
-                border: OutlineInputBorder(),
-                hintText: 'Add a personal message...',
-              ),
-              maxLines: 3,
-            ),
-          ],
+        content: Text(
+          'Would you like to send a request to ${caregiver['full_name']}?',
         ),
         actions: [
           TextButton(
@@ -757,7 +740,7 @@ class _CaregiversViewState extends State<CaregiversView> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              _sendCaregiverRequest(caregiver['id'], messageController.text);
+              _sendCaregiverRequest(caregiver['id'], '');
             },
             child: Text('Send Request'),
           ),

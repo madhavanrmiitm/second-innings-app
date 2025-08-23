@@ -139,7 +139,7 @@ class _JobsViewState extends State<JobsView> {
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Application submitted successfully')),
+          const SnackBar(content: Text('Request accepted successfully')),
         );
         // Reload requests to reflect the change
         await _loadCareRequests();
@@ -611,7 +611,7 @@ class _JobsViewState extends State<JobsView> {
                                   vertical: 12,
                                 ),
                               ),
-                              child: const Text('Apply for this job'),
+                              child: const Text('Accept Request'),
                             ),
                           ),
                         ],
