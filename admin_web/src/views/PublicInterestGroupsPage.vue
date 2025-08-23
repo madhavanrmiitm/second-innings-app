@@ -72,11 +72,6 @@
                   <i class="bi bi-whatsapp me-2"></i>Join WhatsApp Group
                 </a>
               </div>
-              <div v-else class="d-grid">
-                <button class="btn btn-outline-secondary" disabled>
-                  <i class="bi bi-info-circle me-2"></i>Contact Admin for Details
-                </button>
-              </div>
             </div>
           </div>
         </div>

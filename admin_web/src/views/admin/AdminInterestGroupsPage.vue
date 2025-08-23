@@ -8,9 +8,6 @@
           <button @click="refreshData" class="btn btn-outline-secondary" :disabled="loading">
             <i class="bi bi-arrow-clockwise me-2"></i>Refresh
           </button>
-          <button @click="exportData" class="btn btn-outline-success" :disabled="loading">
-            <i class="bi bi-download me-2"></i>Export
-          </button>
         </div>
       </div>
 
@@ -39,14 +36,6 @@
                 <option value="">All Categories</option>
                 <option v-for="cat in categories" :key="cat.value" :value="cat.value">
                   {{ cat.label }}
-                </option>
-              </select>
-            </div>
-            <div class="col-12 col-md-2">
-              <select v-model="filters.creator" class="form-select" @change="updateFilters">
-                <option value="">All Creators</option>
-                <option v-for="creator in uniqueCreators" :key="creator" :value="creator">
-                  {{ creator }}
                 </option>
               </select>
             </div>
@@ -214,11 +203,9 @@ const categories = computed(() => interestGroupsService.getCategories())
 
 const columns = [
   { key: 'group', label: 'Interest Group' },
-  { key: 'creator', label: 'Created By' },
   { key: 'category', label: 'Category' },
   { key: 'status', label: 'Status' },
   { key: 'members', label: 'Members' },
-  { key: 'timing', label: 'Next Event' },
   { key: 'created', label: 'Created Date' },
   { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
@@ -344,11 +331,6 @@ const closeDetailsModal = () => {
 
 const refreshData = async () => {
   await loadInterestGroups()
-}
-
-const exportData = () => {
-  // TODO: Implement export functionality
-  toast.info('Export functionality coming soon!')
 }
 
 // Initialize

@@ -108,9 +108,6 @@
                 >
                   <i class="bi bi-x-circle"></i>
                 </button>
-                <button @click="confirmDelete(item)" class="btn btn-outline-danger" title="Delete">
-                  <i class="bi bi-trash"></i>
-                </button>
               </div>
             </template>
           </DataTable>
@@ -244,12 +241,6 @@ const rejectCaregiver = async (item) => {
       console.error('Failed to reject caregiver:', error)
       toast.error('Failed to reject caregiver')
     }
-  }
-}
-
-const confirmDelete = (item) => {
-  if (confirm(`Delete ${item.full_name}?`)) {
-    toast.error('Delete functionality not implemented yet')
   }
 }
 

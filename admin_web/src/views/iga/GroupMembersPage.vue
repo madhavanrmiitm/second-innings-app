@@ -11,9 +11,6 @@
           <button class="btn btn-outline-secondary" @click="goBack">
             <i class="bi bi-arrow-left me-2"></i>Back to Groups
           </button>
-          <button v-if="canManageGroup" class="btn btn-success" @click="inviteMembers">
-            <i class="bi bi-person-plus me-2"></i>Invite Members
-          </button>
         </div>
       </div>
 
@@ -117,19 +114,7 @@
               {{ formatDate(item.joined_at) }}
             </template>
             <template #cell-actions="{ item }">
-              <div class="btn-group btn-group-sm" role="group">
-                <button @click="viewMemberProfile(item)" class="btn btn-outline-info" title="View Profile">
-                  <i class="bi bi-eye"></i>
-                </button>
-                <button
-                  v-if="canManageGroup && item.user_id !== currentUserId"
-                  @click="removeMember(item)"
-                  class="btn btn-outline-danger"
-                  title="Remove Member"
-                >
-                  <i class="bi bi-person-x"></i>
-                </button>
-              </div>
+              <!-- No actions available yet -->
             </template>
           </DataTable>
         </div>
@@ -277,25 +262,6 @@ const goBack = () => {
   } else {
     router.push('/iga/groups')
   }
-}
-
-const inviteMembers = () => {
-  // TODO: Implement invite functionality
-  toast.info('Invite functionality coming soon!')
-}
-
-const viewMemberProfile = (member) => {
-  // TODO: Implement view profile functionality
-  toast.info(`Viewing profile of ${member.full_name}`)
-}
-
-const removeMember = async (member) => {
-  if (!confirm(`Are you sure you want to remove ${member.full_name} from this group?`)) {
-    return
-  }
-
-  // TODO: Implement remove member functionality
-  toast.info(`Remove member functionality coming soon!`)
 }
 
 // Initialize
