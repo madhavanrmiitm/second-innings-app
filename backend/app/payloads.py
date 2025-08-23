@@ -2,7 +2,7 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 
 class UserRole(str, Enum):
@@ -118,10 +118,60 @@ class RejectCaregiverRequest(BaseModel):
 
 class CreateTask(BaseModel):
     id_token: str
-    title: str
-    description: Optional[str] = None
+    title: Optional[str] = None  # Optional when using AI mode
+    description: Optional[str] = None  # Optional when using AI mode
     time_of_completion: Optional[datetime] = None
     assigned_to_firebase_uid: Optional[str] = None
+    # AI Mode fields
+    ai_mode: Optional[bool] = False
+    ai_prompt: Optional[str] = None
+    # Additional metadata fields
+    priority: Optional[str] = "medium"
+    category: Optional[str] = "other"
+    estimated_duration: Optional[int] = None  # in minutes
+
+    @field_validator("priority")
+    @classmethod
+    def validate_priority(cls, v):
+        if v and v not in ["low", "medium", "high"]:
+            raise ValueError("Priority must be low, medium, or high")
+        return v
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v):
+        if v and v not in [
+            "health",
+            "medication",
+            "appointment",
+            "shopping",
+            "companionship",
+            "other",
+        ]:
+            raise ValueError(
+                "Category must be one of: health, medication, appointment, shopping, companionship, other"
+            )
+        return v
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_ai_mode(cls, values):
+        if isinstance(values, dict):
+            ai_mode = values.get("ai_mode", False)
+            ai_prompt = values.get("ai_prompt")
+            title = values.get("title")
+            description = values.get("description")
+
+            if ai_mode:
+                if not ai_prompt:
+                    raise ValueError("AI mode requires ai_prompt")
+                # Title and description are optional in AI mode
+            else:
+                if not title:
+                    raise ValueError("Manual mode requires title")
+                if not description:
+                    raise ValueError("Manual mode requires description")
+        return values
 
 
 class UpdateTask(BaseModel):

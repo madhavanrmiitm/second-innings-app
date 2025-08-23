@@ -131,6 +131,9 @@ CREATE TABLE tasks (
     description TEXT,
     time_of_completion TIMESTAMP,
     status task_status NOT NULL DEFAULT 'pending',
+    priority VARCHAR(20) DEFAULT 'medium',
+    category VARCHAR(100) DEFAULT 'other',
+    estimated_duration INTEGER, -- in minutes
     created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -207,6 +210,8 @@ CREATE INDEX idx_relations_family_member_id ON relations(family_member_id);
 CREATE INDEX idx_tasks_created_by ON tasks(created_by);
 CREATE INDEX idx_tasks_assigned_to ON tasks(assigned_to);
 CREATE INDEX idx_tasks_status ON tasks(status);
+CREATE INDEX idx_tasks_priority ON tasks(priority);
+CREATE INDEX idx_tasks_category ON tasks(category);
 
 CREATE INDEX idx_care_requests_senior_citizen_id ON care_requests(senior_citizen_id);
 CREATE INDEX idx_care_requests_caregiver_id ON care_requests(caregiver_id);

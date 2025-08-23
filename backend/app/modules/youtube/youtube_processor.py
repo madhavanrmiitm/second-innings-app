@@ -1,5 +1,6 @@
+import json
 import re
-from typing import Dict
+from typing import Any, Dict
 
 from app.config import settings
 from app.logger import logger
@@ -124,6 +125,106 @@ class YouTubeProcessor:
             logger.error(f"Error analyzing YouTube video {youtube_url}: {e}")
             # Return fallback content
             return self._generate_fallback_content_interest_group(full_name)
+
+    async def process_with_gemini(self, prompt: str) -> str:
+        """
+        Process a general prompt with Gemini AI.
+
+        Args:
+            prompt: The prompt to send to Gemini AI
+
+        Returns:
+            The AI-generated response as a string
+        """
+        try:
+            # Call Gemini AI with the provided prompt
+            response = self.client.models.generate_content(
+                model="gemini-2.5-flash", contents=prompt
+            )
+
+            logger.info("Successfully processed prompt with Gemini AI")
+            print(response.text)
+            return response.text
+
+        except Exception as e:
+            logger.error(f"Error processing with Gemini AI: {e}")
+            raise Exception(f"Gemini AI processing failed: {e}")
+
+    def parse_json_response(self, response_text: str) -> Dict[str, Any]:
+        """
+        Parse the AI response to extract JSON data.
+
+        Args:
+            response_text: Raw response from Gemini AI
+
+        Returns:
+            Dictionary with parsed JSON data
+
+        Raises:
+            Exception: If JSON parsing fails
+        """
+        try:
+            # Remove any markdown formatting
+            cleaned_text = response_text.strip()
+
+            # Remove ```json and ``` if present
+            if cleaned_text.startswith("```json"):
+                cleaned_text = cleaned_text[7:]
+            elif cleaned_text.startswith("```"):
+                cleaned_text = cleaned_text[3:]
+
+            if cleaned_text.endswith("```"):
+                cleaned_text = cleaned_text[:-3]
+
+            cleaned_text = cleaned_text.strip()
+
+            # Try to parse the JSON
+            try:
+                parsed_data = json.loads(cleaned_text)
+                logger.info("Successfully parsed JSON response from Gemini AI")
+                return parsed_data
+            except json.JSONDecodeError as json_error:
+                logger.error(f"JSON parsing failed: {json_error}")
+                logger.error(f"Raw response text: {cleaned_text}")
+
+                # Try to extract JSON using regex as fallback
+                json_match = re.search(r"\{.*\}", cleaned_text, re.DOTALL)
+                if json_match:
+                    try:
+                        extracted_json = json_match.group(0)
+                        parsed_data = json.loads(extracted_json)
+                        logger.info("Successfully parsed JSON using regex fallback")
+                        return parsed_data
+                    except json.JSONDecodeError:
+                        pass
+
+                raise Exception(f"Failed to parse JSON response: {json_error}")
+
+        except Exception as e:
+            logger.error(f"Error parsing AI response: {e}")
+            raise Exception(f"Response parsing failed: {e}")
+
+    async def process_with_gemini_parsed(self, prompt: str) -> Dict[str, Any]:
+        """
+        Process a prompt with Gemini AI and return parsed JSON data.
+
+        Args:
+            prompt: The prompt to send to Gemini AI
+
+        Returns:
+            Dictionary with parsed JSON data from the AI response
+        """
+        try:
+            # Get raw response from Gemini
+            raw_response = await self.process_with_gemini(prompt)
+
+            # Parse and return the JSON data
+            parsed_data = self.parse_json_response(raw_response)
+            return parsed_data
+
+        except Exception as e:
+            logger.error(f"Error in process_with_gemini_parsed: {e}")
+            raise Exception(f"AI processing and parsing failed: {e}")
 
     def _parse_ai_response(self, response_text: str, full_name: str) -> Dict[str, str]:
         """
