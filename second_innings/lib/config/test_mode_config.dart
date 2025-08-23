@@ -1,6 +1,6 @@
 class TestModeConfig {
   // Test mode flag - set to false for production
-  static const bool isTestMode = true;
+  static const bool isTestMode = false;
 
   // Test users data - Based on story characters and additional test users
   static const List<TestUser> testUsers = [
