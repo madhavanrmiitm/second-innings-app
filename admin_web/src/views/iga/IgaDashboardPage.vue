@@ -145,6 +145,13 @@
                   </span>
                 </template>
 
+                <template #cell-members="{ item }">
+                  <span class="badge bg-info">
+                    <i class="bi bi-people me-1"></i>
+                    {{ item.member_count || 0 }}
+                  </span>
+                </template>
+
                 <template #cell-timing="{ item }">
                   <small class="text-muted">{{ formatTiming(item.timing) }}</small>
                 </template>
@@ -154,9 +161,9 @@
                     <button @click="manageGroup(item)" class="btn btn-outline-primary">
                       Manage
                     </button>
-                    <button 
-                      v-if="item.whatsapp_link" 
-                      @click="viewWhatsApp(item)" 
+                    <button
+                      v-if="item.whatsapp_link"
+                      @click="viewWhatsApp(item)"
                       class="btn btn-outline-success"
                     >
                       WhatsApp
@@ -180,6 +187,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import IgaLayout from '@/components/layouts/IgaLayout.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import DataTable from '@/components/ui/DataTable.vue'
@@ -189,6 +197,7 @@ import interestGroupsService from '@/services/interestGroupsService'
 
 const toast = useToast()
 const authStore = useAuthStore()
+const router = useRouter()
 const loading = ref(false)
 const myGroups = ref([])
 
@@ -202,6 +211,7 @@ const columns = [
   { key: 'group', label: 'Group' },
   { key: 'category', label: 'Category' },
   { key: 'status', label: 'Status' },
+  { key: 'members', label: 'Members' },
   { key: 'timing', label: 'Next Event' },
   { key: 'actions', label: 'Actions', class: 'text-end' },
 ]
@@ -210,7 +220,7 @@ const totalMembers = computed(() => {
   return myGroups.value.length * 15 // Estimated average
 })
 
-const activeGroupsCount = computed(() => 
+const activeGroupsCount = computed(() =>
   myGroups.value.filter((g) => g.status === 'active').length
 )
 
@@ -274,11 +284,13 @@ onMounted(async () => {
 })
 
 const createGroup = () => {
-  window.location.href = '/iga/groups'
+  // Navigate to create group page or open modal
+  router.push('/iga/my-groups')
 }
 
 const manageGroup = (group) => {
-  window.location.href = `/iga/groups?edit=${group.id}`
+  // Navigate to manage group page
+  router.push(`/iga/my-groups?edit=${group.id}`)
 }
 
 const viewWhatsApp = (group) => {
@@ -292,11 +304,12 @@ const viewWhatsApp = (group) => {
 const toggleStatus = async (group) => {
   try {
     const newStatus = group.status === 'active' ? 'inactive' : 'active'
-    
+
     await interestGroupsService.updateInterestGroup(group.id, {
       status: newStatus
     })
-    
+
+    // Only update local state and show success if API call succeeded
     group.status = newStatus
     const statusText = newStatus === 'active' ? 'activated' : 'deactivated'
     toast.success(`Group ${group.name} has been ${statusText}`)

@@ -52,6 +52,24 @@ class TaskService {
     return await ApiService.post('/api/tasks', body: body);
   }
 
+  // Create a new task using AI mode with prompt
+  static Future<ApiResponse<Map<String, dynamic>>> createTaskWithAI({
+    required String aiPrompt,
+  }) async {
+    // Get the stored ID token
+    final idToken = await ApiService.getIdToken();
+    if (idToken == null) {
+      return ApiResponse<Map<String, dynamic>>(
+        statusCode: 401,
+        error: 'Authentication token not found',
+      );
+    }
+
+    final body = {'id_token': idToken, 'ai_mode': true, 'ai_prompt': aiPrompt};
+
+    return await ApiService.post('/api/tasks', body: body);
+  }
+
   // Update a task
   static Future<ApiResponse<Map<String, dynamic>>> updateTask({
     required String taskId,

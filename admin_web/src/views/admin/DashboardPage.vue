@@ -48,6 +48,14 @@
             color="purple"
           />
         </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+          <StatCard
+            title="Interest Groups"
+            :value="adminStore.stats.interestGroups || 0"
+            icon="collection"
+            color="secondary"
+          />
+        </div>
       </div>
 
       <!-- Additional Stats Grid -->
@@ -83,6 +91,41 @@
             icon="ban"
             color="dark"
           />
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="row g-3 mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <button @click="goToInterestGroups" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-collection me-2"></i>Manage Interest Groups
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button @click="goToIGAApprovals" class="btn btn-outline-warning w-100">
+                    <i class="bi bi-people-fill me-2"></i>Approve IGA Admins
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button @click="goToCaregiverApprovals" class="btn btn-outline-info w-100">
+                    <i class="bi bi-heart me-2"></i>Approve Caregivers
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button @click="goToNotifications" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-bell me-2"></i>Send Notifications
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -180,8 +223,10 @@ import { computed, onMounted } from 'vue'
 import AppLayout from '@/components/common/AppLayout.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import { useAdminStore } from '@/stores/admin'
+import { useRouter } from 'vue-router'
 
 const adminStore = useAdminStore()
+const router = useRouter()
 
 const recentUsers = computed(() => adminStore.users.slice(0, 5))
 const recentCaregivers = computed(() => adminStore.pendingCaregivers.slice(0, 5))
@@ -203,6 +248,23 @@ const formatUserStatus = (status) => {
     blocked: 'Blocked',
   }
   return statusMap[status] || status
+}
+
+// Navigation functions
+const goToInterestGroups = () => {
+  router.push('/admin/interest-groups')
+}
+
+const goToIGAApprovals = () => {
+  router.push('/admin/interest-group-admins/approvals')
+}
+
+const goToCaregiverApprovals = () => {
+  router.push('/caregivers/approvals')
+}
+
+const goToNotifications = () => {
+  router.push('/notifications')
 }
 
 onMounted(async () => {

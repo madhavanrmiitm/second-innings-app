@@ -73,7 +73,13 @@ const routes = [
   {
     path: '/admin/interest-groups',
     name: 'AdminManageInterestGroups',
-    component: () => import('@/views/iga/ManageGroupsPage.vue'),
+    component: () => import('@/views/admin/AdminInterestGroupsPage.vue'),
+    meta: { requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/admin/interest-groups/:groupId/members',
+    name: 'AdminGroupMembers',
+    component: () => import('@/views/iga/GroupMembersPage.vue'),
     meta: { requiresAuth: true, role: 'admin' },
   },
 
@@ -115,9 +121,15 @@ const routes = [
     meta: { requiresAuth: true, role: 'iga' },
   },
   {
-    path: '/iga/groups',
-    name: 'IGAManageGroups',
-    component: () => import('@/views/iga/ManageGroupsPage.vue'),
+    path: '/iga/my-groups',
+    name: 'IGAMyGroups',
+    component: () => import('@/views/iga/MyGroupsPage.vue'),
+    meta: { requiresAuth: true, role: 'iga' },
+  },
+  {
+    path: '/iga/groups/:groupId/members',
+    name: 'IGAGroupMembers',
+    component: () => import('@/views/iga/GroupMembersPage.vue'),
     meta: { requiresAuth: true, role: 'iga' },
   },
 

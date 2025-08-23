@@ -10,7 +10,6 @@ class CaregiverRequestsView extends StatefulWidget {
 
 class _CaregiverRequestsViewState extends State<CaregiverRequestsView> {
   List<Map<String, dynamic>> _sentRequests = [];
-  List<Map<String, dynamic>> _receivedRequests = [];
   bool _isLoading = true;
   String? _error;
 
@@ -32,13 +31,9 @@ class _CaregiverRequestsViewState extends State<CaregiverRequestsView> {
       if (response.statusCode == 200) {
         final sentRequestsData =
             response.data?['data']?['sent_requests'] as List?;
-        final receivedRequestsData =
-            response.data?['data']?['received_requests'] as List?;
 
         setState(() {
           _sentRequests = sentRequestsData?.cast<Map<String, dynamic>>() ?? [];
-          _receivedRequests =
-              receivedRequestsData?.cast<Map<String, dynamic>>() ?? [];
           _isLoading = false;
         });
       } else {
@@ -55,49 +50,70 @@ class _CaregiverRequestsViewState extends State<CaregiverRequestsView> {
     }
   }
 
-  Future<void> _acceptRequest(int requestId) async {
+  Future<void> _withdrawRequest(int requestId) async {
     try {
-      final response = await CareService.acceptCaregiverRequest(
+      final response = await CareService.closeCaregiverRequest(
         requestId: requestId,
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Request accepted successfully')),
+          const SnackBar(content: Text('Request withdrawn successfully')),
         );
         _loadCaregiverRequests(); // Reload data
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.error ?? 'Failed to accept request')),
+          SnackBar(
+            content: Text(response.error ?? 'Failed to withdraw request'),
+          ),
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error accepting request: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error withdrawing request: $e')));
     }
   }
 
-  Future<void> _rejectRequest(int requestId) async {
-    try {
-      final response = await CareService.rejectCaregiverRequest(
-        requestId: requestId,
-      );
+  String _getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'accepted':
+        return 'Accepted';
+      case 'rejected':
+        return 'Rejected';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Request rejected successfully')),
-        );
-        _loadCaregiverRequests(); // Reload data
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.error ?? 'Failed to reject request')),
-        );
-      }
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'accepted':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      case 'cancelled':
+        return Colors.grey;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year} at ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error rejecting request: $e')));
+      return dateString;
     }
   }
 
@@ -150,13 +166,6 @@ class _CaregiverRequestsViewState extends State<CaregiverRequestsView> {
               ),
             )
           else ...[
-            _buildSectionHeader(context, 'Received Requests'),
-            _buildReceivedRequestsList(
-              context,
-              colorScheme,
-              textTheme,
-              _receivedRequests,
-            ),
             _buildSectionHeader(context, 'Sent Requests'),
             _buildSentRequestsList(
               context,
@@ -184,74 +193,56 @@ class _CaregiverRequestsViewState extends State<CaregiverRequestsView> {
     );
   }
 
-  SliverList _buildReceivedRequestsList(
-    BuildContext context,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    List<Map<String, dynamic>> requests,
-  ) {
-    return SliverList.builder(
-      itemCount: requests.length,
-      itemBuilder: (context, index) {
-        final request = requests[index];
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          color: colorScheme.primaryContainer.withAlpha(51),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  request['caregiver_name'] ?? 'Unknown',
-                  style: textTheme.titleMedium,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Status: ${request['status'] ?? 'Unknown'}',
-                  style: textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        _rejectRequest(request['id']);
-                      },
-                      child: const Text('Reject'),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        _acceptRequest(request['id']);
-                      },
-                      child: const Text('Accept'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   SliverList _buildSentRequestsList(
     BuildContext context,
     ColorScheme colorScheme,
     TextTheme textTheme,
     List<Map<String, dynamic>> requests,
   ) {
+    if (requests.isEmpty) {
+      return SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.assignment_outlined,
+                      size: 64,
+                      color: colorScheme.outline,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No requests sent yet',
+                      style: textTheme.titleMedium?.copyWith(
+                        color: colorScheme.outline,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'When you send requests to caregivers, they will appear here',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.outline,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+          as SliverList;
+    }
+
     return SliverList.builder(
       itemCount: requests.length,
       itemBuilder: (context, index) {
         final request = requests[index];
+        final status = request['status'] ?? 'unknown';
+        final caregiverName = request['caregiver_name'] ?? 'Unknown';
+        final createdAt = request['created_at'] ?? '';
+        final requestId = request['id'];
+
         return Card(
           elevation: 0,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -264,34 +255,173 @@ class _CaregiverRequestsViewState extends State<CaregiverRequestsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  request['caregiver_name'] ?? 'Unknown',
-                  style: textTheme.titleMedium,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Status: ${request['status'] ?? 'Unknown'}',
-                  style: textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Implement withdraw functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Withdraw functionality not implemented yet',
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: colorScheme.primaryContainer.withAlpha(
+                        204,
+                      ),
+                      child: Text(
+                        caregiverName.isNotEmpty
+                            ? caregiverName[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            caregiverName,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        );
-                      },
-                      child: const Text('Withdraw'),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Request ID: #$requestId',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(status).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: _getStatusColor(status),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        _getStatusText(status),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: _getStatusColor(status),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Sent: ${_formatDate(createdAt)}',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (status == 'pending') ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => _withdrawRequest(requestId),
+                        icon: const Icon(Icons.close, size: 16),
+                        label: const Text('Withdraw'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else if (status == 'accepted') ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.green.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Request accepted! Contact the caregiver to proceed.',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (status == 'rejected') ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.red.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.cancel, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Request was rejected by the caregiver.',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Colors.red.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (status == 'cancelled') ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.grey.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.block, color: Colors.grey, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Request was cancelled.',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

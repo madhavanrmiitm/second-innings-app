@@ -26,7 +26,8 @@ class FamilyService {
     final body = {
       'id_token': idToken,
       'family_member_firebase_uid': familyMemberFirebaseUid,
-      'relationship': relationship,
+      'family_member_relation': relationship,
+      'senior_citizen_relation': relationship,
     };
 
     return await ApiService.post(
@@ -37,10 +38,28 @@ class FamilyService {
 
   // Delete a family member
   static Future<ApiResponse<Map<String, dynamic>>> deleteFamilyMember(
-    String memberId,
+    String memberUserId,
+    String memberFirebaseUid,
   ) async {
+    // Get the stored ID token
+    final idToken = await ApiService.getIdToken();
+    if (idToken == null) {
+      return ApiResponse<Map<String, dynamic>>(
+        statusCode: 401,
+        error: 'Authentication token not found',
+      );
+    }
+
+    final body = {
+      'id_token': idToken,
+      'family_member_firebase_uid': memberFirebaseUid,
+    };
+
+    print('Delete family member request body: $body'); // Debug log
+
     return await ApiService.delete(
-      '/api/senior-citizens/me/family-members/$memberId',
+      '/api/senior-citizens/me/family-members/$memberUserId',
+      body: body,
     );
   }
 

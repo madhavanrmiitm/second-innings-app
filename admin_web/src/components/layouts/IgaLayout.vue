@@ -35,7 +35,7 @@ const menuItems = computed(() => {
 
   // Only show group management for active users
   if (canAccessGroups.value) {
-    baseItems.push({ name: 'My Groups', path: '/iga/groups', icon: 'bi bi-people' })
+    baseItems.push({ name: 'My Groups', path: '/iga/my-groups', icon: 'bi bi-collection' })
   }
 
   // Profile is always accessible

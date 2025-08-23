@@ -12,13 +12,11 @@ class LinkNewFamilyMemberPage extends StatefulWidget {
 
 class _LinkNewFamilyMemberPageState extends State<LinkNewFamilyMemberPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _relationshipController = TextEditingController();
   final _emailController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.dispose();
     _relationshipController.dispose();
     _emailController.dispose();
     super.dispose();
@@ -107,25 +105,6 @@ class _LinkNewFamilyMemberPageState extends State<LinkNewFamilyMemberPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: const Icon(Icons.person_outline_rounded),
-                        hintText: 'Enter the full name of the family member',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Name is required.';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _relationshipController,
                       decoration: InputDecoration(

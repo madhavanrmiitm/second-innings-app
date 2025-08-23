@@ -1,6 +1,7 @@
 -- Drop tables in reverse dependency order to avoid foreign key conflicts
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS tickets CASCADE;
+DROP TABLE IF EXISTS group_members CASCADE;
 DROP TABLE IF EXISTS interest_groups CASCADE;
 DROP TABLE IF EXISTS care_requests CASCADE;
 DROP TABLE IF EXISTS tasks CASCADE;
@@ -84,7 +85,7 @@ VALUES ('rohan.family@example.com', 'story_rohan_uid_001', 'Rohan', 'family_memb
 
 -- Priya - Caregiver (ID 5)
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
-VALUES ('priya.caregiver@example.com', 'story_priya_uid_001', 'Priya', 'caregiver', 'active', 'https://www.youtube.com/watch?v=priya_intro', '1997-11-08', '28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.', 'caregiver,physiotherapy,companionship,indian');
+VALUES ('priya.caregiver@example.com', 'story_priya_uid_001', 'Priya', 'caregiver', 'active', 'https://youtu.be/h3G6x2CK-vg?si=IleeCVjfng-GlBue', '1997-11-08', '28-year-old Indian woman with warm smile and long dark hair in ponytail. Specializes in physiotherapy and companionship.', 'caregiver,physiotherapy,companionship,indian');
 
 -- Mr. Verma - Interest Group Admin (ID 6)
 INSERT INTO users (gmail_id, firebase_uid, full_name, role, status, youtube_url, date_of_birth, description, tags)
@@ -130,6 +131,9 @@ CREATE TABLE tasks (
     description TEXT,
     time_of_completion TIMESTAMP,
     status task_status NOT NULL DEFAULT 'pending',
+    priority VARCHAR(20) DEFAULT 'medium',
+    category VARCHAR(100) DEFAULT 'other',
+    estimated_duration INTEGER, -- in minutes
     created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -156,9 +160,18 @@ CREATE TABLE interest_groups (
     category VARCHAR(100),
     status VARCHAR(50) DEFAULT 'active',
     timing TIMESTAMP,
+    member_count INTEGER DEFAULT 0,
     created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE group_members (
+    id SERIAL PRIMARY KEY,
+    group_id INTEGER NOT NULL REFERENCES interest_groups(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (group_id, user_id)
 );
 
 CREATE TABLE tickets (
@@ -197,6 +210,8 @@ CREATE INDEX idx_relations_family_member_id ON relations(family_member_id);
 CREATE INDEX idx_tasks_created_by ON tasks(created_by);
 CREATE INDEX idx_tasks_assigned_to ON tasks(assigned_to);
 CREATE INDEX idx_tasks_status ON tasks(status);
+CREATE INDEX idx_tasks_priority ON tasks(priority);
+CREATE INDEX idx_tasks_category ON tasks(category);
 
 CREATE INDEX idx_care_requests_senior_citizen_id ON care_requests(senior_citizen_id);
 CREATE INDEX idx_care_requests_caregiver_id ON care_requests(caregiver_id);
@@ -205,6 +220,9 @@ CREATE INDEX idx_care_requests_status ON care_requests(status);
 
 CREATE INDEX idx_interest_groups_created_by ON interest_groups(created_by);
 CREATE INDEX idx_interest_groups_status ON interest_groups(status);
+
+CREATE INDEX idx_group_members_group_id ON group_members(group_id);
+CREATE INDEX idx_group_members_user_id ON group_members(user_id);
 
 CREATE INDEX idx_tickets_user_id ON tickets(user_id);
 CREATE INDEX idx_tickets_assigned_to ON tickets(assigned_to);
@@ -230,18 +248,18 @@ INSERT INTO tasks (title, description, time_of_completion, status, created_by, a
 ('Doctor Appointment', 'Accompany Asha to cardiologist appointment', '2025-01-25 10:00:00', 'pending', 4, 3),
 ('Home Safety Check', 'Inspect Asha''s home for safety hazards and make necessary adjustments', '2025-01-26 11:00:00', 'pending', 4, 3);
 
--- Insert story-based care requests
-INSERT INTO care_requests (senior_citizen_id, caregiver_id, made_by, status, timing_to_visit, location) VALUES
-(3, 5, 4, 'accepted', '2025-01-20 09:00:00', 'Asha''s Home, Mumbai'),
-(3, 5, 4, 'pending', '2025-01-22 15:00:00', 'Asha''s Home, Mumbai');
-
 -- Insert story-based interest groups (created by Mr. Verma)
-INSERT INTO interest_groups (title, description, whatsapp_link, category, status, timing, created_by) VALUES
-('Sunrise Walkers Club', 'Morning walking group for seniors in the neighborhood. Start your day with gentle exercise and friendly conversation.', 'https://chat.whatsapp.com/BQJVvF9M8B50Qj4xDf2a1z', 'Health', 'active', '2025-01-20 07:00:00', 6),
-('Laughter Yoga Club', 'Weekly laughter yoga sessions to boost mood and health. No experience needed, just bring your smile!', 'https://chat.whatsapp.com/CRKWwG0N9C61Rk5yEg3b2A', 'Health', 'active', '2025-01-22 16:00:00', 6),
-('Garden Lovers Community', 'Share gardening tips, plant care advice, and seasonal growing guides. Perfect for those with green thumbs or aspiring gardeners.', 'https://chat.whatsapp.com/DSLXxH1O0D72Sl6zFh4c3B', 'Hobby', 'active', '2025-01-25 10:00:00', 6),
-('Digital Learning Circle', 'Learn to use smartphones, tablets, and the internet safely. Weekly sessions covering WhatsApp, video calls, and online banking.', 'https://chat.whatsapp.com/ETMYyI2P1E83Tm7aGi5d4C', 'Technology', 'active', '2025-01-27 15:00:00', 6),
-('Book Club Enthusiasts', 'Monthly book discussions featuring classic literature and contemporary works. Share insights and make new friends through reading.', 'https://chat.whatsapp.com/FUNZzJ3Q2F94Un8bHj6e5D', 'Education', 'active', '2025-01-30 16:00:00', 6);
+INSERT INTO interest_groups (title, description, whatsapp_link, category, status, timing, created_by, member_count) VALUES
+('Sunrise Walkers Club', 'Morning walking group for seniors in the neighborhood. Start your day with gentle exercise and friendly conversation.', 'https://chat.whatsapp.com/BQJVvF9M8B50Qj4xDf2a1z', 'Health', 'active', '2025-01-20 07:00:00', 6, 1),
+('Laughter Yoga Club', 'Weekly laughter yoga sessions to boost mood and health. No experience needed, just bring your smile!', 'https://chat.whatsapp.com/CRKWwG0N9C61Rk5yEg3b2A', 'Health', 'active', '2025-01-22 16:00:00', 6, 0),
+('Garden Lovers Community', 'Share gardening tips, plant care advice, and seasonal growing guides. Perfect for those with green thumbs or aspiring gardeners.', 'https://chat.whatsapp.com/DSLXxH1O0D72Sl6zFh4c3B', 'Hobby', 'active', '2025-01-25 10:00:00', 6, 1),
+('Digital Learning Circle', 'Learn to use smartphones, tablets, and the internet safely. Weekly sessions covering WhatsApp, video calls, and online banking.', 'https://chat.whatsapp.com/ETMYyI2P1E83Tm7aGi5d4C', 'Technology', 'active', '2025-01-27 15:00:00', 6, 0),
+('Book Club Enthusiasts', 'Monthly book discussions featuring classic literature and contemporary works. Share insights and make new friends through reading.', 'https://chat.whatsapp.com/FUNZzJ3Q2F94Un8bHj6e5D', 'Education', 'active', '2025-01-30 16:00:00', 6, 0);
+
+-- Insert initial group members
+INSERT INTO group_members (group_id, user_id) VALUES
+(1, 3), -- Asha joins Sunrise Walkers Club
+(3, 3); -- Asha joins Garden Lovers Community
 
 -- Insert story-based tickets
 INSERT INTO tickets (user_id, assigned_to, subject, description, priority, category, status) VALUES
