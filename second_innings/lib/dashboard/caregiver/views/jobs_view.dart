@@ -11,19 +11,12 @@ class JobsView extends StatefulWidget {
 }
 
 class _JobsViewState extends State<JobsView> {
-  final List<String> _filters = [
-    'Madras',
-    'Physiotherapy',
-    'Memory Related',
-    'Full Day',
-    'Half Day',
-  ];
-  final Set<String> _selectedFilters = {'Madras'};
-
   bool _isLoading = true;
   bool _isPendingApproval = false;
   String? _error;
   List<Map<String, dynamic>> _careRequests = [];
+  List<Map<String, dynamic>> _filteredCareRequests = [];
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -77,11 +70,13 @@ class _JobsViewState extends State<JobsView> {
         if (requestsData != null) {
           setState(() {
             _careRequests = requestsData.cast<Map<String, dynamic>>();
+            _filteredCareRequests = List.from(_careRequests);
             _isLoading = false;
           });
         } else {
           setState(() {
             _careRequests = [];
+            _filteredCareRequests = [];
             _isLoading = false;
           });
         }
@@ -99,9 +94,48 @@ class _JobsViewState extends State<JobsView> {
     }
   }
 
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+    _applySearch();
+  }
+
+  void _applySearch() {
+    if (_searchQuery.isEmpty) {
+      setState(() {
+        _filteredCareRequests = List.from(_careRequests);
+      });
+      return;
+    }
+
+    final filtered = _careRequests.where((group) {
+      final seniorCitizenName = (group['senior_citizen_name'] ?? '')
+          .toString()
+          .toLowerCase();
+      final requesterName =
+          (group['requests'] as List?)?.any((request) {
+            final requester = (request['requester_name'] ?? '')
+                .toString()
+                .toLowerCase();
+            return requester.contains(_searchQuery.toLowerCase());
+          }) ??
+          false;
+
+      return seniorCitizenName.contains(_searchQuery.toLowerCase()) ||
+          requesterName;
+    }).toList();
+
+    setState(() {
+      _filteredCareRequests = filtered;
+    });
+  }
+
   Future<void> _applyForRequest(String requestId) async {
     try {
       final response = await CareService.applyForRequest(requestId: requestId);
+
+      if (!mounted) return;
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -117,9 +151,49 @@ class _JobsViewState extends State<JobsView> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error applying for request: $e')));
+    }
+  }
+
+  String _formatDateTime(String dateTimeString) {
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return dateTimeString;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'accepted':
+        return 'Accepted';
+      case 'rejected':
+        return 'Rejected';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'accepted':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      case 'cancelled':
+        return Colors.grey;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -250,8 +324,6 @@ class _JobsViewState extends State<JobsView> {
               children: [
                 const SizedBox(height: 16),
                 _buildSearchBar(colorScheme),
-                const SizedBox(height: 16),
-                _buildFilterChips(context, colorScheme),
                 const SizedBox(height: 24),
               ],
             ),
@@ -263,84 +335,83 @@ class _JobsViewState extends State<JobsView> {
   }
 
   Widget _buildSearchBar(ColorScheme colorScheme) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Search based on interests',
-        prefixIcon: const Icon(Icons.search),
-        filled: true,
-        fillColor: colorScheme.primaryContainer.withValues(alpha: 0.2),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(25),
       ),
-    );
-  }
-
-  Widget _buildFilterChips(BuildContext context, ColorScheme colorScheme) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
       child: Row(
-        children: _filters.map((filter) {
-          final isSelected = _selectedFilters.contains(filter);
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: FilterChip(
-              label: Text(filter),
-              selected: isSelected,
-              onSelected: (bool selected) {
-                setState(() {
-                  if (selected) {
-                    _selectedFilters.add(filter);
-                  } else {
-                    _selectedFilters.remove(filter);
-                  }
-                });
-              },
-              selectedColor: colorScheme.primaryContainer.withValues(
-                alpha: 0.4,
+        children: [
+          Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: 'Search by senior citizen or requester name...',
+                border: InputBorder.none,
+                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
-              checkmarkColor: colorScheme.onPrimaryContainer,
             ),
-          );
-        }).toList(),
+          ),
+          if (_searchQuery.isNotEmpty)
+            IconButton(
+              icon: Icon(Icons.clear, size: 20),
+              onPressed: () => _onSearchChanged(''),
+              color: colorScheme.onSurfaceVariant,
+            ),
+        ],
       ),
     );
   }
 
   Widget _buildJobList(ColorScheme colorScheme, TextTheme textTheme) {
-    if (_careRequests.isEmpty) {
+    if (_filteredCareRequests.isEmpty) {
       return SliverToBoxAdapter(
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.work_outline, size: 64, color: colorScheme.outline),
-              const SizedBox(height: 16),
-              Text(
-                'No care requests available',
-                style: textTheme.titleMedium?.copyWith(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Center(
+            child: Column(
+              children: [
+                Icon(
+                  _searchQuery.isNotEmpty
+                      ? Icons.search_off
+                      : Icons.work_outline,
+                  size: 64,
                   color: colorScheme.outline,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Check back later for new opportunities',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.outline,
+                const SizedBox(height: 16),
+                Text(
+                  _searchQuery.isNotEmpty
+                      ? 'No matching requests found'
+                      : 'No care requests available',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: colorScheme.outline,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  _searchQuery.isNotEmpty
+                      ? 'Try adjusting your search terms'
+                      : 'Check back later for new opportunities',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
 
     return SliverList.builder(
-      itemCount: _careRequests.length,
+      itemCount: _filteredCareRequests.length,
       itemBuilder: (context, index) {
-        final request = _careRequests[index];
-        final status = request['status'] ?? 'pending';
-        final isPending = status == 'pending';
+        final group = _filteredCareRequests[index];
+        final seniorCitizenName = group['senior_citizen_name'] ?? 'Unknown';
+        final requests = group['requests'] as List? ?? [];
 
         return Card(
           elevation: 0,
@@ -354,92 +425,200 @@ class _JobsViewState extends State<JobsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Senior Citizen Header
                 Row(
                   children: [
-                    Expanded(
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: colorScheme.primaryContainer.withAlpha(
+                        204,
+                      ),
                       child: Text(
-                        request['title'] ?? 'Untitled Request',
-                        style: textTheme.titleMedium?.copyWith(
+                        seniorCitizenName.isNotEmpty
+                            ? seniorCitizenName[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isPending
-                            ? colorScheme.primary
-                            : colorScheme.surfaceVariant,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        status.toUpperCase(),
-                        style: textTheme.bodySmall?.copyWith(
-                          color: isPending
-                              ? colorScheme.onPrimary
-                              : colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            seniorCitizenName,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${requests.length} request${requests.length == 1 ? '' : 's'}',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  request['description'] ?? 'No description available',
-                  style: textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                if (request['location'] != null) ...[
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: colorScheme.outline,
+                const SizedBox(height: 16),
+
+                // Individual Requests
+                ...requests.map((request) {
+                  final status = request['status'] ?? 'pending';
+                  final isPending = status == 'pending';
+                  final location =
+                      request['location'] ?? 'Location not specified';
+                  final timing =
+                      request['timing_to_visit'] ?? 'Timing not specified';
+                  final requesterName = request['requester_name'] ?? 'Unknown';
+                  final createdAt = request['created_at'] ?? '';
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.3,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        request['location'],
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.outline,
-                        ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.2),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                ],
-                if (request['timing'] != null) ...[
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 16,
-                        color: colorScheme.outline,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        request['timing'],
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.outline,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                if (isPending)
-                  ElevatedButton(
-                    onPressed: () => _applyForRequest(request['id'].toString()),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
                     ),
-                    child: const Text('Apply for this job'),
-                  ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Request #${request['id']}',
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(
+                                  status,
+                                ).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _getStatusColor(status),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                _getStatusText(status),
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: _getStatusColor(status),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Requested by: $requesterName',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 16,
+                              color: colorScheme.outline,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              location,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              size: 16,
+                              color: colorScheme.outline,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Visit: ${_formatDateTime(timing)}',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.schedule,
+                              size: 16,
+                              color: colorScheme.outline,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Posted: ${_formatDateTime(createdAt)}',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (isPending) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () =>
+                                  _applyForRequest(request['id'].toString()),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: const Text('Apply for this job'),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }),
               ],
             ),
           ),

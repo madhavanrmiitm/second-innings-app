@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:second_innings/services/care_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ViewCurrentHiredCaregiverPage extends StatefulWidget {
-  const ViewCurrentHiredCaregiverPage({super.key});
+  final int seniorCitizenId;
+  final Map<String, dynamic> seniorCitizenData;
+
+  const ViewCurrentHiredCaregiverPage({
+    super.key,
+    required this.seniorCitizenId,
+    required this.seniorCitizenData,
+  });
 
   @override
   State<ViewCurrentHiredCaregiverPage> createState() =>
@@ -28,7 +36,9 @@ class _ViewCurrentHiredCaregiverPageState
     });
 
     try {
-      final response = await CareService.getCurrentCaregiver();
+      final response = await CareService.getCurrentCaregiverForSeniorCitizen(
+        seniorCitizenId: widget.seniorCitizenId,
+      );
 
       if (response.statusCode == 200) {
         final caregiverData = response.data?['data']?['caregiver'];
@@ -62,6 +72,25 @@ class _ViewCurrentHiredCaregiverPageState
     }
   }
 
+  Future<void> _launchEmail(String email) async {
+    try {
+      final uri = Uri.parse('mailto:$email');
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open email client')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error opening email: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -73,12 +102,25 @@ class _ViewCurrentHiredCaregiverPageState
           SliverAppBar.large(
             pinned: true,
             floating: true,
-            title: Text(
-              'Hired Caregiver',
-              style: textTheme.titleLarge?.copyWith(
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
-              ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hired Caregiver',
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'For: ${widget.seniorCitizenData['full_name'] ?? 'Unknown'}',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onPrimaryContainer.withValues(
+                      alpha: 0.8,
+                    ),
+                  ),
+                ),
+              ],
             ),
             backgroundColor: colorScheme.primaryContainer.withAlpha(204),
             shape: const RoundedRectangleBorder(
@@ -142,38 +184,157 @@ class _ViewCurrentHiredCaregiverPageState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _caregiver!['full_name'] ?? 'Unknown',
-                      style: textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    // Senior Citizen Info
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.secondaryContainer.withValues(
+                          alpha: 0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: colorScheme.outline.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            color: colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Hired for: ${widget.seniorCitizenData['full_name'] ?? 'Unknown'}',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${_caregiver!['age'] ?? 'N/A'} • ${_caregiver!['gender'] ?? 'N/A'}',
-                      style: textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _caregiver!['description'] ?? 'No description available',
-                      style: textTheme.bodyLarge,
-                    ),
-                    if (_caregiver!['tags'] != null) ...[
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 8.0,
-                        children: _parseTags(_caregiver!['tags'])
-                            .map(
-                              (tag) => Chip(
-                                label: Text(tag),
-                                backgroundColor: colorScheme.surface.withAlpha(
-                                  128,
+                    const SizedBox(height: 24),
+                    // Caregiver Card
+                    Card(
+                      elevation: 0,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      color: colorScheme.primaryContainer.withAlpha(51),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: colorScheme.primaryContainer
+                                  .withAlpha(204),
+                              child: Text(
+                                (_caregiver!['full_name'] ?? '?')[0]
+                                    .toUpperCase(),
+                                style: TextStyle(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            )
-                            .toList(),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _caregiver!['full_name'] ?? 'Unknown',
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_caregiver!['age'] ?? 'N/A'} • ${_caregiver!['gender'] ?? 'N/A'}',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // Email section
+                                  if (_caregiver!['gmail_id'] != null &&
+                                      _caregiver!['gmail_id']
+                                          .toString()
+                                          .isNotEmpty) ...[
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.email_outlined,
+                                          size: 16,
+                                          color: colorScheme.primary,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () => _launchEmail(
+                                              _caregiver!['gmail_id'],
+                                            ),
+                                            child: Text(
+                                              _caregiver!['gmail_id'],
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    color: colorScheme.primary,
+                                                    decoration: TextDecoration
+                                                        .underline,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                  ],
+                                  Text(
+                                    _caregiver!['description'] ??
+                                        'No description available',
+                                    style: textTheme.bodyMedium,
+                                  ),
+                                  if (_caregiver!['tags'] != null) ...[
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8.0,
+                                      children: _parseTags(_caregiver!['tags'])
+                                          .map(
+                                            (tag) => Chip(
+                                              label: Text(tag),
+                                              backgroundColor: colorScheme
+                                                  .surface
+                                                  .withAlpha(128),
+                                              labelStyle: TextStyle(
+                                                fontSize: 12,
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface.withAlpha(128),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(
+                                Icons.check_circle,
+                                size: 20,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),

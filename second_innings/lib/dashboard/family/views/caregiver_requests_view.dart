@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:second_innings/services/care_service.dart';
 
 class CaregiverRequestsPage extends StatefulWidget {
-  const CaregiverRequestsPage({super.key});
+  final int seniorCitizenId;
+  final Map<String, dynamic> seniorCitizenData;
+
+  const CaregiverRequestsPage({
+    super.key,
+    required this.seniorCitizenId,
+    required this.seniorCitizenData,
+  });
 
   @override
   State<CaregiverRequestsPage> createState() => _CaregiverRequestsPageState();
@@ -27,7 +34,9 @@ class _CaregiverRequestsPageState extends State<CaregiverRequestsPage> {
     });
 
     try {
-      final response = await CareService.getCaregiverRequests();
+      final response = await CareService.getCaregiverRequestsForSeniorCitizen(
+        seniorCitizenId: widget.seniorCitizenId,
+      );
 
       if (response.statusCode == 200) {
         final sentRequestsData =
@@ -112,12 +121,25 @@ class _CaregiverRequestsPageState extends State<CaregiverRequestsPage> {
           SliverAppBar.large(
             pinned: true,
             floating: true,
-            title: Text(
-              'Caregiver Requests',
-              style: textTheme.titleLarge?.copyWith(
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
-              ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Caregiver Requests',
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'For: ${widget.seniorCitizenData['full_name'] ?? 'Unknown'}',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onPrimaryContainer.withValues(
+                      alpha: 0.8,
+                    ),
+                  ),
+                ),
+              ],
             ),
             backgroundColor: colorScheme.primaryContainer.withAlpha(204),
             shape: const RoundedRectangleBorder(
@@ -196,28 +218,46 @@ class _CaregiverRequestsPageState extends State<CaregiverRequestsPage> {
         final request = requests[index];
         return Card(
           elevation: 0,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: const EdgeInsets.symmetric(vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           color: colorScheme.primaryContainer.withAlpha(51),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
               children: [
-                Text(
-                  request['caregiver_name'] ?? 'Unknown',
-                  style: textTheme.titleMedium,
+                CircleAvatar(
+                  backgroundColor: colorScheme.primaryContainer.withAlpha(204),
+                  child: Text(
+                    (request['caregiver_name'] ?? '?')[0].toUpperCase(),
+                    style: TextStyle(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Status: ${request['status'] ?? 'Unknown'}',
-                  style: textTheme.bodyMedium,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        request['caregiver_name'] ?? 'Unknown',
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Status: ${request['status'] ?? 'Unknown'}',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: () {
@@ -254,43 +294,57 @@ class _CaregiverRequestsPageState extends State<CaregiverRequestsPage> {
         final request = requests[index];
         return Card(
           elevation: 0,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: const EdgeInsets.symmetric(vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           color: colorScheme.primaryContainer.withAlpha(51),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
               children: [
-                Text(
-                  request['caregiver_name'] ?? 'Unknown',
-                  style: textTheme.titleMedium,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Status: ${request['status'] ?? 'Unknown'}',
-                  style: textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Implement withdraw functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Withdraw functionality not implemented yet',
-                            ),
-                          ),
-                        );
-                      },
-                      child: const Text('Withdraw'),
+                CircleAvatar(
+                  backgroundColor: colorScheme.primaryContainer.withAlpha(204),
+                  child: Text(
+                    (request['caregiver_name'] ?? '?')[0].toUpperCase(),
+                    style: TextStyle(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        request['caregiver_name'] ?? 'Unknown',
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Status: ${request['status'] ?? 'Unknown'}',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // TODO: Implement withdraw functionality
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Withdraw functionality not implemented yet',
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Withdraw'),
                 ),
               ],
             ),
